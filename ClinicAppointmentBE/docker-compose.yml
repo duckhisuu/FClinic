@@ -1,0 +1,127 @@
+services:
+  # ==============================================================================
+  # PostgreSQL - Patient Service Database
+  # ==============================================================================
+  postgres-patient:
+    image: postgres:16-alpine
+    container_name: fclinic-postgres-patient
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USERNAME:-fclinic_admin}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-fclinic_secret}
+      POSTGRES_DB: ${PATIENT_DB_NAME:-patient_db}
+    ports:
+      - "${POSTGRES_PATIENT_PORT:-5433}:5432"
+    volumes:
+      - patient_pgdata:/var/lib/postgresql/data
+    networks:
+      - fclinic-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-fclinic_admin} -d ${PATIENT_DB_NAME:-patient_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==============================================================================
+  # PostgreSQL - Doctor Service Database
+  # ==============================================================================
+  postgres-doctor:
+    image: postgres:16-alpine
+    container_name: fclinic-postgres-doctor
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USERNAME:-fclinic_admin}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-fclinic_secret}
+      POSTGRES_DB: ${DOCTOR_DB_NAME:-doctor_db}
+    ports:
+      - "${POSTGRES_DOCTOR_PORT:-5434}:5432"
+    volumes:
+      - doctor_pgdata:/var/lib/postgresql/data
+    networks:
+      - fclinic-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-fclinic_admin} -d ${DOCTOR_DB_NAME:-doctor_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==============================================================================
+  # PostgreSQL - Appointment Service Database
+  # ==============================================================================
+  postgres-appointment:
+    image: postgres:16-alpine
+    container_name: fclinic-postgres-appointment
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USERNAME:-fclinic_admin}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-fclinic_secret}
+      POSTGRES_DB: ${APPOINTMENT_DB_NAME:-appointment_db}
+    ports:
+      - "${POSTGRES_APPOINTMENT_PORT:-5435}:5432"
+    volumes:
+      - appointment_pgdata:/var/lib/postgresql/data
+    networks:
+      - fclinic-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-fclinic_admin} -d ${APPOINTMENT_DB_NAME:-appointment_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==============================================================================
+  # Redis - Distributed Lock & Caching
+  # ==============================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: fclinic-redis
+    restart: always
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - fclinic-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==============================================================================
+  # RabbitMQ - Message Broker with Management UI
+  # ==============================================================================
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: fclinic-rabbitmq
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-fclinic_rabbit}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-rabbit_secret}
+    ports:
+      - "${RABBITMQ_PORT:-5672}:5672"
+      - "${RABBITMQ_MANAGEMENT_PORT:-15672}:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - fclinic-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+
+volumes:
+  patient_pgdata:
+    driver: local
+  doctor_pgdata:
+    driver: local
+  appointment_pgdata:
+    driver: local
+  redis_data:
+    driver: local
+  rabbitmq_data:
+    driver: local
+
+networks:
+  fclinic-network:
+    driver: bridge
