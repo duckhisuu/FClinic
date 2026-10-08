@@ -119,6 +119,8 @@ Tất cả các cuộc gọi từ Frontend hoặc công cụ thử nghiệm (Pos
 ```bash
 curl -X GET http://localhost:8080/api/v1/doctors
 curl -X GET http://localhost:8080/api/v1/doctors/1/slots
+curl -X GET "http://localhost:8080/api/v1/doctors/1/schedule?period=WEEK&anchorDate=2026-09-23"
+curl -X GET "http://localhost:8080/api/v1/doctors/1/schedule?period=MONTH&anchorDate=2026-09-23"
 ```
 
 ### 2. Đặt lịch khám (Appointment Service - có Distributed Lock):

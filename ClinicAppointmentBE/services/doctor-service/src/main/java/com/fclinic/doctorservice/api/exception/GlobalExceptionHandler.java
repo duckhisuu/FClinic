@@ -34,6 +34,13 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.failure(HttpStatus.BAD_REQUEST.value(), ErrorCode.VALIDATION_ERROR, errors));
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ApiResponse<Void>> handleBadRequest(IllegalArgumentException ex) {
+        log.warn("[BadRequest] {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.failure(HttpStatus.BAD_REQUEST.value(), ErrorCode.BAD_REQUEST, ex.getMessage()));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleGeneralException(Exception ex) {
         log.error("[InternalError] {}", ex.getMessage(), ex);

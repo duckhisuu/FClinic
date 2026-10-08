@@ -5,9 +5,10 @@ import com.fclinic.doctorservice.api.dto.CreateDoctorRequest;
 import com.fclinic.doctorservice.api.dto.CreateTimeSlotRequest;
 import com.fclinic.doctorservice.api.dto.DoctorResponse;
 import com.fclinic.doctorservice.api.dto.TimeSlotResponse;
-import com.fclinic.doctorservice.application.command.CreateDoctorCommand;
-import com.fclinic.doctorservice.application.command.CreateTimeSlotCommand;
+import com.fclinic.doctorservice.api.dto.DoctorScheduleResponse;
+import com.fclinic.doctorservice.api.mapper.DoctorApiMapper;
 import com.fclinic.doctorservice.application.exception.DoctorNotFoundException;
+import com.fclinic.doctorservice.application.model.SchedulePeriod;
 import com.fclinic.doctorservice.application.port.in.*;
 import com.fclinic.doctorservice.application.result.DoctorView;
 import com.fclinic.doctorservice.application.result.TimeSlotView;
@@ -31,6 +32,7 @@ public class DoctorController {
     private final CreateDoctorUseCase createDoctorUseCase;
     private final ListTimeSlotsUseCase listTimeSlotsUseCase;
     private final CreateTimeSlotUseCase createTimeSlotUseCase;
+    private final GetDoctorScheduleUseCase getDoctorScheduleUseCase;
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<DoctorResponse>>> getDoctors(
@@ -38,7 +40,7 @@ public class DoctorController {
             @RequestParam(required = false) String department
     ) {
         List<DoctorResponse> doctors = listDoctorsUseCase.listDoctors(specialty, department)
-                .stream().map(DoctorResponse::from).toList();
+                .stream().map(DoctorApiMapper::toResponse).toList();
         return ResponseEntity.ok(ApiResponse.success(doctors));
     }
 
@@ -46,25 +48,14 @@ public class DoctorController {
     public ResponseEntity<ApiResponse<DoctorResponse>> getDoctorById(@PathVariable Long id) {
         DoctorView view = getDoctorUseCase.getById(id)
                 .orElseThrow(() -> new DoctorNotFoundException("Không tìm thấy bác sĩ ID: " + id));
-        return ResponseEntity.ok(ApiResponse.success(DoctorResponse.from(view)));
+        return ResponseEntity.ok(ApiResponse.success(DoctorApiMapper.toResponse(view)));
     }
 
     @PostMapping
     public ResponseEntity<ApiResponse<DoctorResponse>> createDoctor(@Valid @RequestBody CreateDoctorRequest request) {
-        CreateDoctorCommand command = new CreateDoctorCommand(
-                request.getName(),
-                request.getSpecialty(),
-                request.getDepartment(),
-                request.getQualification(),
-                request.getExperienceYears(),
-                request.getConsultationFee(),
-                request.getRoomNumber(),
-                request.getBio(),
-                request.getAvatarUrl()
-        );
-        DoctorView view = createDoctorUseCase.createDoctor(command);
+        DoctorView view = createDoctorUseCase.createDoctor(DoctorApiMapper.toCommand(request));
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(201, "Thêm bác sĩ thành công", DoctorResponse.from(view)));
+                .body(ApiResponse.success(201, "Thêm bác sĩ thành công", DoctorApiMapper.toResponse(view)));
     }
 
     @GetMapping("/{id}/slots")
@@ -73,8 +64,18 @@ public class DoctorController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
     ) {
         List<TimeSlotResponse> slots = listTimeSlotsUseCase.listSlots(id, date)
-                .stream().map(TimeSlotResponse::from).toList();
+                .stream().map(DoctorApiMapper::toResponse).toList();
         return ResponseEntity.ok(ApiResponse.success(slots));
+    }
+
+    @GetMapping("/{id}/schedule")
+    public ResponseEntity<ApiResponse<DoctorScheduleResponse>> getDoctorSchedule(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "WEEK") SchedulePeriod period,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate anchorDate
+    ) {
+        return ResponseEntity.ok(ApiResponse.success(
+                DoctorApiMapper.toResponse(getDoctorScheduleUseCase.getSchedule(id, period, anchorDate))));
     }
 
     @PostMapping("/{id}/slots")
@@ -82,14 +83,8 @@ public class DoctorController {
             @PathVariable Long id,
             @Valid @RequestBody CreateTimeSlotRequest request
     ) {
-        CreateTimeSlotCommand command = new CreateTimeSlotCommand(
-                id,
-                request.getSlotDate(),
-                request.getStartTime(),
-                request.getEndTime()
-        );
-        TimeSlotView view = createTimeSlotUseCase.createTimeSlot(command);
+        TimeSlotView view = createTimeSlotUseCase.createTimeSlot(DoctorApiMapper.toCommand(id, request));
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(201, "Thêm khung giờ thành công", TimeSlotResponse.from(view)));
+                .body(ApiResponse.success(201, "Thêm khung giờ thành công", DoctorApiMapper.toResponse(view)));
     }
 }
