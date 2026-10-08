@@ -11,4 +11,6 @@ import java.util.List;
 public interface SpringDataJpaTimeSlotRepository extends JpaRepository<JpaTimeSlotEntity, Long> {
     List<JpaTimeSlotEntity> findByDoctorIdAndSlotDateOrderByStartTimeAsc(Long doctorId, LocalDate slotDate);
     List<JpaTimeSlotEntity> findByDoctorIdAndSlotDateGreaterThanEqualOrderBySlotDateAscStartTimeAsc(Long doctorId, LocalDate slotDate);
+    List<JpaTimeSlotEntity> findByDoctorIdAndSlotDateBetweenOrderBySlotDateAscStartTimeAsc(
+            Long doctorId, LocalDate fromDate, LocalDate toDate);
 }

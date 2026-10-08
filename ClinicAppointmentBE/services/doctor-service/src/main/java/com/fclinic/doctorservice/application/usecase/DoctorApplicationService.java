@@ -3,10 +3,13 @@ package com.fclinic.doctorservice.application.usecase;
 import com.fclinic.doctorservice.application.command.CreateDoctorCommand;
 import com.fclinic.doctorservice.application.command.CreateTimeSlotCommand;
 import com.fclinic.doctorservice.application.exception.DoctorNotFoundException;
+import com.fclinic.doctorservice.application.mapper.DoctorApplicationMapper;
+import com.fclinic.doctorservice.application.model.SchedulePeriod;
 import com.fclinic.doctorservice.application.port.in.*;
 import com.fclinic.doctorservice.application.port.out.DoctorRepositoryPort;
 import com.fclinic.doctorservice.application.port.out.TimeSlotRepositoryPort;
 import com.fclinic.doctorservice.application.result.DoctorView;
+import com.fclinic.doctorservice.application.result.DoctorScheduleView;
 import com.fclinic.doctorservice.application.result.TimeSlotView;
 import com.fclinic.doctorservice.domain.aggregate.Doctor;
 import com.fclinic.doctorservice.domain.model.TimeSlot;
@@ -18,6 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.DayOfWeek;
+import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,7 +32,8 @@ public class DoctorApplicationService implements
         ListDoctorsUseCase,
         CreateDoctorUseCase,
         ListTimeSlotsUseCase,
-        CreateTimeSlotUseCase {
+        CreateTimeSlotUseCase,
+        GetDoctorScheduleUseCase {
 
     private static final Logger log = LoggerFactory.getLogger(DoctorApplicationService.class);
 
@@ -42,7 +48,7 @@ public class DoctorApplicationService implements
     @Override
     @Transactional(readOnly = true)
     public Optional<DoctorView> getById(Long id) {
-        return doctorRepository.findById(id).map(DoctorView::from);
+        return doctorRepository.findById(id).map(DoctorApplicationMapper::toView);
     }
 
     @Override
@@ -50,13 +56,13 @@ public class DoctorApplicationService implements
     public List<DoctorView> listDoctors(String specialty, String department) {
         if (specialty != null && !specialty.isBlank()) {
             return doctorRepository.findBySpecialtyIgnoreCaseAndActiveTrue(specialty)
-                    .stream().map(DoctorView::from).toList();
+                    .stream().map(DoctorApplicationMapper::toView).toList();
         }
         if (department != null && !department.isBlank()) {
             return doctorRepository.findByDepartmentIgnoreCaseAndActiveTrue(department)
-                    .stream().map(DoctorView::from).toList();
+                    .stream().map(DoctorApplicationMapper::toView).toList();
         }
-        return doctorRepository.findByActiveTrue().stream().map(DoctorView::from).toList();
+        return doctorRepository.findByActiveTrue().stream().map(DoctorApplicationMapper::toView).toList();
     }
 
     @Override
@@ -75,7 +81,7 @@ public class DoctorApplicationService implements
         );
         Doctor saved = doctorRepository.save(doctor);
         log.info("[DoctorApplicationService] Created doctor id={} name={}", saved.getId(), saved.getName());
-        return DoctorView.from(saved);
+        return DoctorApplicationMapper.toView(saved);
     }
 
     @Override
@@ -86,17 +92,41 @@ public class DoctorApplicationService implements
         }
         if (date != null) {
             return timeSlotRepository.findByDoctorIdAndSlotDateOrderByStartTimeAsc(doctorId, date)
-                    .stream().map(TimeSlotView::from).toList();
+                    .stream().map(DoctorApplicationMapper::toView).toList();
         }
         return timeSlotRepository.findByDoctorIdAndSlotDateGreaterThanEqualOrderBySlotDateAscStartTimeAsc(doctorId, LocalDate.now())
-                .stream().map(TimeSlotView::from).toList();
+                .stream().map(DoctorApplicationMapper::toView).toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public DoctorScheduleView getSchedule(Long doctorId, SchedulePeriod period, LocalDate anchorDate) {
+        ensureDoctorExists(doctorId);
+        LocalDate anchor = anchorDate == null ? LocalDate.now() : anchorDate;
+        SchedulePeriod requestedPeriod = period == null ? SchedulePeriod.WEEK : period;
+        LocalDate fromDate;
+        LocalDate toDate;
+
+        if (requestedPeriod == SchedulePeriod.MONTH) {
+            fromDate = anchor.withDayOfMonth(1);
+            toDate = anchor.withDayOfMonth(anchor.lengthOfMonth());
+        } else {
+            fromDate = anchor.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+            toDate = fromDate.plusDays(6);
+        }
+
+        List<TimeSlotView> slots = timeSlotRepository
+                .findByDoctorIdAndSlotDateBetweenOrderBySlotDateAscStartTimeAsc(doctorId, fromDate, toDate)
+                .stream().map(DoctorApplicationMapper::toView).toList();
+        return new DoctorScheduleView(doctorId, requestedPeriod, fromDate, toDate, slots);
     }
 
     @Override
     @Transactional
     public TimeSlotView createTimeSlot(CreateTimeSlotCommand command) {
-        if (!doctorRepository.findById(command.doctorId()).isPresent()) {
-            throw new DoctorNotFoundException("Không tìm thấy bác sĩ với ID: " + command.doctorId());
+        ensureDoctorExists(command.doctorId());
+        if (!command.endTime().isAfter(command.startTime())) {
+            throw new IllegalArgumentException("Giờ kết thúc phải sau giờ bắt đầu");
         }
         TimeSlot slot = TimeSlot.createNew(
                 command.doctorId(),
@@ -106,7 +136,13 @@ public class DoctorApplicationService implements
         );
         TimeSlot saved = timeSlotRepository.save(slot);
         log.info("[DoctorApplicationService] Created slot id={} for doctor={}", saved.getId(), command.doctorId());
-        return TimeSlotView.from(saved);
+        return DoctorApplicationMapper.toView(saved);
+    }
+
+    private void ensureDoctorExists(Long doctorId) {
+        if (doctorRepository.findById(doctorId).isEmpty()) {
+            throw new DoctorNotFoundException("Không tìm thấy bác sĩ với ID: " + doctorId);
+        }
     }
 
     @PostConstruct

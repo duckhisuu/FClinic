@@ -15,6 +15,8 @@ public interface TimeSlotRepository {
     List<TimeSlot> findByDoctorIdAndSlotDateOrderByStartTimeAsc(Long doctorId, LocalDate date);
 
     List<TimeSlot> findByDoctorIdAndSlotDateGreaterThanEqualOrderBySlotDateAscStartTimeAsc(Long doctorId, LocalDate date);
+    List<TimeSlot> findByDoctorIdAndSlotDateBetweenOrderBySlotDateAscStartTimeAsc(
+            Long doctorId, LocalDate fromDate, LocalDate toDate);
 
     long count();
 }
