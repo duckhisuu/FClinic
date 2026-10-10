@@ -4,6 +4,26 @@ server:
 spring:
   application:
     name: notification-service
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${POSTGRES_NOTIFICATION_PORT:5436}/${NOTIFICATION_DB_NAME:notification_db}
+    username: ${DB_USERNAME:fclinic_admin}
+    password: ${DB_PASSWORD:fclinic_secret}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: ${DB_POOL_SIZE:10}
+      minimum-idle: 2
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+    # Template seeds contain Thymeleaf ${...} expressions, which Flyway would treat as placeholders.
+    placeholder-replacement: false
   rabbitmq:
     host: ${RABBITMQ_HOST:localhost}
     port: ${RABBITMQ_PORT:5672}
@@ -12,8 +32,28 @@ spring:
     listener:
       simple:
         auto-startup: true
+        acknowledge-mode: auto
+        default-requeue-rejected: false
+        prefetch: 20
         concurrency: 1
-        max-concurrency: 5
+        max-concurrency: 4
+        retry:
+          enabled: true
+          max-attempts: 3
+          initial-interval: 1s
+          multiplier: 2
+          max-interval: 10s
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:1025}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      "[mail.smtp.auth]": ${MAIL_SMTP_AUTH:false}
+      "[mail.smtp.starttls.enable]": ${MAIL_STARTTLS:false}
+      "[mail.smtp.connectiontimeout]": 5000
+      "[mail.smtp.timeout]": 5000
+      "[mail.smtp.writetimeout]": 5000
 
 eureka:
   instance:
@@ -24,11 +64,20 @@ eureka:
     service-url:
       defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
 
-fclinic:
-  rabbitmq:
-    queue: fclinic.appointment.notifications
-    exchange: fclinic.direct.exchange
-    routingkey: appointment.booked
+app:
+  notification:
+    timezone: ${NOTIFICATION_TIMEZONE:Asia/Ho_Chi_Minh}
+    mail:
+      from-address: ${MAIL_FROM_ADDRESS:no-reply@fclinic.local}
+      from-name: ${MAIL_FROM_NAME:FClinic}
+    delivery:
+      scheduler-delay-ms: ${DELIVERY_SCHEDULER_DELAY_MS:5000}
+      batch-size: ${DELIVERY_BATCH_SIZE:100}
+      max-attempts: ${DELIVERY_MAX_ATTEMPTS:3}
+      processing-timeout: ${DELIVERY_PROCESSING_TIMEOUT:10m}
+      retry-delays:
+        - 1m
+        - 5m
 
 management:
   endpoints:
@@ -38,3 +87,11 @@ management:
   endpoint:
     health:
       show-details: always
+  health:
+    mail:
+      enabled: false
+
+logging:
+  level:
+    root: INFO
+    com.fclinic.notificationservice: INFO

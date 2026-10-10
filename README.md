@@ -59,10 +59,12 @@ MSS301_FA26_GroupProject/
 | **Patient Service** | Spring Boot + JPA | `8081` | Quản lý bệnh nhân |
 | **Doctor Service** | Spring Boot + JPA | `8082` | Quản lý bác sĩ & khung giờ |
 | **Appointment Service** | Spring Boot + Redisson | `8083` | Đặt lịch khám & Khóa phân tán |
-| **Notification Service** | Spring Boot + RabbitMQ | `8084` | Lắng nghe & gửi thông báo |
+| **Notification Service** | Spring Boot + RabbitMQ + JavaMail | `8084` | Nhận sự kiện lịch hẹn, gửi email (retry, DLQ), lịch sử thông báo |
 | **PostgreSQL (Patient)** | PostgreSQL 16 | `5433` | Database `patient_db` |
 | **PostgreSQL (Doctor)** | PostgreSQL 16 | `5434` | Database `doctor_db` |
 | **PostgreSQL (Appointment)** | PostgreSQL 16 | `5435` | Database `appointment_db` |
+| **PostgreSQL (Notification)** | PostgreSQL 16 | `5436` | Database `notification_db` |
+| **MailHog SMTP / UI** | MailHog | `1025` / `8025` | Hộp thư giả lập khi chạy cục bộ |
 | **Redis** | Redis 7 Alpine | `6379` | Distributed Lock chống double-booking |
 | **RabbitMQ AMQP / UI** | RabbitMQ 3 Management | `5672` / `15672` | Hàng đợi sự kiện & giao diện quản trị |
 | **Frontend Client SPA** | React + Vite + Tailwind | `5173` | Giao diện người dùng |
@@ -154,7 +156,9 @@ curl -X GET http://localhost:8080/api/v1/patients
 
 ### 5. Thông báo (Notification Service):
 ```bash
-curl -X GET http://localhost:8080/api/v1/notifications
+curl "http://localhost:8080/api/v1/notifications/me?userId=25"
+curl "http://localhost:8080/api/v1/admin/notifications?status=PERMANENT_FAILURE"
+curl -X POST http://localhost:8080/api/v1/admin/notifications/1/retry
 ```
 
 ---

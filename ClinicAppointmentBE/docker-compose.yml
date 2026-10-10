@@ -69,6 +69,29 @@ services:
       retries: 5
 
   # ==============================================================================
+  # PostgreSQL - Notification Service Database
+  # ==============================================================================
+  postgres-notification:
+    image: postgres:16-alpine
+    container_name: fclinic-postgres-notification
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USERNAME:-fclinic_admin}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-fclinic_secret}
+      POSTGRES_DB: ${NOTIFICATION_DB_NAME:-notification_db}
+    ports:
+      - "${POSTGRES_NOTIFICATION_PORT:-5436}:5432"
+    volumes:
+      - notification_pgdata:/var/lib/postgresql/data
+    networks:
+      - fclinic-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-fclinic_admin} -d ${NOTIFICATION_DB_NAME:-notification_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==============================================================================
   # Redis - Distributed Lock & Caching
   # ==============================================================================
   redis:
@@ -110,12 +133,27 @@ services:
       timeout: 10s
       retries: 5
 
+  # ==============================================================================
+  # MailHog - Local SMTP sink for Notification Service (UI: http://localhost:8025)
+  # ==============================================================================
+  mailhog:
+    image: mailhog/mailhog
+    container_name: fclinic-mailhog
+    restart: always
+    ports:
+      - "${MAILHOG_SMTP_PORT:-1025}:1025"
+      - "${MAILHOG_UI_PORT:-8025}:8025"
+    networks:
+      - fclinic-network
+
 volumes:
   patient_pgdata:
     driver: local
   doctor_pgdata:
     driver: local
   appointment_pgdata:
+    driver: local
+  notification_pgdata:
     driver: local
   redis_data:
     driver: local
