@@ -1,82 +1,25 @@
 package com.fclinic.patientservice.domain.aggregate;
-
+import com.fclinic.patientservice.domain.model.ProfileData;
+import com.fclinic.patientservice.domain.model.ProfileData.Gender;
+import com.fclinic.patientservice.domain.model.ProfileData.Status;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.UUID;
 
-public class Patient {
-
-    private Long id;
-    private String fullName;
-    private String phoneNumber;
-    private String email;
-    private LocalDate dateOfBirth;
-    private String gender;
-    private String address;
-    private Instant createdAt;
-    private Instant updatedAt;
-
-    public Patient(
-            Long id,
-            String fullName,
-            String phoneNumber,
-            String email,
-            LocalDate dateOfBirth,
-            String gender,
-            String address,
-            Instant createdAt,
-            Instant updatedAt
-    ) {
-        this.id = id;
-        this.fullName = fullName;
-        this.phoneNumber = phoneNumber;
-        this.email = email;
-        this.dateOfBirth = dateOfBirth;
-        this.gender = gender;
-        this.address = address;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
+public record Patient(UUID id, String patientCode, String fullName, String phoneNumber, String email,
+                      LocalDate dateOfBirth, Gender gender, String address, Status status, long version,
+                      Instant createdAt, Instant updatedAt, String createdBy, String updatedBy) {
+    public static Patient create(ProfileData data, String actor, Instant now) {
+        UUID id = UUID.randomUUID();
+        return new Patient(id, "PAT-" + id, data.fullName(), data.phoneNumber(), data.email(),
+                data.dateOfBirth(), data.gender(), data.address(), Status.ACTIVE, 0, now, now, actor, actor);
     }
-
-    public static Patient createNew(
-            String fullName,
-            String phoneNumber,
-            String email,
-            LocalDate dateOfBirth,
-            String gender,
-            String address
-    ) {
-        Instant now = Instant.now();
-        return new Patient(
-                null,
-                fullName,
-                phoneNumber,
-                email,
-                dateOfBirth,
-                gender,
-                address,
-                now,
-                now
-        );
+    public ProfileData profile() {
+        return new ProfileData(fullName, phoneNumber, email, dateOfBirth, gender, address, status);
     }
-
-    public void updateInfo(String fullName, String email, LocalDate dateOfBirth, String gender, String address) {
-        this.fullName = fullName;
-        this.email = email;
-        this.dateOfBirth = dateOfBirth;
-        this.gender = gender;
-        this.address = address;
-        this.updatedAt = Instant.now();
+    public Patient replace(ProfileData data, String actor, Instant now) {
+        return new Patient(id, patientCode, data.fullName(), data.phoneNumber(), data.email(),
+                data.dateOfBirth(), data.gender(), data.address(), data.status(), version,
+                createdAt, now, createdBy, actor);
     }
-
-    // Getters and Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public String getFullName() { return fullName; }
-    public String getPhoneNumber() { return phoneNumber; }
-    public String getEmail() { return email; }
-    public LocalDate getDateOfBirth() { return dateOfBirth; }
-    public String getGender() { return gender; }
-    public String getAddress() { return address; }
-    public Instant getCreatedAt() { return createdAt; }
-    public Instant getUpdatedAt() { return updatedAt; }
 }

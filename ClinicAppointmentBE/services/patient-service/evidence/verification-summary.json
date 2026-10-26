@@ -1,0 +1,486 @@
+{
+  "date": "2026-10-23",
+  "timezone": "Asia/Saigon",
+  "baseCommit": "238e1dd36cb759df444cf9441ef0012f0d12d2b5",
+  "workingTree": "uncommitted",
+  "command": "mvn -f ClinicAppointmentBE/pom.xml -pl services/patient-service -am verify -B -ntp",
+  "exitCode": 0,
+  "finishedAt": "2026-10-23T23:43:29+07:00",
+  "result": "BUILD SUCCESS",
+  "tests": 58.0,
+  "failures": 0.0,
+  "errors": 0.0,
+  "skipped": 0.0,
+  "database": "PostgreSQL 16.10, fresh embedded native cluster, target-only, loopback random port, stopped",
+  "verificationLevel": "Spring/JPA/PostgreSQL/MockMvc component; not TCP/Gateway or real provider integration",
+  "testDoubles": [
+    "IdentityVerifierPort",
+    "WorkScopePort",
+    "DoctorClientPort",
+    "AppointmentClientPort"
+  ],
+  "fixtureClock": "2026-10-20T03:00:00Z",
+  "openapiSha256": "63e2e306a2b14d89397bb998be43f8de7b982eadf8f3b88353bc952684ebeb71",
+  "registrySha256": "64d6b73b655638365417bde67b70300295a01c1c1a9d22f230d8d266af33bb67",
+  "schemaSha256": "1500fb0c94d9a504237889201ce900185c771bc80403d484a1d9d47384536ef6",
+  "sourceManifestSha256": "6c6ddc6179cd8283295404a57f14ea10c01c6899932e94e3c8f7d06ac0b44d88",
+  "sourceManifest": [
+    {
+      "path": "pom.xml",
+      "sha256": "989c935ae5c7ee4aad78e863ce844d17c63087c4ca8eb35ffedee2acaf053807"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/api/controller/PatientController.java",
+      "sha256": "b1ab20f4025d3a06e9d06b1010e667b812f2c272826f0b3475b9d6afab9ce83d"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/api/dto/MedicalRecordResponse.java",
+      "sha256": "4464db425b6e98656e90f5e1c7cb05c1661bd687220ea5a9206774905492efdd"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/api/dto/PatientInput.java",
+      "sha256": "7a2c38affa9494668c0423c623c599efad66030d9e718897b3ddac7932896f74"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/api/dto/PatientResponse.java",
+      "sha256": "8f9a962b9d2d406909a0193562936ece0d8c71fc547c93c5a0775b5420e86366"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/api/exception/GlobalExceptionHandler.java",
+      "sha256": "672be4e29574548cf5bd6c2896a6d575ed2f9b5a8a08ec5f1461338a12740b7e"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/api/security/PatientAuthentication.java",
+      "sha256": "1517db520b250845f5d2355634dc8efa134eca83a52f09007df8ddec59a98251"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/application/port/out/AppointmentClientPort.java",
+      "sha256": "2c560ab0aba9887e1a3925eda0536f95f05342b293611dd4b2aa6206d61c6cc1"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/application/port/out/DoctorClientPort.java",
+      "sha256": "7ebd19416aa823b089182f0014f37737508681834400f01c8ccd876cccd92c6b"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/application/port/out/IdentityVerifierPort.java",
+      "sha256": "1e5261ae050830e1c7913477a2bf72323de9b83703b0d44580c96d473735c8a5"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/application/port/out/PatientRepositoryPort.java",
+      "sha256": "727535f78a01eb8a453356c3be7bc0a81f31768e905ed356db04f6d2dbed0804"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/application/port/out/RevisionPort.java",
+      "sha256": "eb323ee4bd285bafb034316f379f82ebc2bf96c4b7104c72c4047031316578be"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/application/port/out/WorkScopePort.java",
+      "sha256": "62dc72f470ef19d41327be82e736820656f9c8e69ac36864e30bc4d9bfcd18f3"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/application/security/PatientPolicy.java",
+      "sha256": "ece48a9e6998542b3fa374a24646e1c272426e03a0ae79835146a0a3705108ef"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/application/security/TrustedCaller.java",
+      "sha256": "7c4ba7c242e88702291706d1e7252c8b1a5c80bbd08b5f9daa40864e884c9400"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/application/usecase/PatientApplicationService.java",
+      "sha256": "d33af9e8c06717e133f769f54769e345d4525d5a2a8e81bc22874edb753b4bf0"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/application/usecase/PatientWriter.java",
+      "sha256": "72b060dab91ec38618fdeb9333acd4417ee62bf19e72356279156359c842a93d"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/config/PatientConfiguration.java",
+      "sha256": "27ddecc59e27102d2ff6f968ec42f4577d10471747074bed73037727afc72635"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/config/PatientWebConfiguration.java",
+      "sha256": "338f6900b219762f3eacad98df33a8caf7bf277e0a01b7ad116cb4398960ada7"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/domain/aggregate/MedicalRecord.java",
+      "sha256": "4acf3550ecf42f07486cad4c402ecf9604a1cdd9a9522d10273f2790179a3313"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/domain/aggregate/Patient.java",
+      "sha256": "4859c9cf5086126f67eaaf6f7ed97685df7fef0ff854da914b34f6ab5880fef8"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/domain/model/ClinicalData.java",
+      "sha256": "63956389b70c3820585a9f1c2287a497cc42e74987d54af3b667094988699c84"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/domain/model/PageResult.java",
+      "sha256": "f4ffdbc29341bf84829947d7953bff94624b5d10e34e01e02602d1dd65444578"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/domain/model/PatientError.java",
+      "sha256": "1612ae95883fbbf0002849b104d606835ee8cc40e528a9585397c7cc752c931d"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/domain/model/ProfileData.java",
+      "sha256": "b8eefdb69ee073ee72e70c80a712254bcf48d5541fbf5e0ce97975f7d5942a40"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/domain/model/SearchQuery.java",
+      "sha256": "2adbbcaeb239bc82589120b1b2d4c9179ee8a609d0ca8fe748c47415e77a99e5"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/infrastructure/adapter/JpaPatientRepositoryAdapter.java",
+      "sha256": "26942d7c51b279510116a83b5f9119a3a1055e2dd8b915adcd58f342019cdadc"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/infrastructure/adapter/JpaRevisionAdapter.java",
+      "sha256": "6f118cf23240ce1e60927e0a06c8259e9c30efa9039e77bd3dd7e067403ca95c"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/infrastructure/entity/JpaMedicalRecordEntity.java",
+      "sha256": "d965f05b281e08d4ff7b516bb3ecca8710b3937e097695a48aaa85fa50fde365"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/infrastructure/entity/JpaMedicalRevisionEntity.java",
+      "sha256": "ffe008e698be571255d2b1ef7561454c513094d684b8ebe707247fe2e9f5a432"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/infrastructure/entity/JpaPatientEntity.java",
+      "sha256": "43bc1e105962cb91a3ddf071e4bd99eefeac0854e5171ee7b794b04b31637770"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/infrastructure/entity/JpaPatientRevisionEntity.java",
+      "sha256": "862f09374670bc466528be4b498c9dafc52679bf30b518a3b6ebb44113f21137"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/PatientServiceApplication.java",
+      "sha256": "ab6252e15f71b3863853971581f86e765339db1eebc4615174af28d4f917079e"
+    },
+    {
+      "path": "src/main/resources/application.yml",
+      "sha256": "f86c195e69da58c3cee4b1f551e2a838b5e42299c53dc98d4e6608ed16b277b1"
+    },
+    {
+      "path": "src/main/resources/db/schema/V001__patient_v2_empty.sql",
+      "sha256": "1500fb0c94d9a504237889201ce900185c771bc80403d484a1d9d47384536ef6"
+    },
+    {
+      "path": "src/test/java/com/fclinic/patientservice/config/PatientAuthenticationTest.java",
+      "sha256": "c11c8358c6f1b0a6f674486a27954d4306d28a5d85ec18d112d56cd2e5fea9d5"
+    },
+    {
+      "path": "src/test/java/com/fclinic/patientservice/PatientInputTest.java",
+      "sha256": "edc0f0f896a7caac15450d2bde6259d68f2c728996b1dc70aa3581e6b0a619f2"
+    },
+    {
+      "path": "src/test/java/com/fclinic/patientservice/PatientOrchestrationTest.java",
+      "sha256": "7b1a47c9aeb86bbe1ea6d64bca3df9c4bc634d466f441713f2bed3958d83eb3d"
+    },
+    {
+      "path": "src/test/java/com/fclinic/patientservice/PatientPolicyTest.java",
+      "sha256": "c4b919764286bbba0b5f0ac2017978a145b2d85b30fe537978360cce46c49517"
+    },
+    {
+      "path": "src/test/java/com/fclinic/patientservice/PatientServiceIT.java",
+      "sha256": "818fe5ec1df65ebf09147f65f90f96e2d3ad80ae0220c89d76b0d9631ffbaace"
+    }
+  ],
+  "suites": [
+    {
+      "name": "com.fclinic.patientservice.config.PatientAuthenticationTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "timestamp": null,
+      "seconds": "0.295",
+      "report": "target/surefire-reports/TEST-com.fclinic.patientservice.config.PatientAuthenticationTest.xml",
+      "cases": [
+        {
+          "name": "inactiveVerifiedContextIs401",
+          "status": "PASS"
+        },
+        {
+          "name": "defaultScopeAndReferenceAdaptersFailClosed",
+          "status": "PASS"
+        },
+        {
+          "name": "unconfiguredVerifierNeverAcceptsAnArbitraryBearerAndReturns503",
+          "status": "PASS"
+        },
+        {
+          "name": "tc17_missingOrMalformedBearerAndSpoofedHeadersAre401",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "name": "com.fclinic.patientservice.PatientInputTest",
+      "tests": 24,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "timestamp": null,
+      "seconds": "0.349",
+      "report": "target/surefire-reports/TEST-com.fclinic.patientservice.PatientInputTest.xml",
+      "cases": [
+        {
+          "name": "tc03_rejectsInvalidPhone(String)[1]",
+          "status": "PASS"
+        },
+        {
+          "name": "tc03_rejectsInvalidPhone(String)[2]",
+          "status": "PASS"
+        },
+        {
+          "name": "tc03_rejectsInvalidPhone(String)[3]",
+          "status": "PASS"
+        },
+        {
+          "name": "tc03_rejectsInvalidPhone(String)[4]",
+          "status": "PASS"
+        },
+        {
+          "name": "tc03_rejectsInvalidPhone(String)[5]",
+          "status": "PASS"
+        },
+        {
+          "name": "tc03_rejectsNumericTextAndMalformedEmail",
+          "status": "PASS"
+        },
+        {
+          "name": "tc03_tc32_rejectsInvalidOrFutureDob(String)[1]",
+          "status": "PASS"
+        },
+        {
+          "name": "tc03_tc32_rejectsInvalidOrFutureDob(String)[2]",
+          "status": "PASS"
+        },
+        {
+          "name": "tc03_tc32_rejectsInvalidOrFutureDob(String)[3]",
+          "status": "PASS"
+        },
+        {
+          "name": "tc03_tc32_rejectsInvalidOrFutureDob(String)[4]",
+          "status": "PASS"
+        },
+        {
+          "name": "tc03_tc32_rejectsInvalidOrFutureDob(String)[5]",
+          "status": "PASS"
+        },
+        {
+          "name": "tc05_queryAndUuidRules",
+          "status": "PASS"
+        },
+        {
+          "name": "tc03_unicodeWhitespaceIsBlankAndMaxLengthCountsCodePoints",
+          "status": "PASS"
+        },
+        {
+          "name": "tc03_rejectsUnknownAndServerOwnedFields(String)[1]",
+          "status": "PASS"
+        },
+        {
+          "name": "tc03_rejectsUnknownAndServerOwnedFields(String)[2]",
+          "status": "PASS"
+        },
+        {
+          "name": "tc03_rejectsUnknownAndServerOwnedFields(String)[3]",
+          "status": "PASS"
+        },
+        {
+          "name": "tc03_rejectsUnknownAndServerOwnedFields(String)[4]",
+          "status": "PASS"
+        },
+        {
+          "name": "tc03_rejectsUnknownAndServerOwnedFields(String)[5]",
+          "status": "PASS"
+        },
+        {
+          "name": "tc03_rejectsUnknownAndServerOwnedFields(String)[6]",
+          "status": "PASS"
+        },
+        {
+          "name": "tc13_tc32_instantRequiresOffsetAndCannotBeFuture",
+          "status": "PASS"
+        },
+        {
+          "name": "tc02_normalizesSharedPhoneWithoutIdentityDeduplication",
+          "status": "PASS"
+        },
+        {
+          "name": "tc16_tc36_medicalPutRejectsRefsAndRequiresReasonEvenForNoOp",
+          "status": "PASS"
+        },
+        {
+          "name": "tc32_explicitNullGenderIsDifferentFromOmitted",
+          "status": "PASS"
+        },
+        {
+          "name": "tc06_fullPutOmittedOptionalsAreNull",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "name": "com.fclinic.patientservice.PatientOrchestrationTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "timestamp": null,
+      "seconds": "1.113",
+      "report": "target/surefire-reports/TEST-com.fclinic.patientservice.PatientOrchestrationTest.xml",
+      "cases": [
+        {
+          "name": "tc10_walkInSkipsOnlyAppointmentAndValidatesBeforeWriter",
+          "status": "PASS"
+        },
+        {
+          "name": "tc35_missingScopeFailsBeforeProvidersOrWriter",
+          "status": "PASS"
+        },
+        {
+          "name": "tc12_missingOrInactiveDoctorIs422",
+          "status": "PASS"
+        },
+        {
+          "name": "tc12_linkedMismatchIs422AndDoesNotWrite",
+          "status": "PASS"
+        },
+        {
+          "name": "tc19_technicalDependencyFailureIs503AndNoWrite",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "name": "com.fclinic.patientservice.PatientPolicyTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "timestamp": null,
+      "seconds": "0.043",
+      "report": "target/surefire-reports/TEST-com.fclinic.patientservice.PatientPolicyTest.xml",
+      "cases": [
+        {
+          "name": "tc35_doctorRoleAloneGrantsNoScope",
+          "status": "PASS"
+        },
+        {
+          "name": "tc18_patientCanReadSelfOnlyAndCannotMutateOrSearch",
+          "status": "PASS"
+        },
+        {
+          "name": "searchReturnsOnlyTrustedScope",
+          "status": "PASS"
+        },
+        {
+          "name": "tc18_serviceNeedsExplicitAppointmentLookupGrant",
+          "status": "PASS"
+        },
+        {
+          "name": "tc18_tc36_staffAndAdminHaveNoClinicalOverride",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "name": "com.fclinic.patientservice.PatientServiceIT",
+      "tests": 20,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "timestamp": null,
+      "seconds": "27.515",
+      "report": "target/failsafe-reports/TEST-com.fclinic.patientservice.PatientServiceIT.xml",
+      "cases": [
+        {
+          "name": "tc29_deactivateCommitBeforeCreateRejectsMedical",
+          "status": "PASS"
+        },
+        {
+          "name": "tc09_tc10_tc14_linkedAndWalkInCanonicalMedicalReads",
+          "status": "PASS"
+        },
+        {
+          "name": "tc17_tc18_tc35_authScopeAndForgedHeadersDoNotLeak",
+          "status": "PASS"
+        },
+        {
+          "name": "tc17_verifierUnavailableReturns503AndInactiveIdentityReturns401",
+          "status": "PASS"
+        },
+        {
+          "name": "tc31_noOpMedicalDetectsConcurrentVersionChangeAtCommit",
+          "status": "PASS"
+        },
+        {
+          "name": "tc06_tc31_profileFullPutNoOpStaleAndRevisionVersion",
+          "status": "PASS"
+        },
+        {
+          "name": "tc11_linkedCreateRaceReturns201And409WithOneRevision",
+          "status": "PASS"
+        },
+        {
+          "name": "tc14_parentExistsWithoutRecordsReturnsEmptyPageAndUnknownParent404",
+          "status": "PASS"
+        },
+        {
+          "name": "tc07_competingProfileUpdatesHaveOneWinner",
+          "status": "PASS"
+        },
+        {
+          "name": "tc15_tc16_tc36_parentAuthorImmutableRefsAndMedicalPut",
+          "status": "PASS"
+        },
+        {
+          "name": "tc29_recordCommittedBeforeDeactivationRemains",
+          "status": "PASS"
+        },
+        {
+          "name": "tc01_tc02_sharedPhoneCreateAndCanonicalDetail",
+          "status": "PASS"
+        },
+        {
+          "name": "unicodePatientNamePersistsAndReadsBackWithoutLoss",
+          "status": "PASS"
+        },
+        {
+          "name": "tc19_reference422VsTechnical503AndNoWrite",
+          "status": "PASS"
+        },
+        {
+          "name": "tc03_tc32_apiBindingRejectsUnknownNullAndCoercedValuesWithoutWriting",
+          "status": "PASS"
+        },
+        {
+          "name": "tc23_revisionFailureRollsBackBothAggregatesAndVersions",
+          "status": "PASS"
+        },
+        {
+          "name": "tc06_optionalFieldsAreErasedByReplacement",
+          "status": "PASS"
+        },
+        {
+          "name": "tc08_inactiveForbidsNewMedicalButAllowsExistingReadAndEdit",
+          "status": "PASS"
+        },
+        {
+          "name": "tc05_searchCombinesFiltersAndRestrictsCountAndStablePage",
+          "status": "PASS"
+        },
+        {
+          "name": "tc33_constraintsAndRetiredV1",
+          "status": "PASS"
+        }
+      ]
+    }
+  ],
+  "realIntegration": "NOT EXECUTED / BLOCKED by D-01/04/05/06/07/19",
+  "legacyMigration": "NOT EXECUTED / BLOCKED by D-15 actual inventory and coordinated cutover",
+  "serviceDone": false
+}

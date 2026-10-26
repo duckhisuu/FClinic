@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:fclinic:patient:appointment-medical-reference:1",
+  "title": "patient-appointment-medical-reference/1 PROJECT_DECIDED consumer profile",
+  "x-http": {
+    "method": "GET",
+    "candidate": "/internal/v1/appointments/{id}/medical-reference",
+    "requiredResponseHeader": {
+      "X-FClinic-Reference-Contract": "patient-appointment-medical-reference/1"
+    },
+    "contentType": "application/json",
+    "authentication": "Dedicated backend client Basic over authenticated HTTPS; not human bearer"
+  },
+  "oneOf": [
+    {
+      "type": "object",
+      "properties": {
+        "status": {
+          "const": 200
+        },
+        "message": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "data": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            },
+            "patientId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "doctorId": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            },
+            "status": {
+              "enum": [
+                "CONFIRMED",
+                "CANCELLED",
+                "COMPLETED",
+                "NO_SHOW"
+              ]
+            }
+          },
+          "required": [
+            "id",
+            "patientId",
+            "doctorId",
+            "status"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "status",
+        "message",
+        "data"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "status": {
+          "const": 404
+        },
+        "message": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "data": {
+          "type": "null"
+        },
+        "code": {
+          "const": "APPOINTMENT_NOT_FOUND"
+        },
+        "fieldErrors": {
+          "type": "array",
+          "maxItems": 0
+        }
+      },
+      "required": [
+        "status",
+        "message",
+        "data",
+        "code",
+        "fieldErrors"
+      ],
+      "additionalProperties": false
+    }
+  ]
+}
+

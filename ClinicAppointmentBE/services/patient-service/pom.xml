@@ -16,7 +16,36 @@
     <name>patient-service</name>
     <description>Patient Profile and Medical Records Management Service</description>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>io.zonky.test.postgres</groupId>
+                <artifactId>embedded-postgres-binaries-bom</artifactId>
+                <version>16.10.0</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
+        <dependency>
+            <groupId>com.networknt</groupId>
+            <artifactId>json-schema-validator</artifactId>
+            <version>3.0.8</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.zonky.test</groupId>
+            <artifactId>embedded-postgres</artifactId>
+            <version>2.1.1</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -49,11 +78,66 @@
     </dependencies>
 
     <build>
+        <testResources>
+            <testResource>
+                <directory>docs/integration-readiness/contracts</directory>
+                <targetPath>contracts</targetPath>
+                <includes><include>*.schema.json</include></includes>
+            </testResource>
+            <testResource><directory>src/test/resources</directory></testResource>
+            <testResource>
+                <directory>${project.basedir}/../../../docs/FClinic_Implementation_Ready_Pack/FClinic_Implementation_Ready_Pack/02_Shared_Contracts/openapi</directory>
+                <targetPath>contracts</targetPath>
+                <includes><include>patient.openapi.json</include></includes>
+            </testResource>
+            <testResource>
+                <directory>${project.basedir}/../../../docs/FClinic_Implementation_Ready_Pack/FClinic_Implementation_Ready_Pack/07_Testing_And_QA/fixtures</directory>
+                <targetPath>fixtures</targetPath>
+                <includes><include>registry.json</include></includes>
+            </testResource>
+        </testResources>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals><goal>integration-test</goal><goal>verify</goal></goals>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
         </plugins>
     </build>
+    <profiles>
+        <profile><id>real-auth-contracts</id><build><plugins><plugin>
+            <groupId>org.apache.maven.plugins</groupId><artifactId>maven-failsafe-plugin</artifactId>
+            <configuration><includes><include>**/*IT.java</include><include>**/RealAuthIdentityContractCheck.java</include></includes></configuration>
+        </plugin></plugins></build></profile>
+        <profile>
+            <id>real-provider-contracts</id>
+            <build><plugins><plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <executions><execution>
+                    <id>default</id>
+                    <goals><goal>integration-test</goal><goal>verify</goal></goals>
+                    <configuration>
+                        <includes>
+                            <include>**/IT*.java</include>
+                            <include>**/*IT.java</include>
+                            <include>**/*ITCase.java</include>
+                            <include>**/RealProviderContractCheck.java</include>
+                        </includes>
+                        <reportsDirectory>${project.build.directory}/real-provider-reports/current</reportsDirectory>
+                        <summaryFile>${project.build.directory}/real-provider-reports/current/failsafe-summary.xml</summaryFile>
+                        <failIfNoTests>true</failIfNoTests>
+                    </configuration>
+                </execution></executions>
+            </plugin></plugins></build>
+        </profile>
+    </profiles>
 </project>

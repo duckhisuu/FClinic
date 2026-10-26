@@ -1,0 +1,18 @@
+# PROJECT_DECIDED patient-work-scope/1. Explicit deployment opt-in; no default endpoint/credential.
+patient:
+  scope:
+    enabled: true
+    administrative:
+      endpoint: ${PATIENT_ADMIN_SCOPE_URI}
+      client-id: ${PATIENT_ADMIN_SCOPE_CLIENT_ID}
+      client-secret: ${PATIENT_ADMIN_SCOPE_CLIENT_SECRET}
+      connect-timeout: ${PATIENT_SCOPE_CONNECT_TIMEOUT:1s}
+      exchange-timeout: ${PATIENT_SCOPE_EXCHANGE_TIMEOUT:3s}
+    clinical:
+      endpoint: ${PATIENT_CLINICAL_SCOPE_URI}
+      client-id: ${PATIENT_CLINICAL_SCOPE_CLIENT_ID}
+      client-secret: ${PATIENT_CLINICAL_SCOPE_CLIENT_SECRET}
+      connect-timeout: ${PATIENT_SCOPE_CONNECT_TIMEOUT:1s}
+      exchange-timeout: ${PATIENT_SCOPE_EXCHANGE_TIMEOUT:3s}
+# Optional per-authority trust-store/password/limits use protected external Spring configuration.
+

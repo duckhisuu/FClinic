@@ -1,0 +1,16 @@
+# PROJECT_DECIDED patient-identity-introspection/1. No provider endpoint or credential defaults.
+patient:
+  identity:
+    enabled: true
+    endpoint: ${PATIENT_AUTH_INTROSPECTION_URI}
+    issuer: ${PATIENT_AUTH_ISSUER}
+    audience: ${PATIENT_AUTH_AUDIENCE:patient-service}
+    client-id: ${PATIENT_AUTH_CLIENT_ID}
+    client-secret: ${PATIENT_AUTH_CLIENT_SECRET}
+    connect-timeout: ${PATIENT_AUTH_CONNECT_TIMEOUT:1s}
+    exchange-timeout: ${PATIENT_AUTH_EXCHANGE_TIMEOUT:3s}
+    max-response-bytes: 65536
+    max-concurrent-requests: 32
+# Configure services and optional PKCS12 trust-store via protected external configuration.
+# No registry entry is inferred from subject syntax, request headers or the response.
+

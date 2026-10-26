@@ -1,0 +1,12 @@
+# PAT-REF-APT-001 PROJECT_DECIDED; minimum protected SERVICE projection.
+patient:
+  reference:
+    appointment:
+      enabled: true
+      collection-uri: ${PATIENT_APPOINTMENT_REFERENCE_URI}
+      client-id: ${PATIENT_APPOINTMENT_REFERENCE_CLIENT_ID}
+      client-secret: ${PATIENT_APPOINTMENT_REFERENCE_CLIENT_SECRET}
+      connect-timeout: ${PATIENT_REFERENCE_CONNECT_TIMEOUT:1s}
+      exchange-timeout: ${PATIENT_REFERENCE_EXCHANGE_TIMEOUT:3s}
+# Adapter appends /{safePositiveId}/medical-reference. No legacy/full public response fallback.
+

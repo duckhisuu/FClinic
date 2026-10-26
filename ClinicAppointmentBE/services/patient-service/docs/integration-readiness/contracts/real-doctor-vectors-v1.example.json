@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "boundary": "B-04",
+  "vectors": [
+    {
+      "case": "ACTIVE",
+      "resourceId": 910001,
+      "patientId": null,
+      "doctorId": null
+    },
+    {
+      "case": "INACTIVE",
+      "resourceId": 910002,
+      "patientId": null,
+      "doctorId": null
+    },
+    {
+      "case": "MISSING",
+      "resourceId": 910003,
+      "patientId": null,
+      "doctorId": null
+    },
+    {
+      "case": "INVALID_CREDENTIAL",
+      "resourceId": 910001,
+      "patientId": null,
+      "doctorId": null
+    },
+    {
+      "case": "WRONG_VERSION_REQUEST",
+      "resourceId": 910001,
+      "patientId": null,
+      "doctorId": null
+    }
+  ]
+}
