@@ -1,0 +1,147 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:fclinic:patient:doctor-reference:1",
+  "title": "patient-doctor-reference/1 PROJECT_DECIDED consumer profile",
+  "x-http": {
+    "method": "GET",
+    "candidate": "/api/v1/doctors/{id}",
+    "requiredResponseHeader": {
+      "X-FClinic-Reference-Contract": "patient-doctor-reference/1"
+    },
+    "contentType": "application/json",
+    "authentication": "Dedicated backend client Basic over authenticated HTTPS; not human bearer"
+  },
+  "oneOf": [
+    {
+      "type": "object",
+      "properties": {
+        "status": {
+          "const": 200
+        },
+        "message": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "data": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            },
+            "name": {
+              "type": "string",
+              "maxLength": 8192
+            },
+            "specialty": {
+              "type": "string",
+              "maxLength": 8192
+            },
+            "department": {
+              "type": "string",
+              "maxLength": 8192
+            },
+            "qualification": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 8192
+            },
+            "experienceYears": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": -2147483648,
+              "maximum": 2147483647
+            },
+            "consultationFee": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "roomNumber": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 8192
+            },
+            "bio": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 8192
+            },
+            "avatarUrl": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 8192
+            },
+            "active": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "id",
+            "name",
+            "specialty",
+            "department",
+            "qualification",
+            "experienceYears",
+            "consultationFee",
+            "roomNumber",
+            "bio",
+            "avatarUrl",
+            "active"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "status",
+        "message",
+        "data"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "status": {
+          "const": 404
+        },
+        "message": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "data": {
+          "type": "null"
+        },
+        "code": {
+          "const": "DOCTOR_NOT_FOUND"
+        },
+        "fieldErrors": {
+          "type": "array",
+          "maxItems": 0
+        }
+      },
+      "required": [
+        "status",
+        "message",
+        "data",
+        "code",
+        "fieldErrors"
+      ],
+      "additionalProperties": false
+    }
+  ]
+}
+

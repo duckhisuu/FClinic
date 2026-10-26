@@ -1,0 +1,196 @@
+{
+  "fixtureVersion": "1.0-synthetic",
+  "clock": "2026-10-20T03:00:00Z",
+  "clinicTimezone": "Asia/Saigon",
+  "patient": {
+    "id": "74fba630-5953-44b8-86d6-bc236ac1213b",
+    "patientCode": "PAT-74fba630-5953-44b8-86d6-bc236ac1213b",
+    "fullName": "Demo Patient",
+    "phoneNumber": "+84900000001",
+    "email": "patient@example.test",
+    "dateOfBirth": "1995-05-15",
+    "gender": "UNKNOWN",
+    "address": null,
+    "status": "ACTIVE",
+    "version": 0,
+    "createdAt": "2026-10-20T03:00:00Z",
+    "updatedAt": "2026-10-20T03:00:00Z",
+    "createdBy": "user:demo-staff",
+    "updatedBy": "user:demo-staff"
+  },
+  "secondPatient": {
+    "id": "d8dc807b-90a5-41d7-8439-10ca6cdfa001",
+    "patientCode": "PAT-d8dc807b-90a5-41d7-8439-10ca6cdfa001",
+    "fullName": "Demo Shared Phone",
+    "phoneNumber": "+84900000001",
+    "email": null,
+    "dateOfBirth": "1995-05-15",
+    "gender": "UNKNOWN",
+    "address": null,
+    "status": "ACTIVE",
+    "version": 0,
+    "createdAt": "2026-10-20T03:00:00Z",
+    "updatedAt": "2026-10-20T03:00:00Z",
+    "createdBy": "user:demo-staff",
+    "updatedBy": "user:demo-staff"
+  },
+  "doctor": {
+    "id": 12,
+    "name": "Demo Doctor",
+    "specialty": "General Medicine",
+    "department": "Outpatient",
+    "qualification": null,
+    "experienceYears": 5,
+    "consultationFee": 350000,
+    "roomNumber": "DEMO-01",
+    "bio": null,
+    "avatarUrl": null,
+    "active": true
+  },
+  "publishedSlots": [
+    {
+      "id": 45,
+      "doctorId": 12,
+      "slotDate": "2026-11-02",
+      "startTime": "09:00:00",
+      "endTime": "10:00:00",
+      "published": true
+    },
+    {
+      "id": 46,
+      "doctorId": 12,
+      "slotDate": "2026-11-02",
+      "startTime": "10:00:00",
+      "endTime": "11:00:00",
+      "published": true
+    },
+    {
+      "id": 47,
+      "doctorId": 12,
+      "slotDate": "2026-11-02",
+      "startTime": "09:00:00",
+      "endTime": "10:00:00",
+      "published": true,
+      "fixturePurpose": "negative-only duplicate hour; not a valid publication seed"
+    }
+  ],
+  "appointment": {
+    "id": 101,
+    "bookingCode": "FC-DEMO-0101",
+    "patientId": "74fba630-5953-44b8-86d6-bc236ac1213b",
+    "patientName": "Demo Patient",
+    "patientPhone": "+84900000001",
+    "doctorId": 12,
+    "doctorName": "Demo Doctor",
+    "doctorSpecialty": "General Medicine",
+    "slotId": 45,
+    "appointmentDate": "2026-11-02",
+    "startTime": "09:00:00",
+    "endTime": "10:00:00",
+    "reasonForVisit": "Consultation",
+    "consultationFee": 350000,
+    "status": "CONFIRMED",
+    "version": 0,
+    "createdAt": "2026-10-20T03:00:00Z",
+    "updatedAt": "2026-10-20T03:00:00Z"
+  },
+  "accounts": [
+    {
+      "valid": true,
+      "principalType": "USER",
+      "subject": "user:demo-patient",
+      "userId": 201,
+      "authorities": [
+        "ROLE_PATIENT"
+      ],
+      "patientId": "74fba630-5953-44b8-86d6-bc236ac1213b",
+      "doctorId": null,
+      "active": true
+    },
+    {
+      "valid": true,
+      "principalType": "USER",
+      "subject": "user:demo-doctor",
+      "userId": 301,
+      "authorities": [
+        "ROLE_DOCTOR"
+      ],
+      "patientId": null,
+      "doctorId": 12,
+      "active": true
+    },
+    {
+      "valid": true,
+      "principalType": "USER",
+      "subject": "user:demo-staff",
+      "userId": 401,
+      "authorities": [
+        "ROLE_STAFF"
+      ],
+      "patientId": null,
+      "doctorId": null,
+      "active": true
+    }
+  ],
+  "recordId": 501,
+  "legacyMapping": [
+    {
+      "legacyPatientId": 1,
+      "patientId": "74fba630-5953-44b8-86d6-bc236ac1213b"
+    },
+    {
+      "legacyPatientId": 2,
+      "patientId": "d8dc807b-90a5-41d7-8439-10ca6cdfa001"
+    }
+  ],
+  "statuses": {
+    "patient": [
+      "ACTIVE",
+      "INACTIVE"
+    ],
+    "appointment": [
+      "CONFIRMED",
+      "CANCELLED",
+      "COMPLETED",
+      "NO_SHOW"
+    ]
+  },
+  "requestIds": {
+    "booking": "a3d07bc1-bf4f-4738-9eb4-70f9e45f0011",
+    "cancel": "a3d07bc1-bf4f-4738-9eb4-70f9e45f0012",
+    "reschedule": "a3d07bc1-bf4f-4738-9eb4-70f9e45f0013"
+  },
+  "note": "Never assume userId equals patientId or doctorId. Static dates require fixed Clock/rebased fixture for future-start tests.",
+  "clinicalScene": {
+    "appointment": {
+      "id": 102,
+      "bookingCode": "FC-DEMO-0102",
+      "patientId": "74fba630-5953-44b8-86d6-bc236ac1213b",
+      "patientName": "Demo Patient",
+      "patientPhone": "+84900000001",
+      "doctorId": 12,
+      "doctorName": "Demo Doctor",
+      "doctorSpecialty": "General Medicine",
+      "slotId": 48,
+      "appointmentDate": "2026-10-19",
+      "startTime": "09:00:00",
+      "endTime": "10:00:00",
+      "reasonForVisit": "Consultation",
+      "consultationFee": 350000,
+      "status": "CONFIRMED",
+      "version": 0,
+      "createdAt": "2026-10-20T03:00:00Z",
+      "updatedAt": "2026-10-20T03:00:00Z"
+    },
+    "slot": {
+      "id": 48,
+      "doctorId": 12,
+      "slotDate": "2026-10-19",
+      "startTime": "09:00:00",
+      "endTime": "10:00:00",
+      "published": true
+    },
+    "visitDate": "2026-10-19T03:00:00Z",
+    "note": "Owner-authorized past valid-visit test scene; assignment/attestation D-07 still required; do not mark complete automatically."
+  }
+}

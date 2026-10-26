@@ -1,0 +1,3 @@
+# Keep the approved Patient test artifact bytes/checksums across Windows checkouts.
+02_Shared_Contracts/openapi/patient.openapi.json -text
+07_Testing_And_QA/fixtures/registry.json -text

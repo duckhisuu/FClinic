@@ -1,0 +1,500 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:fclinic:patient:work-scope:1",
+  "title": "PROJECT_DECIDED scope authority consumer v1; not provider implementation evidence",
+  "$defs": {
+    "request": {
+      "type": "object",
+      "properties": {
+        "contractVersion": {
+          "const": "patient-work-scope/1"
+        },
+        "nonce": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "requestedAt": {
+          "type": "string",
+          "format": "date-time",
+          "maxLength": 40,
+          "pattern": "Z$"
+        },
+        "authority": {
+          "enum": [
+            "ADMINISTRATIVE",
+            "CLINICAL"
+          ]
+        },
+        "operation": {
+          "enum": [
+            "ADMIN_ASSIGNMENT_CREATE",
+            "ADMIN_ASSIGNMENT_READ",
+            "ADMIN_ASSIGNMENT_UPDATE",
+            "ADMIN_ASSIGNMENT_SEARCH",
+            "ADMIN_PROFILE_READ",
+            "ADMIN_PROFILE_UPDATE",
+            "ADMIN_SEARCH",
+            "APPOINTMENT_PROFILE_READ",
+            "DOCTOR_PROFILE_READ",
+            "DOCTOR_SEARCH",
+            "MEDICAL_READ",
+            "MEDICAL_CREATE",
+            "MEDICAL_UPDATE",
+            "VALID_VISIT"
+          ]
+        },
+        "caller": {
+          "type": "object",
+          "properties": {
+            "subject": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255
+            },
+            "principalType": {
+              "enum": [
+                "USER",
+                "SERVICE"
+              ]
+            },
+            "patientId": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "doctorId": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 9007199254740991
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "serviceName": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "pattern": "^[a-z][a-z0-9-]{0,63}$"
+            }
+          },
+          "required": [
+            "subject",
+            "principalType",
+            "patientId",
+            "doctorId",
+            "serviceName"
+          ],
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "principalType": {
+                    "const": "USER"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "serviceName": {
+                    "type": "null"
+                  }
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "principalType": {
+                    "const": "SERVICE"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "patientId": {
+                    "type": "null"
+                  },
+                  "doctorId": {
+                    "type": "null"
+                  },
+                  "serviceName": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "patientId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "appointmentId": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "visitDate": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time",
+              "maxLength": 40,
+              "pattern": "Z$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "contractVersion",
+        "nonce",
+        "requestedAt",
+        "authority",
+        "operation",
+        "caller",
+        "patientId",
+        "appointmentId",
+        "visitDate"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "authority": {
+                "const": "ADMINISTRATIVE"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "operation": {
+                "enum": [
+                  "ADMIN_ASSIGNMENT_CREATE",
+                  "ADMIN_ASSIGNMENT_READ",
+                  "ADMIN_ASSIGNMENT_UPDATE",
+                  "ADMIN_ASSIGNMENT_SEARCH",
+                  "ADMIN_PROFILE_READ",
+                  "ADMIN_PROFILE_UPDATE",
+                  "ADMIN_SEARCH",
+                  "APPOINTMENT_PROFILE_READ"
+                ]
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "operation": {
+                "enum": [
+                  "DOCTOR_PROFILE_READ",
+                  "DOCTOR_SEARCH",
+                  "MEDICAL_READ",
+                  "MEDICAL_CREATE",
+                  "MEDICAL_UPDATE",
+                  "VALID_VISIT"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "operation": {
+                "enum": [
+                  "ADMIN_ASSIGNMENT_CREATE",
+                  "ADMIN_ASSIGNMENT_READ",
+                  "ADMIN_ASSIGNMENT_UPDATE",
+                  "ADMIN_ASSIGNMENT_SEARCH",
+                  "ADMIN_SEARCH",
+                  "DOCTOR_SEARCH"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "patientId": {
+                "type": "null"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "patientId": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "operation": {
+                "const": "VALID_VISIT"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "visitDate": {
+                "type": "string",
+                "format": "date-time",
+                "maxLength": 40,
+                "pattern": "Z$"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "appointmentId": {
+                "type": "null"
+              },
+              "visitDate": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "evidence": {
+      "type": "object",
+      "properties": {
+        "assignmentId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255
+        },
+        "active": {
+          "type": "boolean"
+        },
+        "validFrom": {
+          "type": "string",
+          "format": "date-time",
+          "maxLength": 40,
+          "pattern": "Z$"
+        },
+        "validUntil": {
+          "type": "string",
+          "format": "date-time",
+          "maxLength": 40,
+          "pattern": "Z$"
+        },
+        "visitId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "assignmentId",
+        "active",
+        "validFrom",
+        "validUntil",
+        "visitId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "type": "object",
+  "properties": {
+    "contractVersion": {
+      "const": "patient-work-scope/1"
+    },
+    "request": {
+      "$ref": "#/$defs/request"
+    },
+    "evaluatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "maxLength": 40,
+      "pattern": "Z$"
+    },
+    "allowed": {
+      "type": "boolean"
+    },
+    "patientIds": {
+      "anyOf": [
+        {
+          "type": "array",
+          "maxItems": 10000,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          }
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "evidence": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/evidence"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "contractVersion",
+    "request",
+    "evaluatedAt",
+    "allowed",
+    "patientIds",
+    "evidence"
+  ],
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "allowed": {
+            "const": false
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "patientIds": {
+            "type": "null"
+          },
+          "evidence": {
+            "type": "null"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "evidence": {
+            "$ref": "#/$defs/evidence"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "allowed": {
+            "const": true
+          },
+          "request": {
+            "properties": {
+              "operation": {
+                "enum": [
+                  "ADMIN_SEARCH",
+                  "DOCTOR_SEARCH"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "patientIds": {
+            "type": "array"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "patientIds": {
+            "type": "null"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "allowed": {
+            "const": true
+          },
+          "request": {
+            "properties": {
+              "operation": {
+                "const": "VALID_VISIT"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "evidence": {
+            "properties": {
+              "visitId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 255
+              }
+            }
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "evidence": {
+            "anyOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "visitId": {
+                    "type": "null"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}
+

@@ -1,32 +1,16 @@
 package com.fclinic.patientservice.api.dto;
-
-import com.fclinic.patientservice.application.result.PatientView;
-
+import com.fclinic.patientservice.domain.aggregate.Patient;
+import com.fclinic.patientservice.domain.model.ProfileData.Gender;
+import com.fclinic.patientservice.domain.model.ProfileData.Status;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.UUID;
 
-public record PatientResponse(
-        Long id,
-        String fullName,
-        String phoneNumber,
-        String email,
-        LocalDate dateOfBirth,
-        String gender,
-        String address,
-        Instant createdAt,
-        Instant updatedAt
-) {
-    public static PatientResponse from(PatientView view) {
-        return new PatientResponse(
-                view.id(),
-                view.fullName(),
-                view.phoneNumber(),
-                view.email(),
-                view.dateOfBirth(),
-                view.gender(),
-                view.address(),
-                view.createdAt(),
-                view.updatedAt()
-        );
+public record PatientResponse(UUID id, String patientCode, String fullName, String phoneNumber, String email,
+                              LocalDate dateOfBirth, Gender gender, String address, Status status, long version,
+                              Instant createdAt, Instant updatedAt, String createdBy, String updatedBy) {
+    public static PatientResponse from(Patient p) {
+        return new PatientResponse(p.id(), p.patientCode(), p.fullName(), p.phoneNumber(), p.email(), p.dateOfBirth(),
+                p.gender(), p.address(), p.status(), p.version(), p.createdAt(), p.updatedAt(), p.createdBy(), p.updatedBy());
     }
 }

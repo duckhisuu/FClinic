@@ -1,0 +1,12 @@
+# PAT-REF-DOC-001 PROJECT_DECIDED; protected full Doctor response, explicit provider URI/credentials.
+patient:
+  reference:
+    doctor:
+      enabled: true
+      collection-uri: ${PATIENT_DOCTOR_REFERENCE_URI}
+      client-id: ${PATIENT_DOCTOR_REFERENCE_CLIENT_ID}
+      client-secret: ${PATIENT_DOCTOR_REFERENCE_CLIENT_SECRET}
+      connect-timeout: ${PATIENT_REFERENCE_CONNECT_TIMEOUT:1s}
+      exchange-timeout: ${PATIENT_REFERENCE_EXCHANGE_TIMEOUT:3s}
+# Optional per-endpoint trust-store/password and bounded limits through protected external config.
+

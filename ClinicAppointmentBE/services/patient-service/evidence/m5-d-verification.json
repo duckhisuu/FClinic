@@ -1,0 +1,1243 @@
+{
+  "timestamp": "2026-10-24T02:28:51.3031958+07:00",
+  "timezone": "Asia/Saigon",
+  "branch": "main",
+  "head": "238e1dd36cb759df444cf9441ef0012f0d12d2b5",
+  "workingTree": "Pre-existing changes preserved; no commit/push/reset/checkout/clean",
+  "baseline": {
+    "expectedSourceManifestSha256": "1924f0e22fd5de78a9b288d07cd26df262b75bbf8b8ad24def84f534cf96eb17",
+    "actualPreEditSourceManifestSha256": "1924f0e22fd5de78a9b288d07cd26df262b75bbf8b8ad24def84f534cf96eb17",
+    "initialDrift": 0,
+    "entries": 84,
+    "tests": 249,
+    "surefire": 175,
+    "failsafe": 74,
+    "tcpWithDoubles": 54
+  },
+  "command": "mvn -f ClinicAppointmentBE/pom.xml -pl services/patient-service -am verify -B -ntp",
+  "exitCode": 0,
+  "result": "BUILD SUCCESS",
+  "finishedAt": "2026-10-24T02:24:08+07:00",
+  "elapsedReportedByMaven": "50.428 s",
+  "expected": "249 baseline cases +5schema/preflight tests; zero F/E/S; production JAR; fresh isolated PostgreSQL16.10",
+  "actual": {
+    "tests": 254,
+    "surefire": 180,
+    "failsafe": 74,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "newTests": 5,
+    "newTcpTests": 0,
+    "existingTcpTestsWithDoubles": 54,
+    "productionCodeChanged": false,
+    "newProviderDoubles": 0
+  },
+  "levels": {
+    "consumerContracts": "PROJECT_DECIDED / M5-A/B/C CODE COMPLETE preserved",
+    "patientComponent": "COMPONENT VERIFIED sampled canonical conformance; not exhaustive HTTP contract",
+    "historicalTcp": "STUB TCP PASS regression only",
+    "realProviderB04": "BLOCKED / NOT EXECUTED",
+    "realProviderB05": "BLOCKED / NOT EXECUTED",
+    "realConsumerB02": "BLOCKED / NOT EXECUTED",
+    "realConsumerB07": "NOT EXECUTED",
+    "wholeChain": "INTEGRATION NOT VERIFIED",
+    "m5d": "HARNESS READY; OVERALL BLOCKED / NOT COMPLETE",
+    "m5ef": "NOT EXECUTED",
+    "m6": "NOT EXECUTED",
+    "release": "NOT READY"
+  },
+  "realProviderExecution": {
+    "command": "mvn -f ClinicAppointmentBE/pom.xml -pl services/patient-service -am -P real-provider-contracts verify -B -ntp",
+    "finishedAt": "2026-10-24T02:21:15+07:00",
+    "exitCode": 1,
+    "result": "EXPECTED BUILD FAILURE at preflight; not a real-provider assertion failure",
+    "preflightChecks": 1,
+    "preflightFailures": 1,
+    "providerCasesExecuted": 0,
+    "outboundProviderRequests": 0,
+    "providerBuilds": {
+      "doctor": null,
+      "appointment": null
+    },
+    "providerVersions": {
+      "doctor": null,
+      "appointment": null
+    },
+    "observations": {
+      "timestamp": "2026-10-23T19:21:15.336951200Z",
+      "wholePatientTrustChain": "NOT EXECUTED",
+      "databaseMutation": "NONE: GET only; no datasource",
+      "cases": [],
+      "result": "BLOCKED",
+      "actual": "Preflight incomplete/invalid; no provider verification claimed"
+    },
+    "reports": [
+      {
+        "path": "target/real-provider-reports/com.fclinic.patientservice.contract.RealProviderContractCheck.txt",
+        "sha256": "be724656fbea18fb4ec2f487fa515fd7f2e68eceb1c179afd1ed2783348f2ebe"
+      },
+      {
+        "path": "target/real-provider-reports/failsafe-summary.xml",
+        "sha256": "299b4065f097d6a34bc8372faef4bf388454de4ad5184a158e2ea50d2aa468b2"
+      },
+      {
+        "path": "target/real-provider-reports/observations.json",
+        "sha256": "69adcc609519206f74df1b8e3725305e822967dc25f8624ac7930efcf9184f23"
+      },
+      {
+        "path": "target/real-provider-reports/TEST-com.fclinic.patientservice.contract.RealProviderContractCheck.xml",
+        "sha256": "6ef7fbc5a28fa7d34b5f0e2879c21e986962aa9599b32667fba9f9459d7a8cf2"
+      }
+    ]
+  },
+  "earlierRuns": [
+    {
+      "result": "BUILD FAILURE",
+      "finishedAt": "2026-10-24T02:14:52+07:00",
+      "command": "mvn ... test",
+      "reason": "New schema helper missing dialect package import; corrected"
+    },
+    {
+      "finishedAt": "2026-10-24T02:17:31+07:00",
+      "tests": 177,
+      "reason": "New test incorrectly assumed canonical Error is closed; corrected assertion, canonical unchanged",
+      "failures": 1,
+      "command": "mvn ... test",
+      "result": "BUILD FAILURE"
+    },
+    {
+      "errors": 0,
+      "finishedAt": "2026-10-24T02:19:31+07:00",
+      "skipped": 0,
+      "tests": 251,
+      "failures": 0,
+      "command": "mvn ... verify",
+      "result": "BUILD SUCCESS"
+    }
+  ],
+  "blockers": [
+    "B-04 actual source lacks selected protected machine/TLS/version/domain404 profile; no compatible isolated binary/config provided",
+    "B-05 no protected minimum route, legacy Long patientId and PENDING vocabulary; UUID mapping/status lifecycle owned by Appointment",
+    "No real-provider endpoint/credential/deployment evidence configured; no local executable provider JAR",
+    "B-02 actual Appointment has no canonical UUID/ACTIVE/original-human validation before lock/save/publish",
+    "Shared SERVICE bearer proposal differs PROJECT_DECIDED local Basic reference profiles; not adopted compatibility",
+    "Actual Auth/scope authority verification still missing for whole chain; D-21 OAS503 and identifier/correlation/adoption exclusions remain"
+  ],
+  "database": "Four fresh native PostgreSQL16.10 clusters per full run, random loopback ports/approved empty SQL; shutdown; no existing/shared/legacy DB touched",
+  "fixture": {
+    "data": "synthetic",
+    "timezone": "Asia/Saigon",
+    "clock": "2026-10-20T03:00:00Z"
+  },
+  "sourceManifest": [
+    {
+      "path": "src/main/java/com/fclinic/patientservice/PatientServiceApplication.java",
+      "sha256": "ab6252e15f71b3863853971581f86e765339db1eebc4615174af28d4f917079e"
+    },
+    {
+      "path": "src/test/java/com/fclinic/patientservice/contract/ProviderContractPlan.java",
+      "sha256": "41da207020aebf6a5e718e5c5bb96974de98608a4cd22874f23799c255076983"
+    },
+    {
+      "path": "src/test/java/com/fclinic/patientservice/contract/PatientProviderContractTest.java",
+      "sha256": "7ca54263921f3b82290c242403271ff4ede41fc30d41694052de1cff9f1ecd42"
+    },
+    {
+      "path": "src/test/java/com/fclinic/patientservice/contract/ContractSchemas.java",
+      "sha256": "98d5fc58ee8381a64e5336e2a4ef8c7c79b7fee45d3fb1b8977e5c9eb6a6525a"
+    },
+    {
+      "path": "src/test/java/com/fclinic/patientservice/config/PatientAuthenticationTest.java",
+      "sha256": "c11c8358c6f1b0a6f674486a27954d4306d28a5d85ec18d112d56cd2e5fea9d5"
+    },
+    {
+      "path": "src/test/java/com/fclinic/patientservice/PatientServiceIT.java",
+      "sha256": "12efc9fa51cb1fc9d6426b20bd5b895e0f453e8007214c7a2c59924b1dd1423f"
+    },
+    {
+      "path": "src/test/java/com/fclinic/patientservice/PatientPolicyTest.java",
+      "sha256": "6bc6331004da7a034b6c18234459a1bf6f99c0487acb29d4735540ad1eb315f9"
+    },
+    {
+      "path": "src/test/java/com/fclinic/patientservice/PatientOrchestrationTest.java",
+      "sha256": "e740c7edd797c1cee4c695c973f368e038c2a68828e665ac8da4566642d8aead"
+    },
+    {
+      "path": "src/test/java/com/fclinic/patientservice/PatientInputTest.java",
+      "sha256": "edc0f0f896a7caac15450d2bde6259d68f2c728996b1dc70aa3581e6b0a619f2"
+    },
+    {
+      "path": "src/test/java/com/fclinic/patientservice/contract/ProviderContractPreflightTest.java",
+      "sha256": "31654cc744170308a237ba68dff3b77a879e9b99ff0900262a5bea5149e23acc"
+    },
+    {
+      "path": "src/main/resources/db/schema/V001__patient_v2_empty.sql",
+      "sha256": "1500fb0c94d9a504237889201ce900185c771bc80403d484a1d9d47384536ef6"
+    },
+    {
+      "path": "src/main/resources/application-scope-authority.yml",
+      "sha256": "9a9107b3a07412aa8ebafe7fd30eda00487f4cab8639b5777385cbf86d4a03d2"
+    },
+    {
+      "path": "src/main/resources/application-identity-introspection.yml",
+      "sha256": "961ba7971af57f7af3393bc9650034e16cbe55cdafa1cbbb0ac4d5260a2e5d79"
+    },
+    {
+      "path": "src/main/resources/application-doctor-reference.yml",
+      "sha256": "51600beca17ae98c22ef5d7e3cd29b58c60a0a9a6a6ef23b3178fdb0e8157aeb"
+    },
+    {
+      "path": "src/main/resources/application-appointment-reference.yml",
+      "sha256": "00bfd4e1447733aec7ea11da33a0c3967e5872424ee62bb7701a06207878bfd8"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/infrastructure/entity/JpaPatientRevisionEntity.java",
+      "sha256": "862f09374670bc466528be4b498c9dafc52679bf30b518a3b6ebb44113f21137"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/infrastructure/entity/JpaPatientEntity.java",
+      "sha256": "43bc1e105962cb91a3ddf071e4bd99eefeac0854e5171ee7b794b04b31637770"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/infrastructure/entity/JpaMedicalRevisionEntity.java",
+      "sha256": "ffe008e698be571255d2b1ef7561454c513094d684b8ebe707247fe2e9f5a432"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/infrastructure/entity/JpaMedicalRecordEntity.java",
+      "sha256": "d965f05b281e08d4ff7b516bb3ecca8710b3937e097695a48aaa85fa50fde365"
+    },
+    {
+      "path": "src/main/resources/application.yml",
+      "sha256": "f86c195e69da58c3cee4b1f551e2a838b5e42299c53dc98d4e6608ed16b277b1"
+    },
+    {
+      "path": "src/test/java/com/fclinic/patientservice/contract/ProviderProbe.java",
+      "sha256": "2de2ae1c1a30ec5752b025bc6fc347e1d70b35bf8e2949fa050e1b563dbe8ab7"
+    },
+    {
+      "path": "src/test/java/com/fclinic/patientservice/contract/RealProviderContractCheck.java",
+      "sha256": "e3fa1604864e7c2de78ab1dd2c8bc55a06e09d6cb6f8573f5df6e4da3256c0be"
+    },
+    {
+      "path": "src/test/java/com/fclinic/patientservice/identity/IdentityConfigurationTest.java",
+      "sha256": "accb845c79aca7fe32985213799618a2c2bf78223d1701dcb9895cbf7c4889fb"
+    },
+    {
+      "path": "src/test/java/com/fclinic/patientservice/scope/ScopePolicyTest.java",
+      "sha256": "63daa09b1c46c7c049d3105bec9f15c2020771ef65f3238e8045ca5244f60257"
+    },
+    {
+      "path": "src/test/java/com/fclinic/patientservice/scope/ScopeFixtures.java",
+      "sha256": "66e21128ee654a3130b8970974805b8769a1ed25cb4bd74d0d589cf184af64f0"
+    },
+    {
+      "path": "src/test/java/com/fclinic/patientservice/scope/ScopeDecisionDecoderTest.java",
+      "sha256": "64fbe92f5e178746e0f53d41c6cff49f0b4a1d0a79f6ae0ddcdcb4eda96a03fc"
+    },
+    {
+      "path": "src/test/java/com/fclinic/patientservice/scope/ScopeConfigurationTest.java",
+      "sha256": "5ed50048ffab6e5dbc535457989885ba3dbea8763904fbb39eed151a021eba7e"
+    },
+    {
+      "path": "src/test/java/com/fclinic/patientservice/scope/ScopeAdapterTest.java",
+      "sha256": "b14a0a658a23950bc3e55c24766e8cbc633764bb524e21abf143d98e63e74184"
+    },
+    {
+      "path": "src/test/java/com/fclinic/patientservice/scope/PatientScopeTcpIT.java",
+      "sha256": "bc1105e06837f17af754ed9b46eb42fc069629066cbc3c72a1ef8983f6425821"
+    },
+    {
+      "path": "src/test/java/com/fclinic/patientservice/reference/TestReferenceServer.java",
+      "sha256": "5a272196bf2bf9c9b8ea42daa420f97c37963685d1b78f9556c17de47bd6faf7"
+    },
+    {
+      "path": "src/test/java/com/fclinic/patientservice/reference/ReferenceFixtures.java",
+      "sha256": "c6f30a09982feeef03322b6532db344af4b9fdd4fb4716f72409614d8c764dc7"
+    },
+    {
+      "path": "src/test/java/com/fclinic/patientservice/reference/ReferenceConfigurationTest.java",
+      "sha256": "974d571f9037571b3bfc97963a0e251b0131594f42d3051fcc1b953b5d154a3c"
+    },
+    {
+      "path": "src/test/java/com/fclinic/patientservice/reference/PatientReferenceTcpIT.java",
+      "sha256": "bf9cada6c0bbdb9f4712f466932e7dae9396236aba2a3fca1b03b3218c046006"
+    },
+    {
+      "path": "src/test/java/com/fclinic/patientservice/reference/DoctorReferenceTransportTest.java",
+      "sha256": "216db3ab091749e13beb2d319a08ee46ebf1dda336eb4c8518572afa564f5815"
+    },
+    {
+      "path": "src/test/java/com/fclinic/patientservice/reference/DoctorReferenceDecoderTest.java",
+      "sha256": "d6179d9fe1b1ac99fe20cfe68f80c59e912d6082b5280f134eaf85e03bf07d8f"
+    },
+    {
+      "path": "src/test/java/com/fclinic/patientservice/reference/AppointmentReferenceTransportTest.java",
+      "sha256": "105c940b2a357680edb80a0d86e005a3ceacab94cdfc1e0597b5c578ca89528b"
+    },
+    {
+      "path": "src/test/java/com/fclinic/patientservice/reference/AppointmentReferenceDecoderTest.java",
+      "sha256": "d6574c55616fb069e3255bb4097dc6d8a3f5eb45d18b4cd69c2e6f7008cd37bf"
+    },
+    {
+      "path": "src/test/java/com/fclinic/patientservice/identity/TestAuthServer.java",
+      "sha256": "502ec7484210bbc86373c6a41f9fe3a94439fb9c176784a270a2b216e2caae61"
+    },
+    {
+      "path": "src/test/java/com/fclinic/patientservice/identity/PatientIdentityTcpIT.java",
+      "sha256": "6a0506b1b926cc1ecbede38361d4c0bb4190bc609abe0b7d610995f001a5a357"
+    },
+    {
+      "path": "src/test/java/com/fclinic/patientservice/identity/IntrospectionTransportTest.java",
+      "sha256": "a61b012f3fd6759c7cdbc4488e038a251127bc017fbf5957659817eac6ae4d34"
+    },
+    {
+      "path": "src/test/java/com/fclinic/patientservice/identity/IntrospectionDecoderTest.java",
+      "sha256": "c2e8699e1b5305e19ade177ccea72da1b87a9820eb110a26ab07fd057f40d99d"
+    },
+    {
+      "path": "src/test/java/com/fclinic/patientservice/identity/IdentityFixtures.java",
+      "sha256": "3fe13319c8eee9aed55fcb7e66b5caed21df370a11fc879f4725a92728a54208"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/infrastructure/adapter/scope/ScopeSettings.java",
+      "sha256": "afff6af36874050d633bce0087c6756d6ad6bd804be449c91b1ca5538c02c8ff"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/infrastructure/adapter/scope/ScopeQuery.java",
+      "sha256": "058879a171c0ee578856883c57d42072b24ecd0f671e8d092d29dfaebbee5132"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/infrastructure/adapter/scope/ScopeDecisionDecoder.java",
+      "sha256": "9d514f8cd4202c867a86159a7d992162038435142a093be1d77aad41d8bed321"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/infrastructure/adapter/scope/ScopeAuthorityClient.java",
+      "sha256": "3ef3e9f71cb4581f767048769118eda2220eb156f1e56a3ec4d9370f5082ff8a"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/config/PatientIdentityConfiguration.java",
+      "sha256": "11bcfce0efeaa5526a861a97e9b6763abebd62ad04f9756cb6768e3762d25d08"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/config/PatientConfiguration.java",
+      "sha256": "9ffeb80d076c3c670a8595bafd2d37d28c9fc29efd1ea374df031d9395657055"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/application/usecase/PatientWriter.java",
+      "sha256": "72b060dab91ec38618fdeb9333acd4417ee62bf19e72356279156359c842a93d"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/application/usecase/PatientApplicationService.java",
+      "sha256": "d33af9e8c06717e133f769f54769e345d4525d5a2a8e81bc22874edb753b4bf0"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/application/security/TrustedCaller.java",
+      "sha256": "7c4ba7c242e88702291706d1e7252c8b1a5c80bbd08b5f9daa40864e884c9400"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/application/security/PatientPolicy.java",
+      "sha256": "8ede644fe54c7660d676f203e173267ddbbac00784c2daa723427004c1dd82a5"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/application/security/BearerTokens.java",
+      "sha256": "aad4ba13e89c49426137696b19fab8787b964cbdec1448d6066a858c402b5712"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/application/port/out/WorkScopePort.java",
+      "sha256": "18cf9841e8822ae8fe4b16fb9df6e865941a2e6dd0c925c6af47a079ca9e8dd0"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/application/port/out/RevisionPort.java",
+      "sha256": "eb323ee4bd285bafb034316f379f82ebc2bf96c4b7104c72c4047031316578be"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/application/port/out/PatientRepositoryPort.java",
+      "sha256": "727535f78a01eb8a453356c3be7bc0a81f31768e905ed356db04f6d2dbed0804"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/application/port/out/IdentityVerifierPort.java",
+      "sha256": "6e4fc8ffb80fa8f8638670dfa07c84983db389fce933ee4416f9b890f6548016"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/application/port/out/DoctorClientPort.java",
+      "sha256": "7ebd19416aa823b089182f0014f37737508681834400f01c8ccd876cccd92c6b"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/application/port/out/AppointmentClientPort.java",
+      "sha256": "2c560ab0aba9887e1a3925eda0536f95f05342b293611dd4b2aa6206d61c6cc1"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/api/security/PatientAuthentication.java",
+      "sha256": "2ca81a8295c23e5405d4443ef63ad2cd99ba89baf074dbcf88a413580d736bfa"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/api/exception/GlobalExceptionHandler.java",
+      "sha256": "672be4e29574548cf5bd6c2896a6d575ed2f9b5a8a08ec5f1461338a12740b7e"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/api/dto/PatientResponse.java",
+      "sha256": "8f9a962b9d2d406909a0193562936ece0d8c71fc547c93c5a0775b5420e86366"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/api/dto/PatientInput.java",
+      "sha256": "7a2c38affa9494668c0423c623c599efad66030d9e718897b3ddac7932896f74"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/api/dto/MedicalRecordResponse.java",
+      "sha256": "4464db425b6e98656e90f5e1c7cb05c1661bd687220ea5a9206774905492efdd"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/api/controller/PatientController.java",
+      "sha256": "2ddc691d4d2b0cecd1207537e8bd7c027d6f2357be11e12e363d5e8cc66a8568"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/config/PatientReferenceConfiguration.java",
+      "sha256": "552be5005b24756b6c41f8d2512fb969fd0f70575c6ace17944e97824f308c91"
+    },
+    {
+      "path": "src/test/java/com/fclinic/patientservice/scope/TestScopeServer.java",
+      "sha256": "1434ca9f45e51de1d8c7b6d2ea2bebd50f0d92adafa2aba991530b61a728d185"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/config/PatientScopeConfiguration.java",
+      "sha256": "9d33dc9abf5f3689a36821eb18c55d45acafa2a01d0c0aaaebd8a042499ba3a8"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/domain/aggregate/MedicalRecord.java",
+      "sha256": "4acf3550ecf42f07486cad4c402ecf9604a1cdd9a9522d10273f2790179a3313"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/infrastructure/adapter/scope/RemoteWorkScopeAdapter.java",
+      "sha256": "82f58d290210a7c76f54bbf4f66bfd45548aae97acb27a70a437d2ade0de73b0"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/infrastructure/adapter/reference/RemoteDoctorClientAdapter.java",
+      "sha256": "e79913ed1b330f2bc0e32af8c239735d441704d84057843afa0e53808d32024d"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/infrastructure/adapter/reference/RemoteAppointmentClientAdapter.java",
+      "sha256": "5a23194be3cc1dee0b1f5dbc7c93c04edf8c6ba527e883a0cc2621e180902652"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/infrastructure/adapter/reference/ReferenceSettings.java",
+      "sha256": "e18be0413a7f81ed35bd135887c603f1ae4d5ed330504dd766cb5890b9459f5f"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/infrastructure/adapter/reference/ReferenceJson.java",
+      "sha256": "497e5cf1d668bcf50376c6385671d2f45dc58f44bf59efa8fcbd9347a2e5a03f"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/infrastructure/adapter/reference/ReferenceHttpClient.java",
+      "sha256": "f4cc335ce4cc263e56ee1a95aff495de7c24be89ecd9f1c7a3240cf0ec4cf1e3"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/infrastructure/adapter/reference/DoctorReferenceDecoder.java",
+      "sha256": "cd09715b4638e4a7c6ce2e566722cf5a28a169eca6d39d70a6a0fcbe1c0866fe"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/infrastructure/adapter/reference/AppointmentReferenceDecoder.java",
+      "sha256": "5f764a3a453343e7e29542e92f79b78172479781b37d0d12d3b8b817e1671266"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/infrastructure/adapter/identity/IntrospectionIdentityVerifier.java",
+      "sha256": "4f538855df3c20a1d629690dafe7d2e11f8c13220f44f8dbbed5089d021a80cb"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/infrastructure/adapter/identity/IntrospectionDecoder.java",
+      "sha256": "00c14b8acf51587b65836946b008ab67ae9751eeff3e66b99321cb7ca83f32fb"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/infrastructure/adapter/identity/IdentitySettings.java",
+      "sha256": "1794269d201ead9dc2b2231779fc55a8b291e169a55f2737fa4fd7246b99f2ff"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/infrastructure/adapter/JpaRevisionAdapter.java",
+      "sha256": "6f118cf23240ce1e60927e0a06c8259e9c30efa9039e77bd3dd7e067403ca95c"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/infrastructure/adapter/JpaPatientRepositoryAdapter.java",
+      "sha256": "26942d7c51b279510116a83b5f9119a3a1055e2dd8b915adcd58f342019cdadc"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/domain/model/SearchQuery.java",
+      "sha256": "2adbbcaeb239bc82589120b1b2d4c9179ee8a609d0ca8fe748c47415e77a99e5"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/domain/model/ProfileData.java",
+      "sha256": "b8eefdb69ee073ee72e70c80a712254bcf48d5541fbf5e0ce97975f7d5942a40"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/domain/model/PatientError.java",
+      "sha256": "1612ae95883fbbf0002849b104d606835ee8cc40e528a9585397c7cc752c931d"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/domain/model/PageResult.java",
+      "sha256": "f4ffdbc29341bf84829947d7953bff94624b5d10e34e01e02602d1dd65444578"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/domain/model/ClinicalData.java",
+      "sha256": "63956389b70c3820585a9f1c2287a497cc42e74987d54af3b667094988699c84"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/domain/aggregate/Patient.java",
+      "sha256": "4859c9cf5086126f67eaaf6f7ed97685df7fef0ff854da914b34f6ab5880fef8"
+    },
+    {
+      "path": "src/main/java/com/fclinic/patientservice/config/PatientWebConfiguration.java",
+      "sha256": "338f6900b219762f3eacad98df33a8caf7bf277e0a01b7ad116cb4398960ada7"
+    },
+    {
+      "path": "pom.xml",
+      "sha256": "ebbd885959c73fc443f287d7a3fb426f67105f690b33c51fec0ded98647c33d2"
+    }
+  ],
+  "sourceManifestSha256": "8be131f96288c9949480f76bb3a874c82a61e548b26c9327315742d25fd7e402",
+  "sourceDigestAlgorithm": "SHA256 UTF8(sorted relative path + space + sha256 joined LF; no trailing LF)",
+  "sourceChangesAgainstM5C": [
+    {
+      "path": "pom.xml",
+      "before": "989c935ae5c7ee4aad78e863ce844d17c63087c4ca8eb35ffedee2acaf053807",
+      "after": "ebbd885959c73fc443f287d7a3fb426f67105f690b33c51fec0ded98647c33d2"
+    },
+    {
+      "path": "src/test/java/com/fclinic/patientservice/PatientServiceIT.java",
+      "before": "1efd3526a90699aab6a3cb3cfa01f4737e8daf52bde111d6642beb7e9316a966",
+      "after": "12efc9fa51cb1fc9d6426b20bd5b895e0f453e8007214c7a2c59924b1dd1423f"
+    }
+  ],
+  "productionBaselineEntriesUnchanged": true,
+  "baselineRegression": [
+    {
+      "suite": "com.fclinic.patientservice.identity.PatientIdentityTcpIT",
+      "expected": 12,
+      "actual": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "status": "PASS"
+    },
+    {
+      "suite": "com.fclinic.patientservice.PatientServiceIT",
+      "expected": 20,
+      "actual": 20,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "status": "PASS"
+    },
+    {
+      "suite": "com.fclinic.patientservice.reference.PatientReferenceTcpIT",
+      "expected": 23,
+      "actual": 23,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "status": "PASS"
+    },
+    {
+      "suite": "com.fclinic.patientservice.scope.PatientScopeTcpIT",
+      "expected": 19,
+      "actual": 19,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "status": "PASS"
+    },
+    {
+      "suite": "com.fclinic.patientservice.config.PatientAuthenticationTest",
+      "expected": 4,
+      "actual": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "status": "PASS"
+    },
+    {
+      "suite": "com.fclinic.patientservice.identity.IdentityConfigurationTest",
+      "expected": 5,
+      "actual": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "status": "PASS"
+    },
+    {
+      "suite": "com.fclinic.patientservice.identity.IntrospectionDecoderTest",
+      "expected": 30,
+      "actual": 30,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "status": "PASS"
+    },
+    {
+      "suite": "com.fclinic.patientservice.identity.IntrospectionTransportTest",
+      "expected": 9,
+      "actual": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "status": "PASS"
+    },
+    {
+      "suite": "com.fclinic.patientservice.PatientInputTest",
+      "expected": 24,
+      "actual": 24,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "status": "PASS"
+    },
+    {
+      "suite": "com.fclinic.patientservice.PatientOrchestrationTest",
+      "expected": 5,
+      "actual": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "status": "PASS"
+    },
+    {
+      "suite": "com.fclinic.patientservice.PatientPolicyTest",
+      "expected": 5,
+      "actual": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "status": "PASS"
+    },
+    {
+      "suite": "com.fclinic.patientservice.reference.AppointmentReferenceDecoderTest",
+      "expected": 13,
+      "actual": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "status": "PASS"
+    },
+    {
+      "suite": "com.fclinic.patientservice.reference.AppointmentReferenceTransportTest",
+      "expected": 4,
+      "actual": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "status": "PASS"
+    },
+    {
+      "suite": "com.fclinic.patientservice.reference.DoctorReferenceDecoderTest",
+      "expected": 16,
+      "actual": 16,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "status": "PASS"
+    },
+    {
+      "suite": "com.fclinic.patientservice.reference.DoctorReferenceTransportTest",
+      "expected": 8,
+      "actual": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "status": "PASS"
+    },
+    {
+      "suite": "com.fclinic.patientservice.reference.ReferenceConfigurationTest",
+      "expected": 7,
+      "actual": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "status": "PASS"
+    },
+    {
+      "suite": "com.fclinic.patientservice.scope.ScopeAdapterTest",
+      "expected": 9,
+      "actual": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "status": "PASS"
+    },
+    {
+      "suite": "com.fclinic.patientservice.scope.ScopeConfigurationTest",
+      "expected": 5,
+      "actual": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "status": "PASS"
+    },
+    {
+      "suite": "com.fclinic.patientservice.scope.ScopeDecisionDecoderTest",
+      "expected": 27,
+      "actual": 27,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "status": "PASS"
+    },
+    {
+      "suite": "com.fclinic.patientservice.scope.ScopePolicyTest",
+      "expected": 4,
+      "actual": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "status": "PASS"
+    }
+  ],
+  "reports": [
+    {
+      "path": "target/surefire-reports/TEST-com.fclinic.patientservice.config.PatientAuthenticationTest.xml",
+      "suite": "com.fclinic.patientservice.config.PatientAuthenticationTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "51c796eaee4e94087050e20f623e33342c741a2dd6d543a8519c45a55e898a83"
+    },
+    {
+      "path": "target/surefire-reports/TEST-com.fclinic.patientservice.contract.PatientProviderContractTest.xml",
+      "suite": "com.fclinic.patientservice.contract.PatientProviderContractTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "ed1a7d40d276b4ec929d2c8588c2238b8d62067582cee5c7f514c31b74e9b6b2"
+    },
+    {
+      "path": "target/surefire-reports/TEST-com.fclinic.patientservice.contract.ProviderContractPreflightTest.xml",
+      "suite": "com.fclinic.patientservice.contract.ProviderContractPreflightTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "31cfe1458fb21327beb1112f493c0589252cb63c8cfc0afca960abc6580ec665"
+    },
+    {
+      "path": "target/surefire-reports/TEST-com.fclinic.patientservice.identity.IdentityConfigurationTest.xml",
+      "suite": "com.fclinic.patientservice.identity.IdentityConfigurationTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "06f4a65f7063aa00821a5f0e1ecd4042b47ff2efc2f664460b1cfdbfdd850564"
+    },
+    {
+      "path": "target/surefire-reports/TEST-com.fclinic.patientservice.identity.IntrospectionDecoderTest.xml",
+      "suite": "com.fclinic.patientservice.identity.IntrospectionDecoderTest",
+      "tests": 30,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "a34d23efc5381c4a6fab8e1e2a9a84b4ebcf14682af806ca5cf7f813d062e04e"
+    },
+    {
+      "path": "target/surefire-reports/TEST-com.fclinic.patientservice.identity.IntrospectionTransportTest.xml",
+      "suite": "com.fclinic.patientservice.identity.IntrospectionTransportTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "a01e6d14a9791ae598f6f8c20c2bc3cd923668d4f7fc2349cf1873992341cebe"
+    },
+    {
+      "path": "target/surefire-reports/TEST-com.fclinic.patientservice.PatientInputTest.xml",
+      "suite": "com.fclinic.patientservice.PatientInputTest",
+      "tests": 24,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "9c10cdc760406d5df120ca06ef27e477a88aa6249a97214fa69d7f84679b0800"
+    },
+    {
+      "path": "target/surefire-reports/TEST-com.fclinic.patientservice.PatientOrchestrationTest.xml",
+      "suite": "com.fclinic.patientservice.PatientOrchestrationTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "d62c2f5680c7437bac3a5fbcaa375a87793593db08813c09212ae60425049a60"
+    },
+    {
+      "path": "target/surefire-reports/TEST-com.fclinic.patientservice.PatientPolicyTest.xml",
+      "suite": "com.fclinic.patientservice.PatientPolicyTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "5fcadf2f9f61c2370e745f6703950511fa0dc2acda0942ace2e5d76ebacdbbd9"
+    },
+    {
+      "path": "target/surefire-reports/TEST-com.fclinic.patientservice.reference.AppointmentReferenceDecoderTest.xml",
+      "suite": "com.fclinic.patientservice.reference.AppointmentReferenceDecoderTest",
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "c77799969b4f0724b59b9f0921226b6367585767e75714d2c5de1022b351b135"
+    },
+    {
+      "path": "target/surefire-reports/TEST-com.fclinic.patientservice.reference.AppointmentReferenceTransportTest.xml",
+      "suite": "com.fclinic.patientservice.reference.AppointmentReferenceTransportTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "2fe956daefaa2d56b5520e9a06fc7fbace2399d471121b8c06c830df0f7f5f22"
+    },
+    {
+      "path": "target/surefire-reports/TEST-com.fclinic.patientservice.reference.DoctorReferenceDecoderTest.xml",
+      "suite": "com.fclinic.patientservice.reference.DoctorReferenceDecoderTest",
+      "tests": 16,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "7a5c9ac39a0100eb0eacef00acf9cd9647faab8b0e9cef3d88f5889862438ffb"
+    },
+    {
+      "path": "target/surefire-reports/TEST-com.fclinic.patientservice.reference.DoctorReferenceTransportTest.xml",
+      "suite": "com.fclinic.patientservice.reference.DoctorReferenceTransportTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "5f90a8f69df78df598571f7b7333de3a11c5c370dd671ec6449afc3929f6b650"
+    },
+    {
+      "path": "target/surefire-reports/TEST-com.fclinic.patientservice.reference.ReferenceConfigurationTest.xml",
+      "suite": "com.fclinic.patientservice.reference.ReferenceConfigurationTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "056b477fa23ce3c6686f5e3cf31572f0c6d97a489b8df58c9c5e1e2ab369ebf5"
+    },
+    {
+      "path": "target/surefire-reports/TEST-com.fclinic.patientservice.scope.ScopeAdapterTest.xml",
+      "suite": "com.fclinic.patientservice.scope.ScopeAdapterTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "ca8d65620bc1863bd9b4e87280178228c850460f64b6e0e78b8eddfdef264a89"
+    },
+    {
+      "path": "target/surefire-reports/TEST-com.fclinic.patientservice.scope.ScopeConfigurationTest.xml",
+      "suite": "com.fclinic.patientservice.scope.ScopeConfigurationTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "345e6dbf8f33f5fa7eac5d659ccce7c25e56eceb25e4fea9aae7a7393b4d708d"
+    },
+    {
+      "path": "target/surefire-reports/TEST-com.fclinic.patientservice.scope.ScopeDecisionDecoderTest.xml",
+      "suite": "com.fclinic.patientservice.scope.ScopeDecisionDecoderTest",
+      "tests": 27,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "9cfd79d62b5f10d7d28fed8d1c01b402ebc477940607d1e5214163ccf6a6c525"
+    },
+    {
+      "path": "target/surefire-reports/TEST-com.fclinic.patientservice.scope.ScopePolicyTest.xml",
+      "suite": "com.fclinic.patientservice.scope.ScopePolicyTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "962cc1d011296bce7833999eaf57f8ecfe300d53ef40f87af07a65c325c39053"
+    },
+    {
+      "path": "target/failsafe-reports/TEST-com.fclinic.patientservice.identity.PatientIdentityTcpIT.xml",
+      "suite": "com.fclinic.patientservice.identity.PatientIdentityTcpIT",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "6b148d7c726e9ffeb0a0d51e8a475193a812a1583f1cbb8c9f6dc292c1150364"
+    },
+    {
+      "path": "target/failsafe-reports/TEST-com.fclinic.patientservice.PatientServiceIT.xml",
+      "suite": "com.fclinic.patientservice.PatientServiceIT",
+      "tests": 20,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "80fb2c6440145f032fca1bf69cfb775846e7b89f45d001b50ac70d5b23a1d448"
+    },
+    {
+      "path": "target/failsafe-reports/TEST-com.fclinic.patientservice.reference.PatientReferenceTcpIT.xml",
+      "suite": "com.fclinic.patientservice.reference.PatientReferenceTcpIT",
+      "tests": 23,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "d154ddf1e96514e53a072ebf1283dddead7b706d5ef1fd82618190d86f4bb64a"
+    },
+    {
+      "path": "target/failsafe-reports/TEST-com.fclinic.patientservice.scope.PatientScopeTcpIT.xml",
+      "suite": "com.fclinic.patientservice.scope.PatientScopeTcpIT",
+      "tests": 19,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "b6b78f5f0b45dcb0d117fb7441ef4f4a401dde400db170554bb012186123bf76"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "docs/FClinic_Implementation_Ready_Pack/FClinic_Implementation_Ready_Pack/02_Shared_Contracts/openapi/patient.openapi.json",
+      "sha256": "63e2e306a2b14d89397bb998be43f8de7b982eadf8f3b88353bc952684ebeb71",
+      "matchesM5C": true
+    },
+    {
+      "path": "docs/FClinic_Implementation_Ready_Pack/FClinic_Implementation_Ready_Pack/02_Shared_Contracts/openapi/doctor.openapi.json",
+      "sha256": "b0128832bebd66296d11fad8e4fbce0f73b656f09e6d3827af88a724a19a25cd",
+      "matchesM5C": true
+    },
+    {
+      "path": "docs/FClinic_Implementation_Ready_Pack/FClinic_Implementation_Ready_Pack/02_Shared_Contracts/openapi/appointment.openapi.json",
+      "sha256": "a333df2e726aba05922b6ba68d9d5924ee56cb3af1405315cc7f1d7adb3912dc",
+      "matchesM5C": true
+    },
+    {
+      "path": "docs/FClinic_Implementation_Ready_Pack/FClinic_Implementation_Ready_Pack/07_Testing_And_QA/fixtures/registry.json",
+      "sha256": "64d6b73b655638365417bde67b70300295a01c1c1a9d22f230d8d266af33bb67",
+      "matchesM5C": true
+    },
+    {
+      "path": "docs/FClinic_Implementation_Ready_Pack/FClinic_Implementation_Ready_Pack/04_Database_Design/schemas/patient-approved-empty-schema.sql",
+      "sha256": "1500fb0c94d9a504237889201ce900185c771bc80403d484a1d9d47384536ef6",
+      "matchesM5C": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/docs/integration-readiness/contracts/patient-doctor-reference-v1.schema.json",
+      "sha256": "098d3651fe4bc5daad3ec813ce459acfc624a0888ad209f789aa6a4bcd08c172",
+      "matchesM5C": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/docs/integration-readiness/contracts/patient-appointment-medical-reference-v1.schema.json",
+      "sha256": "b2ce460335e273e227b45e982c6cefb2512d2625f6f7ff05f2342d29e34c1e86",
+      "matchesM5C": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/evidence/verification-summary.json",
+      "sha256": "6169a9921acb15318e0c8458c7d5ff46fcf5e901d67d6973e67321afe4ffaa5c",
+      "matchesM5C": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/evidence/m5-a-verification.json",
+      "sha256": "b7df07a0ff47fca379a1368f3398fe71607db626ed3c5bee2868411d4c399280",
+      "matchesM5C": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/evidence/m5-b-verification.json",
+      "sha256": "a975ca37a530585a5f13b745ee20cc291c3742e87378f470c7443f42fe471407",
+      "matchesM5C": true
+    }
+  ],
+  "providerSourceSnapshots": [
+    {
+      "path": "ClinicAppointmentBE/services/doctor-service/src/main/java/com/fclinic/doctorservice/api/controller/DoctorController.java",
+      "sha256": "79f8ecc09275c0ce5514ec114ad48a8955b28d95455b280e9afe3e0e5d3dc0e0",
+      "matchesM5C": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/doctor-service/src/main/java/com/fclinic/doctorservice/api/dto/DoctorResponse.java",
+      "sha256": "0002dc7f93342868ff7288251e338bac78e317277c6b2841e23ce1dc718694a0",
+      "matchesM5C": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/doctor-service/src/main/java/com/fclinic/doctorservice/api/exception/GlobalExceptionHandler.java",
+      "sha256": "58b6e9114c796a92a19b216e3c516f6ddc5b8faf1773e7b26bcb2ab83b0a6e42",
+      "matchesM5C": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/appointment-service/src/main/java/com/fclinic/appointmentservice/api/controller/AppointmentController.java",
+      "sha256": "79b988884ced39f320fad4888edccff9ae965d0dc0ec1d843d090296bfed57ba",
+      "matchesM5C": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/appointment-service/src/main/java/com/fclinic/appointmentservice/api/dto/AppointmentResponse.java",
+      "sha256": "0a6b03326cf984fb8bc0ac6d7ac13a1c42df06ed96746d9d552fbbbc1d5253fa",
+      "matchesM5C": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/appointment-service/src/main/java/com/fclinic/appointmentservice/domain/model/AppointmentStatus.java",
+      "sha256": "3be4f1a29ec79107f0f79da2f21ba9ce699068ac92fdd30cfee9b73e115df374",
+      "matchesM5C": true
+    },
+    {
+      "path": "ClinicAppointmentBE/common/common-web/src/main/java/com/fclinic/common/web/ApiResponse.java",
+      "sha256": "77b4f7f12218cab06a0ee0a0346025d4cc9a8468e6a24d827c31dfda6b1c244b",
+      "matchesM5C": true
+    }
+  ],
+  "documentationAndHarnessArtifacts": [
+    {
+      "path": "docs/integration-readiness/10_M5_D_PROVIDER_CONTRACT_VERIFICATION.md",
+      "sha256": "530ff693a3ca0db9a888cf25eb9efb0e5e5bff2546b3e7913b1fc5ffa0c36add"
+    },
+    {
+      "path": "docs/integration-readiness/11_PROVIDER_COMPATIBILITY_HANDOFF.md",
+      "sha256": "fa03d33304c54055e2160fa36cf1e65cc1fb4d397fd1a81e160cd348e1da1d31"
+    },
+    {
+      "path": "docs/integration-readiness/12_REAL_INTEGRATION_RUNBOOK.md",
+      "sha256": "993044893e26b30ffbd36343112968b1482e69b3b9033e175fc785902f5edebf"
+    },
+    {
+      "path": "docs/integration-readiness/contracts/patient-appointment-medical-reference-v1.schema.json",
+      "sha256": "b2ce460335e273e227b45e982c6cefb2512d2625f6f7ff05f2342d29e34c1e86"
+    },
+    {
+      "path": "docs/integration-readiness/contracts/patient-doctor-reference-v1.schema.json",
+      "sha256": "098d3651fe4bc5daad3ec813ce459acfc624a0888ad209f789aa6a4bcd08c172"
+    },
+    {
+      "path": "docs/integration-readiness/contracts/patient-identity-introspection-v1.schema.json",
+      "sha256": "1ed4764c1480cc0e7776f36bdd0d6fbd9e97e6766a64dd827308dd2785b61088"
+    },
+    {
+      "path": "docs/integration-readiness/contracts/patient-work-scope-v1.schema.json",
+      "sha256": "e402cf523fe69f2fcf35eacb3517ebebc27d3f44653fdad4ab8ac52e7e919de1"
+    },
+    {
+      "path": "docs/integration-readiness/contracts/real-appointment-vectors-v1.example.json",
+      "sha256": "5972eea3022f3978eadc417e923c4f3f6450c5105d4d5f2b85ba1c164edb4dc7"
+    },
+    {
+      "path": "docs/integration-readiness/contracts/real-doctor-vectors-v1.example.json",
+      "sha256": "bbcee41f1e28584d3b411dab45ed75b2f0de961e946ae657296b208893d0ec52"
+    },
+    {
+      "path": "scripts/Discover-RealProviders.ps1",
+      "sha256": "c112acf0d69532d106eb249d90981d7e15dbdce701945de6857fbce5c6eca0ce"
+    },
+    {
+      "path": "README.md",
+      "sha256": "7745197fd0460f175fa2041b6159ce7af92746165a426c095b6b0f6ea6f33070"
+    },
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "7658904cb410e712f38fa906b9cc97ad00c7d3f0180ea812ce94830875923334"
+    },
+    {
+      "path": "INTEGRATION_HANDOVER.md",
+      "sha256": "ad4326ca479b337ff5570fa97cb92c6e71a55878cd16738acba4d2f6f88c94ff"
+    }
+  ],
+  "jarSha256": "7ae736db5ff2f60299f260bf2fa6e565c608190fed22c9c75a6e8d7cddfe0193",
+  "safety": {
+    "otherModulesEdited": false,
+    "historicalEvidenceOverwritten": false,
+    "newStubProviders": false,
+    "migration": false,
+    "productionBypass": false,
+    "existingDatabaseMutation": false,
+    "gitHistoryMutation": false,
+    "canonicalEdited": false
+  },
+  "realProviderCaseMatrix": [
+    {
+      "boundary": "B-04",
+      "case": "ACTIVE",
+      "classification": "NOT EXECUTED",
+      "readiness": "BLOCKED",
+      "expected": "See executable RealProviderContractCheck.expected(Case), pinned schema and runbook acceptance table",
+      "actual": "No compatible configured actual provider binary/deployment/credentials; preflight blocked before network"
+    },
+    {
+      "boundary": "B-04",
+      "case": "INACTIVE",
+      "classification": "NOT EXECUTED",
+      "readiness": "BLOCKED",
+      "expected": "See executable RealProviderContractCheck.expected(Case), pinned schema and runbook acceptance table",
+      "actual": "No compatible configured actual provider binary/deployment/credentials; preflight blocked before network"
+    },
+    {
+      "boundary": "B-04",
+      "case": "MISSING",
+      "classification": "NOT EXECUTED",
+      "readiness": "BLOCKED",
+      "expected": "See executable RealProviderContractCheck.expected(Case), pinned schema and runbook acceptance table",
+      "actual": "No compatible configured actual provider binary/deployment/credentials; preflight blocked before network"
+    },
+    {
+      "boundary": "B-04",
+      "case": "INVALID_CREDENTIAL",
+      "classification": "NOT EXECUTED",
+      "readiness": "BLOCKED",
+      "expected": "See executable RealProviderContractCheck.expected(Case), pinned schema and runbook acceptance table",
+      "actual": "No compatible configured actual provider binary/deployment/credentials; preflight blocked before network"
+    },
+    {
+      "boundary": "B-04",
+      "case": "WRONG_VERSION_REQUEST",
+      "classification": "NOT EXECUTED",
+      "readiness": "BLOCKED",
+      "expected": "See executable RealProviderContractCheck.expected(Case), pinned schema and runbook acceptance table",
+      "actual": "No compatible configured actual provider binary/deployment/credentials; preflight blocked before network"
+    },
+    {
+      "boundary": "B-04",
+      "case": "WRONG_RESOURCE",
+      "classification": "NOT EXECUTED",
+      "readiness": "BLOCKED",
+      "expected": "See executable RealProviderContractCheck.expected(Case), pinned schema and runbook acceptance table",
+      "actual": "No compatible configured actual provider binary/deployment/credentials; preflight blocked before network"
+    },
+    {
+      "boundary": "B-04",
+      "case": "WRONG_VERSION_RESPONSE",
+      "classification": "NOT EXECUTED",
+      "readiness": "BLOCKED",
+      "expected": "See executable RealProviderContractCheck.expected(Case), pinned schema and runbook acceptance table",
+      "actual": "No compatible configured actual provider binary/deployment/credentials; preflight blocked before network"
+    },
+    {
+      "boundary": "B-04",
+      "case": "TECHNICAL_5XX",
+      "classification": "NOT EXECUTED",
+      "readiness": "BLOCKED",
+      "expected": "See executable RealProviderContractCheck.expected(Case), pinned schema and runbook acceptance table",
+      "actual": "No compatible configured actual provider binary/deployment/credentials; preflight blocked before network"
+    },
+    {
+      "boundary": "B-04",
+      "case": "INVALID_PAYLOAD",
+      "classification": "NOT EXECUTED",
+      "readiness": "BLOCKED",
+      "expected": "See executable RealProviderContractCheck.expected(Case), pinned schema and runbook acceptance table",
+      "actual": "No compatible configured actual provider binary/deployment/credentials; preflight blocked before network"
+    },
+    {
+      "boundary": "B-05",
+      "case": "VALID",
+      "classification": "NOT EXECUTED",
+      "readiness": "BLOCKED",
+      "expected": "See executable RealProviderContractCheck.expected(Case), pinned schema and runbook acceptance table",
+      "actual": "No compatible configured actual provider binary/deployment/credentials; preflight blocked before network"
+    },
+    {
+      "boundary": "B-05",
+      "case": "CANCELLED",
+      "classification": "NOT EXECUTED",
+      "readiness": "BLOCKED",
+      "expected": "See executable RealProviderContractCheck.expected(Case), pinned schema and runbook acceptance table",
+      "actual": "No compatible configured actual provider binary/deployment/credentials; preflight blocked before network"
+    },
+    {
+      "boundary": "B-05",
+      "case": "MISSING",
+      "classification": "NOT EXECUTED",
+      "readiness": "BLOCKED",
+      "expected": "See executable RealProviderContractCheck.expected(Case), pinned schema and runbook acceptance table",
+      "actual": "No compatible configured actual provider binary/deployment/credentials; preflight blocked before network"
+    },
+    {
+      "boundary": "B-05",
+      "case": "PATIENT_MISMATCH",
+      "classification": "NOT EXECUTED",
+      "readiness": "BLOCKED",
+      "expected": "See executable RealProviderContractCheck.expected(Case), pinned schema and runbook acceptance table",
+      "actual": "No compatible configured actual provider binary/deployment/credentials; preflight blocked before network"
+    },
+    {
+      "boundary": "B-05",
+      "case": "DOCTOR_MISMATCH",
+      "classification": "NOT EXECUTED",
+      "readiness": "BLOCKED",
+      "expected": "See executable RealProviderContractCheck.expected(Case), pinned schema and runbook acceptance table",
+      "actual": "No compatible configured actual provider binary/deployment/credentials; preflight blocked before network"
+    },
+    {
+      "boundary": "B-05",
+      "case": "INVALID_CREDENTIAL",
+      "classification": "NOT EXECUTED",
+      "readiness": "BLOCKED",
+      "expected": "See executable RealProviderContractCheck.expected(Case), pinned schema and runbook acceptance table",
+      "actual": "No compatible configured actual provider binary/deployment/credentials; preflight blocked before network"
+    },
+    {
+      "boundary": "B-05",
+      "case": "WRONG_VERSION_REQUEST",
+      "classification": "NOT EXECUTED",
+      "readiness": "BLOCKED",
+      "expected": "See executable RealProviderContractCheck.expected(Case), pinned schema and runbook acceptance table",
+      "actual": "No compatible configured actual provider binary/deployment/credentials; preflight blocked before network"
+    },
+    {
+      "boundary": "B-05",
+      "case": "WRONG_RESOURCE",
+      "classification": "NOT EXECUTED",
+      "readiness": "BLOCKED",
+      "expected": "See executable RealProviderContractCheck.expected(Case), pinned schema and runbook acceptance table",
+      "actual": "No compatible configured actual provider binary/deployment/credentials; preflight blocked before network"
+    },
+    {
+      "boundary": "B-05",
+      "case": "UNKNOWN_STATUS",
+      "classification": "NOT EXECUTED",
+      "readiness": "BLOCKED",
+      "expected": "See executable RealProviderContractCheck.expected(Case), pinned schema and runbook acceptance table",
+      "actual": "No compatible configured actual provider binary/deployment/credentials; preflight blocked before network"
+    },
+    {
+      "boundary": "B-05",
+      "case": "WRONG_VERSION_RESPONSE",
+      "classification": "NOT EXECUTED",
+      "readiness": "BLOCKED",
+      "expected": "See executable RealProviderContractCheck.expected(Case), pinned schema and runbook acceptance table",
+      "actual": "No compatible configured actual provider binary/deployment/credentials; preflight blocked before network"
+    },
+    {
+      "boundary": "B-05",
+      "case": "TECHNICAL_5XX",
+      "classification": "NOT EXECUTED",
+      "readiness": "BLOCKED",
+      "expected": "See executable RealProviderContractCheck.expected(Case), pinned schema and runbook acceptance table",
+      "actual": "No compatible configured actual provider binary/deployment/credentials; preflight blocked before network"
+    },
+    {
+      "boundary": "B-05",
+      "case": "INVALID_PAYLOAD",
+      "classification": "NOT EXECUTED",
+      "readiness": "BLOCKED",
+      "expected": "See executable RealProviderContractCheck.expected(Case), pinned schema and runbook acceptance table",
+      "actual": "No compatible configured actual provider binary/deployment/credentials; preflight blocked before network"
+    }
+  ],
+  "qualityChecks": {
+    "newDocumentationLinksChecked": 3,
+    "brokenDocumentationLinks": 0,
+    "missingSourceManifestPaths": 0,
+    "productionJarTestOrHarnessOrSchemaValidatorEntries": 0,
+    "canonicalHashDrift": 0,
+    "baselineSuitesRetained": 20,
+    "baselineSuiteCountFailures": 0,
+    "productionSourceAndConfigHashChanges": 0,
+    "gitHeadUnchanged": true,
+    "gitDiffCheckExitCode": 0,
+    "newTestSuites": [
+      {
+        "classification": "COMPONENT PASS",
+        "suite": "PatientProviderContractTest",
+        "tests": 2
+      },
+      {
+        "classification": "UNIT PASS",
+        "suite": "ProviderContractPreflightTest",
+        "tests": 3
+      }
+    ],
+    "realProviderCaseExecutions": 0,
+    "newTcpTests": 0,
+    "existingDoubleTcpTests": 54
+  }
+}
