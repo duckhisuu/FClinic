@@ -7,9 +7,9 @@ spring:
     name: patient-service
   datasource:
     # Target must explicitly select a prepared v2 database. No fallback to the legacy datasource.
-    url: ${PATIENT_V2_DB_URL}
-    username: ${PATIENT_V2_DB_USERNAME}
-    password: ${PATIENT_V2_DB_PASSWORD}
+    url: ${PATIENT_V2_DB_URL:jdbc:postgresql://localhost:5433/patient_db}
+    username: ${PATIENT_V2_DB_USERNAME:fclinic_admin}
+    password: ${PATIENT_V2_DB_PASSWORD:fclinic_secret}
   jpa:
     hibernate:
       ddl-auto: validate
