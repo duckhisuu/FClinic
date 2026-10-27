@@ -1,0 +1,20 @@
+{
+  "status": 200,
+  "message": "Success",
+  "data": {
+    "id": "74fba630-5953-44b8-86d6-bc236ac1213b",
+    "patientCode": "PAT-74fba630-5953-44b8-86d6-bc236ac1213b",
+    "fullName": "Demo Patient",
+    "phoneNumber": "+84900000001",
+    "email": "patient@example.test",
+    "dateOfBirth": "1995-05-15",
+    "gender": "UNKNOWN",
+    "address": null,
+    "status": "ACTIVE",
+    "version": 0,
+    "createdAt": "2026-10-20T03:00:00Z",
+    "updatedAt": "2026-10-20T03:00:00Z",
+    "createdBy": "user:demo-staff",
+    "updatedBy": "user:demo-staff"
+  }
+}

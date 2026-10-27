@@ -3,54 +3,40 @@ package com.fclinic.appointmentservice.config;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.support.converter.Jackson2JavaTypeMapper;
-import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
-import org.springframework.amqp.support.converter.MessageConverter;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.*;
 
-@Configuration
+@Configuration(proxyBeanMethods = false)
 public class RabbitMQConfig {
+  @Bean
+  public TopicExchange clinicEvents() {
+    return ExchangeBuilder.topicExchange("clinic.events").durable(true).build();
+  }
 
-    @Value("${fclinic.rabbitmq.queue:fclinic.appointment.notifications}")
-    private String queueName;
+  @Bean
+  public Queue appointmentNotifications() {
+    return QueueBuilder.durable("fclinic.appointment.notifications").build();
+  }
 
-    @Value("${fclinic.rabbitmq.exchange:fclinic.direct.exchange}")
-    private String exchangeName;
+  @Bean
+  public Declarables appointmentBindings(
+      TopicExchange clinicEvents, Queue appointmentNotifications) {
+    return new Declarables(
+        BindingBuilder.bind(appointmentNotifications).to(clinicEvents).with("appointment.created"),
+            BindingBuilder.bind(appointmentNotifications)
+                .to(clinicEvents)
+                .with("appointment.cancelled"),
+        BindingBuilder.bind(appointmentNotifications)
+                .to(clinicEvents)
+                .with("appointment.rescheduled"),
+            BindingBuilder.bind(appointmentNotifications)
+                .to(clinicEvents)
+                .with("appointment.reminder"));
+  }
 
-    @Value("${fclinic.rabbitmq.routingkey:appointment.booked}")
-    private String routingKey;
-
-    @Bean
-    public Queue notificationQueue() {
-        return QueueBuilder.durable(queueName).build();
-    }
-
-    @Bean
-    public DirectExchange directExchange() {
-        return new DirectExchange(exchangeName);
-    }
-
-    @Bean
-    public Binding appointmentBookedBinding(Queue notificationQueue, DirectExchange directExchange) {
-        return BindingBuilder.bind(notificationQueue).to(directExchange).with(routingKey);
-    }
-
-    @Bean
-    public Binding appointmentCancelledBinding(Queue notificationQueue, DirectExchange directExchange) {
-        return BindingBuilder.bind(notificationQueue).to(directExchange).with("appointment.cancelled");
-    }
-
-    @Bean
-    public MessageConverter jsonMessageConverter() {
-        return new Jackson2JsonMessageConverter();
-    }
-
-    @Bean
-    public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
-        RabbitTemplate template = new RabbitTemplate(connectionFactory);
-        template.setMessageConverter(jsonMessageConverter());
-        return template;
-    }
+  @Bean
+  public RabbitTemplate appointmentRabbitTemplate(ConnectionFactory connectionFactory) {
+    RabbitTemplate template = new RabbitTemplate(connectionFactory);
+    template.setMandatory(true);
+    return template;
+  }
 }

@@ -1,114 +1,123 @@
 package com.fclinic.appointmentservice.infrastructure.adapter;
 
+import com.fclinic.appointmentservice.application.command.AppointmentPageQuery;
 import com.fclinic.appointmentservice.application.port.out.AppointmentRepositoryPort;
+import com.fclinic.appointmentservice.application.result.*;
+import com.fclinic.appointmentservice.domain.AppointmentError;
 import com.fclinic.appointmentservice.domain.aggregate.Appointment;
 import com.fclinic.appointmentservice.domain.model.AppointmentStatus;
-import com.fclinic.appointmentservice.domain.repository.AppointmentRepository;
 import com.fclinic.appointmentservice.domain.vo.BookingCode;
 import com.fclinic.appointmentservice.infrastructure.entity.JpaAppointmentEntity;
 import com.fclinic.appointmentservice.infrastructure.persistence.SpringDataJpaAppointmentRepository;
+import jakarta.persistence.criteria.Predicate;
+import java.time.*;
+import java.util.*;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
-
 @Component
-public class JpaAppointmentRepositoryAdapter implements AppointmentRepositoryPort, AppointmentRepository {
+public class JpaAppointmentRepositoryAdapter implements AppointmentRepositoryPort {
+  private final SpringDataJpaAppointmentRepository repository;
 
-    private final SpringDataJpaAppointmentRepository repository;
+  public JpaAppointmentRepositoryAdapter(SpringDataJpaAppointmentRepository repository) {
+    this.repository = repository;
+  }
 
-    public JpaAppointmentRepositoryAdapter(SpringDataJpaAppointmentRepository repository) {
-        this.repository = repository;
+  @Override
+  public Appointment save(Appointment domain) {
+    JpaAppointmentEntity entity;
+    if (domain.getId() == null) {
+      entity = new JpaAppointmentEntity();
+      entity.setVersion(0);
+      entity.setCreatedAt(domain.getCreatedAt());
+    } else {
+      entity = repository.findById(domain.getId()).orElseThrow(AppointmentError::missing);
+      if (entity.getVersion() + 1 != domain.getVersion())
+        throw AppointmentError.conflict(
+            "VERSION_CONFLICT", "Lịch hẹn đã thay đổi. Vui lòng tải lại.");
     }
+    entity.setBookingCode(domain.getBookingCode().value());
+    entity.setPatientId(domain.getPatientId());
+    entity.setPatientName(domain.getPatientName());
+    entity.setPatientPhone(domain.getPatientPhone());
+    entity.setDoctorId(domain.getDoctorId());
+    entity.setDoctorName(domain.getDoctorName());
+    entity.setDoctorSpecialty(domain.getDoctorSpecialty());
+    entity.setSlotId(domain.getSlotId());
+    entity.setAppointmentDate(domain.getAppointmentDate());
+    entity.setStartTime(domain.getStartTime());
+    entity.setEndTime(domain.getEndTime());
+    entity.setReasonForVisit(domain.getReasonForVisit());
+    entity.setConsultationFee(domain.getConsultationFee());
+    entity.setStatus(domain.getStatus());
+    entity.setUpdatedAt(domain.getUpdatedAt());
+    return toDomain(repository.saveAndFlush(entity));
+  }
 
-    @Override
-    public Appointment save(Appointment domain) {
-        JpaAppointmentEntity entity = toEntity(domain);
-        JpaAppointmentEntity saved = repository.save(entity);
-        return toDomain(saved);
-    }
+  @Override
+  public Optional<Appointment> findById(Long id) {
+    return repository.findById(id).map(this::toDomain);
+  }
 
-    @Override
-    public Optional<Appointment> findById(Long id) {
-        return repository.findById(id).map(this::toDomain);
-    }
+  @Override
+  public Optional<Appointment> findByIdForUpdate(Long id) {
+    return repository.findLockedById(id).map(this::toDomain);
+  }
 
-    @Override
-    public Optional<Appointment> findByBookingCode(String bookingCode) {
-        return repository.findByBookingCode(bookingCode).map(this::toDomain);
-    }
+  @Override
+  public Set<LocalTime> occupied(long doctor, LocalDate date) {
+    return new HashSet<>(repository.occupied(doctor, date));
+  }
 
-    @Override
-    public List<Appointment> findByPatientIdOrderByAppointmentDateDesc(Long patientId) {
-        return repository.findByPatientIdOrderByAppointmentDateDesc(patientId)
-                .stream().map(this::toDomain).toList();
-    }
+  @Override
+  public List<Long> reminderCandidates(Instant now, Duration lead) {
+    return repository.reminderCandidates(now, now.plus(lead), lead.toString());
+  }
 
-    @Override
-    public List<Appointment> findByPatientPhoneOrderByAppointmentDateDesc(String phone) {
-        return repository.findByPatientPhoneOrderByAppointmentDateDesc(phone)
-                .stream().map(this::toDomain).toList();
-    }
+  @Override
+  public AppointmentPageView page(AppointmentPageQuery q) {
+    var page =
+        repository.findAll(
+            (r, query, cb) -> {
+              List<Predicate> filters = new ArrayList<>();
+              if (q.patientId() != null) filters.add(cb.equal(r.get("patientId"), q.patientId()));
+              if (q.doctorId() != null) filters.add(cb.equal(r.get("doctorId"), q.doctorId()));
+              if (q.date() != null) filters.add(cb.equal(r.get("appointmentDate"), q.date()));
+              if (q.status() != null)
+                filters.add(cb.equal(r.get("status"), AppointmentStatus.valueOf(q.status())));
+              return cb.and(filters.toArray(Predicate[]::new));
+            },
+            PageRequest.of(
+                q.page(),
+                q.size(),
+                Sort.by(Sort.Direction.DESC, "appointmentDate", "startTime", "id")));
+    return new AppointmentPageView(
+        page.getContent().stream().map(this::toDomain).map(AppointmentView::from).toList(),
+        q.page(),
+        q.size(),
+        page.getTotalElements(),
+        page.getTotalPages());
+  }
 
-    @Override
-    public List<Appointment> findAll() {
-        return repository.findAll().stream().map(this::toDomain).toList();
-    }
-
-    @Override
-    public boolean existsByDoctorIdAndSlotIdAndAppointmentDateAndStatusNot(
-            Long doctorId, Long slotId, LocalDate appointmentDate, AppointmentStatus status) {
-        return repository.existsByDoctorIdAndSlotIdAndAppointmentDateAndStatusNot(
-                doctorId, slotId, appointmentDate, status);
-    }
-
-    @Override
-    public long count() {
-        return repository.count();
-    }
-
-    private JpaAppointmentEntity toEntity(Appointment d) {
-        return new JpaAppointmentEntity(
-                d.getId(),
-                d.getBookingCode().value(),
-                d.getPatientId(),
-                d.getPatientName(),
-                d.getPatientPhone(),
-                d.getDoctorId(),
-                d.getDoctorName(),
-                d.getDoctorSpecialty(),
-                d.getSlotId(),
-                d.getAppointmentDate(),
-                d.getStartTime(),
-                d.getEndTime(),
-                d.getReasonForVisit(),
-                d.getConsultationFee(),
-                d.getStatus(),
-                d.getCreatedAt(),
-                d.getUpdatedAt()
-        );
-    }
-
-    private Appointment toDomain(JpaAppointmentEntity e) {
-        return new Appointment(
-                e.getId(),
-                BookingCode.of(e.getBookingCode()),
-                e.getPatientId(),
-                e.getPatientName(),
-                e.getPatientPhone(),
-                e.getDoctorId(),
-                e.getDoctorName(),
-                e.getDoctorSpecialty(),
-                e.getSlotId(),
-                e.getAppointmentDate(),
-                e.getStartTime(),
-                e.getEndTime(),
-                e.getReasonForVisit(),
-                e.getConsultationFee(),
-                e.getStatus(),
-                e.getCreatedAt(),
-                e.getUpdatedAt()
-        );
-    }
+  private Appointment toDomain(JpaAppointmentEntity e) {
+    return new Appointment(
+        e.getId(),
+        BookingCode.of(e.getBookingCode()),
+        e.getPatientId(),
+        e.getPatientName(),
+        e.getPatientPhone(),
+        e.getDoctorId(),
+        e.getDoctorName(),
+        e.getDoctorSpecialty(),
+        e.getSlotId(),
+        e.getAppointmentDate(),
+        e.getStartTime(),
+        e.getEndTime(),
+        e.getReasonForVisit(),
+        e.getConsultationFee(),
+        e.getStatus(),
+        e.getVersion(),
+        e.getCreatedAt(),
+        e.getUpdatedAt());
+  }
 }

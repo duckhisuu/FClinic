@@ -1,0 +1,227 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "APPOINTMENT_CREATED — PROPOSED S07 event v2",
+  "x-contract-status": "PROPOSED_SHARED_TARGET",
+  "x-decision-ids": [
+    "D-01",
+    "D-08",
+    "D-09",
+    "D-11"
+  ],
+  "type": "object",
+  "properties": {
+    "eventId": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "eventType": {
+      "type": "string",
+      "const": "APPOINTMENT_CREATED"
+    },
+    "schemaVersion": {
+      "type": "integer",
+      "const": 2
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "source": {
+      "const": "appointment-service",
+      "type": "string"
+    },
+    "appointmentId": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9007199254740991,
+      "format": "int64"
+    },
+    "aggregateVersion": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991,
+      "format": "int64"
+    },
+    "bookingCode": {
+      "type": "string"
+    },
+    "patientId": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "patientName": {
+      "type": "string"
+    },
+    "patientPhone": {
+      "type": "string",
+      "pattern": "^\\+[1-9][0-9]{7,14}$"
+    },
+    "doctorId": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9007199254740991,
+      "format": "int64"
+    },
+    "doctorName": {
+      "type": "string"
+    },
+    "doctorSpecialty": {
+      "type": "string"
+    },
+    "slotId": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9007199254740991,
+      "format": "int64"
+    },
+    "appointmentDate": {
+      "type": "string",
+      "format": "date",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "startTime": {
+      "type": "string",
+      "pattern": "^([01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d$"
+    },
+    "endTime": {
+      "type": "string",
+      "pattern": "^([01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d$"
+    },
+    "timezone": {
+      "const": "Asia/Saigon",
+      "type": "string"
+    },
+    "recipients": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "type": "object",
+        "properties": {
+          "recipientType": {
+            "type": "string",
+            "enum": [
+              "PATIENT",
+              "DOCTOR"
+            ]
+          },
+          "userId": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991,
+                "format": "int64"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "email",
+                "maxLength": 320
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "recipientType",
+          "userId",
+          "name",
+          "email"
+        ],
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "recipientType": {
+                  "const": "DOCTOR"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "userId": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 9007199254740991,
+                  "format": "int64"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "allOf": [
+        {
+          "contains": {
+            "type": "object",
+            "properties": {
+              "recipientType": {
+                "const": "PATIENT"
+              }
+            },
+            "required": [
+              "recipientType"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "properties": {
+              "recipientType": {
+                "const": "DOCTOR"
+              }
+            },
+            "required": [
+              "recipientType"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        }
+      ]
+    }
+  },
+  "required": [
+    "eventId",
+    "eventType",
+    "schemaVersion",
+    "occurredAt",
+    "source",
+    "appointmentId",
+    "aggregateVersion",
+    "bookingCode",
+    "patientId",
+    "patientName",
+    "patientPhone",
+    "doctorId",
+    "doctorName",
+    "doctorSpecialty",
+    "slotId",
+    "appointmentDate",
+    "startTime",
+    "endTime",
+    "timezone",
+    "recipients"
+  ],
+  "additionalProperties": false
+}

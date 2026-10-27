@@ -1,30 +1,23 @@
 package com.fclinic.appointmentservice.api.controller;
 
-import com.fclinic.appointmentservice.api.dto.OutboxEventResponse;
-import com.fclinic.appointmentservice.infrastructure.persistence.SpringDataJpaOutboxEventRepository;
-import com.fclinic.common.web.ApiResponse;
-import lombok.RequiredArgsConstructor;
+import java.util.Map;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
+/**
+ * Original v1 controller path is retained only to report its retirement; no outbox data is exposed.
+ */
 @RestController
 @RequestMapping("/api/v1/appointments/outbox")
-@RequiredArgsConstructor
 public class OutboxEventController {
-
-    private final SpringDataJpaOutboxEventRepository outboxRepository;
-
-    @GetMapping("/events")
-    public ResponseEntity<ApiResponse<List<OutboxEventResponse>>> getRecentOutboxEvents() {
-        List<OutboxEventResponse> events = outboxRepository.findTop50ByOrderByCreatedAtDesc()
-                .stream()
-                .map(OutboxEventResponse::from)
-                .toList();
-
-        return ResponseEntity.ok(ApiResponse.success(events));
-    }
+  @GetMapping
+  public ResponseEntity<?> getOutboxEvents() {
+    return ResponseEntity.status(410)
+        .body(
+            Map.of(
+                "status",
+                410,
+                "message",
+                "Outbox là hạ tầng nội bộ; API monitor v1 đã ngừng sử dụng."));
+  }
 }

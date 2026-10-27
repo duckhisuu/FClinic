@@ -1,49 +1,48 @@
 package com.fclinic.appointmentservice.api.dto;
 
-import com.fclinic.appointmentservice.application.result.AppointmentView;
+import static com.fclinic.appointmentservice.api.mapper.AppointmentWireFormat.*;
 
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalTime;
+import com.fclinic.appointmentservice.application.result.AppointmentView;
+import java.math.BigDecimal;
 
 public record AppointmentResponse(
-        Long id,
-        String bookingCode,
-        Long patientId,
-        String patientName,
-        String patientPhone,
-        Long doctorId,
-        String doctorName,
-        String doctorSpecialty,
-        Long slotId,
-        LocalDate appointmentDate,
-        LocalTime startTime,
-        LocalTime endTime,
-        String reasonForVisit,
-        Double consultationFee,
-        String status,
-        Instant createdAt,
-        Instant updatedAt
-) {
-    public static AppointmentResponse from(AppointmentView view) {
-        return new AppointmentResponse(
-                view.id(),
-                view.bookingCode(),
-                view.patientId(),
-                view.patientName(),
-                view.patientPhone(),
-                view.doctorId(),
-                view.doctorName(),
-                view.doctorSpecialty(),
-                view.slotId(),
-                view.appointmentDate(),
-                view.startTime(),
-                view.endTime(),
-                view.reasonForVisit(),
-                view.consultationFee(),
-                view.status(),
-                view.createdAt(),
-                view.updatedAt()
-        );
-    }
+    Long id,
+    String bookingCode,
+    String patientId,
+    String patientName,
+    String patientPhone,
+    Long doctorId,
+    String doctorName,
+    String doctorSpecialty,
+    Long slotId,
+    String appointmentDate,
+    String startTime,
+    String endTime,
+    String reasonForVisit,
+    BigDecimal consultationFee,
+    String status,
+    long version,
+    String createdAt,
+    String updatedAt) {
+  public static AppointmentResponse from(AppointmentView v) {
+    return new AppointmentResponse(
+        v.id(),
+        v.bookingCode(),
+        v.patientId().toString(),
+        v.patientName(),
+        v.patientPhone(),
+        v.doctorId(),
+        v.doctorName(),
+        v.doctorSpecialty(),
+        v.slotId(),
+        date(v.appointmentDate()),
+        time(v.startTime()),
+        time(v.endTime()),
+        v.reasonForVisit(),
+        v.consultationFee(),
+        v.status(),
+        v.version(),
+        v.createdAt().toString(),
+        v.updatedAt().toString());
+  }
 }

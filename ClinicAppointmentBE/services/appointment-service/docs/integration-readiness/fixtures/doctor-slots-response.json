@@ -1,0 +1,22 @@
+{
+  "status": 200,
+  "message": "Success",
+  "data": [
+    {
+      "id": 45,
+      "doctorId": 12,
+      "slotDate": "2026-11-02",
+      "startTime": "09:00:00",
+      "endTime": "10:00:00",
+      "isBooked": false
+    },
+    {
+      "id": 46,
+      "doctorId": 12,
+      "slotDate": "2026-11-02",
+      "startTime": "10:00:00",
+      "endTime": "11:00:00",
+      "isBooked": false
+    }
+  ]
+}

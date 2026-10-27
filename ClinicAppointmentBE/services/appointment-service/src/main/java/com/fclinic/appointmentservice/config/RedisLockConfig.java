@@ -8,32 +8,37 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
+@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+    name = "appointment.lock-provider",
+    havingValue = "redis")
 public class RedisLockConfig {
 
-    @Value("${spring.data.redis.host:localhost}")
-    private String redisHost;
+  @Value("${spring.data.redis.host:localhost}")
+  private String redisHost;
 
-    @Value("${spring.data.redis.port:6379}")
-    private int redisPort;
+  @Value("${spring.data.redis.port:6379}")
+  private int redisPort;
 
-    @Value("${spring.data.redis.password:}")
-    private String redisPassword;
+  @Value("${spring.data.redis.password:}")
+  private String redisPassword;
 
-    @Bean(destroyMethod = "shutdown")
-    public RedissonClient redissonClient() {
-        Config config = new Config();
-        String address = "redis://" + redisHost + ":" + redisPort;
-        var singleServerConfig = config.useSingleServer()
-                .setAddress(address)
-                .setConnectionMinimumIdleSize(2)
-                .setConnectionPoolSize(10)
-                .setConnectTimeout(5000)
-                .setTimeout(3000);
+  @Bean(destroyMethod = "shutdown")
+  public RedissonClient redissonClient() {
+    Config config = new Config();
+    String address = "redis://" + redisHost + ":" + redisPort;
+    var singleServerConfig =
+        config
+            .useSingleServer()
+            .setAddress(address)
+            .setConnectionMinimumIdleSize(2)
+            .setConnectionPoolSize(10)
+            .setConnectTimeout(5000)
+            .setTimeout(3000);
 
-        if (redisPassword != null && !redisPassword.isBlank()) {
-            singleServerConfig.setPassword(redisPassword);
-        }
-
-        return Redisson.create(config);
+    if (redisPassword != null && !redisPassword.isBlank()) {
+      singleServerConfig.setPassword(redisPassword);
     }
+
+    return Redisson.create(config);
+  }
 }

@@ -80,7 +80,9 @@ cd ClinicAppointmentBE
 docker compose up -d
 ```
 > [!NOTE]
-> File `.env` đã được khởi tạo sẵn với các thông số mặc định (User: `fclinic_admin`, Pass: `fclinic_secret`). Bạn có thể kiểm tra RabbitMQ UI tại `http://localhost:15672` (User: `fclinic_rabbit` / Pass: `rabbit_secret`).
+> Cấu hình cục bộ đặt trong `ClinicAppointmentBE/.env` và được Git bỏ qua; dùng `.env.example` làm mẫu. Docker Compose và các ứng dụng Spring đọc file này khi chạy từ root dự án, thư mục backend hoặc thư mục module. Tài khoản và tên database lấy từ file env. RabbitMQ UI ở `http://localhost:15672` dùng cấu hình `RABBITMQ_DEFAULT_USER` / `RABBITMQ_DEFAULT_PASS`.
+>
+> Patient v2 dùng các biến `PATIENT_V2_DB_*` và yêu cầu schema được chuẩn bị trước khi chạy với `ddl-auto: validate`; SQL khởi tạo DB mới nằm tại `ClinicAppointmentBE/services/patient-service/src/main/resources/db/schema/V001__patient_v2_empty.sql`. Doctor/Appointment dùng cấu hình Hibernate hiện có; Notification chạy Flyway khi khởi động.
 
 ### Bước 2: Build & Khởi động Backend Microservices
 Tại thư mục `ClinicAppointmentBE`:

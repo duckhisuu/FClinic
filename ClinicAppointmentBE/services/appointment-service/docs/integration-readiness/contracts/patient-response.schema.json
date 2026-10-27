@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "patient-response — derived without field changes from Report",
+  "type": "object",
+  "properties": {
+    "status": {
+      "const": 200,
+      "type": "integer"
+    },
+    "message": {
+      "type": "string"
+    },
+    "data": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+          "description": "Patient primary UUID, immutable; server UUID v4; JSON string, output lowercase. Không dùng Long v1 hoặc patientCode thay UUID."
+        },
+        "patientCode": {
+          "type": "string",
+          "pattern": "^PAT-[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+          "description": "Mã tra cứu PAT-<cùng Patient.id UUID>, không là khóa chính; server sinh, bất biến."
+        },
+        "fullName": {
+          "type": "string",
+          "maxLength": 255,
+          "minLength": 1,
+          "description": "Trim, không whitespace-only"
+        },
+        "phoneNumber": {
+          "type": "string",
+          "maxLength": 16,
+          "pattern": "^\\+[1-9][0-9]{7,14}$",
+          "description": "Normalized E164"
+        },
+        "email": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "email",
+          "maxLength": 255
+        },
+        "dateOfBirth": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date",
+          "description": "Không future theo ngày Asia/Saigon; không timezone conversion"
+        },
+        "gender": {
+          "type": "string",
+          "enum": [
+            "MALE",
+            "FEMALE",
+            "OTHER",
+            "UNKNOWN"
+          ]
+        },
+        "address": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 2000,
+          "description": "Trim; omitted/null/blank -> null"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "ACTIVE",
+            "INACTIVE"
+          ]
+        },
+        "version": {
+          "type": "integer",
+          "format": "int64",
+          "minimum": 0
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "createdBy": {
+          "type": "string",
+          "maxLength": 255
+        },
+        "updatedBy": {
+          "type": "string",
+          "maxLength": 255
+        }
+      },
+      "required": [
+        "id",
+        "patientCode",
+        "fullName",
+        "phoneNumber",
+        "email",
+        "dateOfBirth",
+        "gender",
+        "address",
+        "status",
+        "version",
+        "createdAt",
+        "updatedAt",
+        "createdBy",
+        "updatedBy"
+      ]
+    }
+  },
+  "required": [
+    "status",
+    "message",
+    "data"
+  ],
+  "additionalProperties": false
+}

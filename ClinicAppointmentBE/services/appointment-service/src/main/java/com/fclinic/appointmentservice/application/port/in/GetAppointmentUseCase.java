@@ -1,10 +1,10 @@
 package com.fclinic.appointmentservice.application.port.in;
 
-import com.fclinic.appointmentservice.application.result.AppointmentView;
-
-import java.util.Optional;
+import com.fclinic.appointmentservice.application.command.*;
+import com.fclinic.appointmentservice.application.result.*;
+import java.time.*;
+import java.util.*;
 
 public interface GetAppointmentUseCase {
-    Optional<AppointmentView> getById(Long id);
-    Optional<AppointmentView> getByBookingCode(String bookingCode);
+  AppointmentView getById(long id);
 }

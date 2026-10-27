@@ -1,11 +1,10 @@
 package com.fclinic.appointmentservice.application.port.in;
 
-import com.fclinic.appointmentservice.application.result.AppointmentView;
-
-import java.util.List;
+import com.fclinic.appointmentservice.application.command.*;
+import com.fclinic.appointmentservice.application.result.*;
+import java.time.*;
+import java.util.*;
 
 public interface ListAppointmentsUseCase {
-    List<AppointmentView> getAll();
-    List<AppointmentView> getByPatientId(Long patientId);
-    List<AppointmentView> getByPatientPhone(String phone);
+  AppointmentPageView listAppointments(AppointmentPageQuery query);
 }

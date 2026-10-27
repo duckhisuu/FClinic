@@ -1,0 +1,17 @@
+{
+  "status": 200,
+  "message": "Success",
+  "data": {
+    "id": 12,
+    "name": "Demo Doctor",
+    "specialty": "General Medicine",
+    "department": "Outpatient",
+    "qualification": null,
+    "experienceYears": 5,
+    "consultationFee": 350000,
+    "roomNumber": "DEMO-01",
+    "bio": null,
+    "avatarUrl": null,
+    "active": true
+  }
+}

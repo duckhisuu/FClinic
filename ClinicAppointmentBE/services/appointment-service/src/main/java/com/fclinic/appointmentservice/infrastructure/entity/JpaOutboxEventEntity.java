@@ -4,101 +4,72 @@ import com.fclinic.common.web.entity.BaseEntity;
 import jakarta.persistence.*;
 import java.time.Instant;
 import java.util.UUID;
+import lombok.*;
+import org.hibernate.annotations.ColumnTransformer;
 
 @Entity
-@Table(name = "outbox_events", indexes = {
-        @Index(name = "idx_outbox_events_status", columnList = "status")
-})
+@Table(name = "outbox_events")
+@Getter
+@Setter
+@NoArgsConstructor
 public class JpaOutboxEventEntity extends BaseEntity {
+  @Id
+  @Column(nullable = false, updatable = false)
+  private UUID id;
 
-    @Id
-    @Column(nullable = false, updatable = false)
-    private UUID id;
+  @Column(name = "aggregate_id", nullable = false)
+  private Long aggregateId;
 
-    @Column(name = "aggregate_id", nullable = false)
-    private String aggregateId;
+  @Column(name = "aggregate_version", nullable = false)
+  private long aggregateVersion;
 
-    @Column(name = "aggregate_type", nullable = false, length = 80)
-    private String aggregateType;
+  @Column(name = "event_type", nullable = false, length = 40)
+  private String eventType;
 
-    @Column(name = "event_type", nullable = false, length = 120)
-    private String eventType;
+  @Column(nullable = false, columnDefinition = "jsonb")
+  @ColumnTransformer(write = "?::jsonb")
+  private String intent;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
-    private String payload;
+  @Column(columnDefinition = "text")
+  private String payload;
 
-    @Column(nullable = false, length = 30)
-    private String status;
+  @Column(nullable = false, length = 30)
+  private String status;
 
-    @Column(name = "published_at")
-    private Instant publishedAt;
+  @Column(name = "attempt_count", nullable = false)
+  private int attemptCount;
 
-    protected JpaOutboxEventEntity() {
-    }
+  @Column(name = "next_attempt_at")
+  private Instant nextAttemptAt;
 
-    private JpaOutboxEventEntity(
-            UUID id,
-            String aggregateId,
-            String aggregateType,
-            String eventType,
-            String payload,
-            String status,
-            Instant publishedAt,
-            Instant createdAt,
-            Instant updatedAt
-    ) {
-        super(createdAt, updatedAt);
-        this.id = id;
-        this.aggregateId = aggregateId;
-        this.aggregateType = aggregateType;
-        this.eventType = eventType;
-        this.payload = payload;
-        this.status = status;
-        this.publishedAt = publishedAt;
-    }
+  @Column(name = "last_error_code", length = 100)
+  private String lastErrorCode;
 
-    public static JpaOutboxEventEntity pending(
-            UUID eventId,
-            String aggregateId,
-            String aggregateType,
-            String eventType,
-            String payload,
-            Instant now
-    ) {
-        return new JpaOutboxEventEntity(eventId, aggregateId, aggregateType, eventType, payload, "PENDING", null, now, now);
-    }
+  @Column(name = "claim_token")
+  private UUID claimToken;
 
-    public void markCompleted(Instant now) {
-        this.status = "COMPLETED";
-        this.publishedAt = now;
-        this.updatedAt = now;
-    }
+  @Column(name = "claimed_until")
+  private Instant claimedUntil;
 
-    public UUID getId() {
-        return id;
-    }
+  @Column(name = "published_at")
+  private Instant publishedAt;
 
-    public String getAggregateId() {
-        return aggregateId;
-    }
-
-    public String getAggregateType() {
-        return aggregateType;
-    }
-
-    public String getEventType() {
-        return eventType;
-    }
-
-    public String getPayload() {
-        return payload;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public Instant getPublishedAt() {
-        return publishedAt;
-    }
+  public static JpaOutboxEventEntity pending(
+      UUID eventId,
+      long appointmentId,
+      long version,
+      String eventType,
+      String intent,
+      Instant now) {
+    var row = new JpaOutboxEventEntity();
+    row.setId(eventId);
+    row.setAggregateId(appointmentId);
+    row.setAggregateVersion(version);
+    row.setEventType(eventType);
+    row.setIntent(intent);
+    row.setStatus("PENDING_ENRICHMENT");
+    row.setCreatedAt(now);
+    row.setUpdatedAt(now);
+    return row;
+  }
 }
