@@ -1,9 +1,9 @@
 package com.fclinic.appointmentservice.config;
 
-import org.springframework.amqp.core.*;
+import org.springframework.amqp.core.ExchangeBuilder;
+import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.support.converter.Jackson2JavaTypeMapper;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,33 +13,14 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RabbitMQConfig {
 
-    @Value("${fclinic.rabbitmq.queue:fclinic.appointment.notifications}")
-    private String queueName;
+    public static final String DEFAULT_EXCHANGE = "clinic.events";
 
-    @Value("${fclinic.rabbitmq.exchange:fclinic.direct.exchange}")
+    @Value("${fclinic.rabbitmq.exchange:" + DEFAULT_EXCHANGE + "}")
     private String exchangeName;
 
-    @Value("${fclinic.rabbitmq.routingkey:appointment.booked}")
-    private String routingKey;
-
     @Bean
-    public Queue notificationQueue() {
-        return QueueBuilder.durable(queueName).build();
-    }
-
-    @Bean
-    public DirectExchange directExchange() {
-        return new DirectExchange(exchangeName);
-    }
-
-    @Bean
-    public Binding appointmentBookedBinding(Queue notificationQueue, DirectExchange directExchange) {
-        return BindingBuilder.bind(notificationQueue).to(directExchange).with(routingKey);
-    }
-
-    @Bean
-    public Binding appointmentCancelledBinding(Queue notificationQueue, DirectExchange directExchange) {
-        return BindingBuilder.bind(notificationQueue).to(directExchange).with("appointment.cancelled");
+    public TopicExchange clinicEventsExchange() {
+        return ExchangeBuilder.topicExchange(exchangeName).durable(true).build();
     }
 
     @Bean

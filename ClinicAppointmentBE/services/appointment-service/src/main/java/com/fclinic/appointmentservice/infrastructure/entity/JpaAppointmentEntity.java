@@ -34,6 +34,9 @@ public class JpaAppointmentEntity extends BaseEntity {
     @Column(name = "patient_phone", nullable = false, length = 20)
     private String patientPhone;
 
+    @Column(name = "patient_email", length = 100)
+    private String patientEmail;
+
     @Column(name = "doctor_id", nullable = false)
     private Long doctorId;
 
@@ -42,6 +45,9 @@ public class JpaAppointmentEntity extends BaseEntity {
 
     @Column(name = "doctor_specialty", nullable = false)
     private String doctorSpecialty;
+
+    @Column(name = "doctor_email", length = 100)
+    private String doctorEmail;
 
     @Column(name = "slot_id", nullable = false)
     private Long slotId;
@@ -71,9 +77,11 @@ public class JpaAppointmentEntity extends BaseEntity {
             Long patientId,
             String patientName,
             String patientPhone,
+            String patientEmail,
             Long doctorId,
             String doctorName,
             String doctorSpecialty,
+            String doctorEmail,
             Long slotId,
             LocalDate appointmentDate,
             LocalTime startTime,
@@ -90,9 +98,11 @@ public class JpaAppointmentEntity extends BaseEntity {
         this.patientId = patientId;
         this.patientName = patientName;
         this.patientPhone = patientPhone;
+        this.patientEmail = patientEmail;
         this.doctorId = doctorId;
         this.doctorName = doctorName;
         this.doctorSpecialty = doctorSpecialty;
+        this.doctorEmail = doctorEmail;
         this.slotId = slotId;
         this.appointmentDate = appointmentDate;
         this.startTime = startTime;
@@ -100,5 +110,28 @@ public class JpaAppointmentEntity extends BaseEntity {
         this.reasonForVisit = reasonForVisit;
         this.consultationFee = consultationFee;
         this.status = status;
+    }
+
+    public JpaAppointmentEntity(
+            Long id,
+            String bookingCode,
+            Long patientId,
+            String patientName,
+            String patientPhone,
+            Long doctorId,
+            String doctorName,
+            String doctorSpecialty,
+            Long slotId,
+            LocalDate appointmentDate,
+            LocalTime startTime,
+            LocalTime endTime,
+            String reasonForVisit,
+            Double consultationFee,
+            AppointmentStatus status,
+            Instant createdAt,
+            Instant updatedAt
+    ) {
+        this(id, bookingCode, patientId, patientName, patientPhone, null, doctorId, doctorName, doctorSpecialty, null,
+                slotId, appointmentDate, startTime, endTime, reasonForVisit, consultationFee, status, createdAt, updatedAt);
     }
 }

@@ -14,9 +14,11 @@ public class Appointment {
     private Long patientId;
     private String patientName;
     private String patientPhone;
+    private String patientEmail;
     private Long doctorId;
     private String doctorName;
     private String doctorSpecialty;
+    private String doctorEmail;
     private Long slotId;
     private LocalDate appointmentDate;
     private LocalTime startTime;
@@ -26,6 +28,48 @@ public class Appointment {
     private AppointmentStatus status;
     private Instant createdAt;
     private Instant updatedAt;
+
+    public Appointment(
+            Long id,
+            BookingCode bookingCode,
+            Long patientId,
+            String patientName,
+            String patientPhone,
+            String patientEmail,
+            Long doctorId,
+            String doctorName,
+            String doctorSpecialty,
+            String doctorEmail,
+            Long slotId,
+            LocalDate appointmentDate,
+            LocalTime startTime,
+            LocalTime endTime,
+            String reasonForVisit,
+            Double consultationFee,
+            AppointmentStatus status,
+            Instant createdAt,
+            Instant updatedAt
+    ) {
+        this.id = id;
+        this.bookingCode = bookingCode;
+        this.patientId = patientId;
+        this.patientName = patientName;
+        this.patientPhone = patientPhone;
+        this.patientEmail = patientEmail;
+        this.doctorId = doctorId;
+        this.doctorName = doctorName;
+        this.doctorSpecialty = doctorSpecialty;
+        this.doctorEmail = doctorEmail;
+        this.slotId = slotId;
+        this.appointmentDate = appointmentDate;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.reasonForVisit = reasonForVisit;
+        this.consultationFee = consultationFee;
+        this.status = status;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
 
     public Appointment(
             Long id,
@@ -46,23 +90,48 @@ public class Appointment {
             Instant createdAt,
             Instant updatedAt
     ) {
-        this.id = id;
-        this.bookingCode = bookingCode;
-        this.patientId = patientId;
-        this.patientName = patientName;
-        this.patientPhone = patientPhone;
-        this.doctorId = doctorId;
-        this.doctorName = doctorName;
-        this.doctorSpecialty = doctorSpecialty;
-        this.slotId = slotId;
-        this.appointmentDate = appointmentDate;
-        this.startTime = startTime;
-        this.endTime = endTime;
-        this.reasonForVisit = reasonForVisit;
-        this.consultationFee = consultationFee;
-        this.status = status;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
+        this(id, bookingCode, patientId, patientName, patientPhone, null, doctorId, doctorName, doctorSpecialty, null,
+                slotId, appointmentDate, startTime, endTime, reasonForVisit, consultationFee, status, createdAt, updatedAt);
+    }
+
+    public static Appointment createNew(
+            Long patientId,
+            String patientName,
+            String patientPhone,
+            String patientEmail,
+            Long doctorId,
+            String doctorName,
+            String doctorSpecialty,
+            String doctorEmail,
+            Long slotId,
+            LocalDate appointmentDate,
+            LocalTime startTime,
+            LocalTime endTime,
+            String reasonForVisit,
+            Double consultationFee
+    ) {
+        Instant now = Instant.now();
+        return new Appointment(
+                null,
+                BookingCode.generate(),
+                patientId,
+                patientName,
+                patientPhone,
+                patientEmail,
+                doctorId,
+                doctorName,
+                doctorSpecialty,
+                doctorEmail,
+                slotId,
+                appointmentDate,
+                startTime,
+                endTime,
+                reasonForVisit,
+                consultationFee,
+                AppointmentStatus.CONFIRMED,
+                now,
+                now
+        );
     }
 
     public static Appointment createNew(
@@ -79,26 +148,8 @@ public class Appointment {
             String reasonForVisit,
             Double consultationFee
     ) {
-        Instant now = Instant.now();
-        return new Appointment(
-                null,
-                BookingCode.generate(),
-                patientId,
-                patientName,
-                patientPhone,
-                doctorId,
-                doctorName,
-                doctorSpecialty,
-                slotId,
-                appointmentDate,
-                startTime,
-                endTime,
-                reasonForVisit,
-                consultationFee,
-                AppointmentStatus.CONFIRMED,
-                now,
-                now
-        );
+        return createNew(patientId, patientName, patientPhone, null, doctorId, doctorName, doctorSpecialty, null,
+                slotId, appointmentDate, startTime, endTime, reasonForVisit, consultationFee);
     }
 
     public void cancel() {
@@ -139,6 +190,10 @@ public class Appointment {
         return patientPhone;
     }
 
+    public String getPatientEmail() {
+        return patientEmail;
+    }
+
     public Long getDoctorId() {
         return doctorId;
     }
@@ -149,6 +204,10 @@ public class Appointment {
 
     public String getDoctorSpecialty() {
         return doctorSpecialty;
+    }
+
+    public String getDoctorEmail() {
+        return doctorEmail;
     }
 
     public Long getSlotId() {

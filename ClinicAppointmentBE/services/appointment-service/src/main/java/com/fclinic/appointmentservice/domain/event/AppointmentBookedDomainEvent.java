@@ -16,9 +16,11 @@ public record AppointmentBookedDomainEvent(
         Long patientId,
         String patientName,
         String patientPhone,
+        String patientEmail,
         Long doctorId,
         String doctorName,
         String doctorSpecialty,
+        String doctorEmail,
         Long slotId,
         LocalDate appointmentDate,
         LocalTime startTime,
@@ -26,6 +28,47 @@ public record AppointmentBookedDomainEvent(
         String reasonForVisit,
         Double consultationFee
 ) implements DomainEvent {
+
+    public static AppointmentBookedDomainEvent from(
+            Long appointmentId,
+            String bookingCode,
+            Long patientId,
+            String patientName,
+            String patientPhone,
+            String patientEmail,
+            Long doctorId,
+            String doctorName,
+            String doctorSpecialty,
+            String doctorEmail,
+            Long slotId,
+            LocalDate appointmentDate,
+            LocalTime startTime,
+            LocalTime endTime,
+            String reasonForVisit,
+            Double consultationFee
+    ) {
+        return new AppointmentBookedDomainEvent(
+                UUID.randomUUID(),
+                "APPOINTMENT_BOOKED",
+                Instant.now(),
+                appointmentId,
+                bookingCode,
+                patientId,
+                patientName,
+                patientPhone,
+                patientEmail,
+                doctorId,
+                doctorName,
+                doctorSpecialty,
+                doctorEmail,
+                slotId,
+                appointmentDate,
+                startTime,
+                endTime,
+                reasonForVisit,
+                consultationFee
+        );
+    }
 
     public static AppointmentBookedDomainEvent from(
             Long appointmentId,
@@ -43,24 +86,7 @@ public record AppointmentBookedDomainEvent(
             String reasonForVisit,
             Double consultationFee
     ) {
-        return new AppointmentBookedDomainEvent(
-                UUID.randomUUID(),
-                "APPOINTMENT_BOOKED",
-                Instant.now(),
-                appointmentId,
-                bookingCode,
-                patientId,
-                patientName,
-                patientPhone,
-                doctorId,
-                doctorName,
-                doctorSpecialty,
-                slotId,
-                appointmentDate,
-                startTime,
-                endTime,
-                reasonForVisit,
-                consultationFee
-        );
+        return from(appointmentId, bookingCode, patientId, patientName, patientPhone, null,
+                doctorId, doctorName, doctorSpecialty, null, slotId, appointmentDate, startTime, endTime, reasonForVisit, consultationFee);
     }
 }

@@ -1,5 +1,6 @@
 package com.fclinic.notificationservice.application.dto.event;
 
+import com.fclinic.notificationservice.application.dto.AppointmentSnapshotDto;
 import com.fclinic.notificationservice.application.dto.PreviousAppointmentSlotDto;
 import com.fclinic.notificationservice.application.dto.RecipientDto;
 import com.fclinic.notificationservice.domain.model.AppointmentEventType;

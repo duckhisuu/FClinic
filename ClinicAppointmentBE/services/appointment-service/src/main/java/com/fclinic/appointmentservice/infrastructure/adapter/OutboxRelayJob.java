@@ -4,6 +4,7 @@ import com.fclinic.appointmentservice.infrastructure.entity.JpaOutboxEventEntity
 import com.fclinic.appointmentservice.infrastructure.persistence.SpringDataJpaOutboxEventRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -27,8 +28,8 @@ public class OutboxRelayJob {
     public OutboxRelayJob(
             SpringDataJpaOutboxEventRepository repository,
             RabbitTemplate rabbitTemplate,
-            @Value("${fclinic.rabbitmq.exchange:fclinic.direct.exchange}") String exchange,
-            @Value("${fclinic.rabbitmq.routingkey:appointment.booked}") String defaultRoutingKey,
+            @Value("${fclinic.rabbitmq.exchange:clinic.events}") String exchange,
+            @Value("${fclinic.rabbitmq.routingkey:appointment.created}") String defaultRoutingKey,
             @Value("${outbox.relay.batch-size:50}") int batchSize
     ) {
         this.repository = repository;
@@ -51,7 +52,12 @@ public class OutboxRelayJob {
         for (JpaOutboxEventEntity event : pending) {
             try {
                 String routingKey = determineRoutingKey(event.getEventType());
-                rabbitTemplate.convertAndSend(exchange, routingKey, event.getPayload());
+                
+                // Publish JSON payload with explicit application/json content type for downstream Jackson consumers
+                rabbitTemplate.convertAndSend(exchange, routingKey, event.getPayload(), message -> {
+                    message.getMessageProperties().setContentType(MessageProperties.CONTENT_TYPE_JSON);
+                    return message;
+                });
 
                 event.markCompleted(Instant.now());
                 repository.save(event);
@@ -65,9 +71,18 @@ public class OutboxRelayJob {
         }
     }
 
-    private String determineRoutingKey(String eventType) {
+    public String determineRoutingKey(String eventType) {
         if ("APPOINTMENT_CANCELLED".equalsIgnoreCase(eventType)) {
             return "appointment.cancelled";
+        }
+        if ("APPOINTMENT_CREATED".equalsIgnoreCase(eventType) || "APPOINTMENT_BOOKED".equalsIgnoreCase(eventType)) {
+            return "appointment.created";
+        }
+        if ("APPOINTMENT_RESCHEDULED".equalsIgnoreCase(eventType)) {
+            return "appointment.rescheduled";
+        }
+        if ("APPOINTMENT_REMINDER".equalsIgnoreCase(eventType)) {
+            return "appointment.reminder";
         }
         return defaultRoutingKey;
     }
