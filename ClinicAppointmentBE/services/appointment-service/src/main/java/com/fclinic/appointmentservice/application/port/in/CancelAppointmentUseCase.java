@@ -1,8 +1,10 @@
 package com.fclinic.appointmentservice.application.port.in;
 
-import com.fclinic.appointmentservice.application.command.CancelAppointmentCommand;
-import com.fclinic.appointmentservice.application.result.AppointmentView;
+import com.fclinic.appointmentservice.application.command.*;
+import com.fclinic.appointmentservice.application.result.*;
+import java.time.*;
+import java.util.*;
 
 public interface CancelAppointmentUseCase {
-    AppointmentView cancelAppointment(CancelAppointmentCommand command);
+  AppointmentOperationResult cancelAppointment(CancelAppointmentCommand command);
 }

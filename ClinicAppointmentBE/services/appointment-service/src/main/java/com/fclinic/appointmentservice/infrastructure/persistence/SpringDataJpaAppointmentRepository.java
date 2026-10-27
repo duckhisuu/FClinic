@@ -1,23 +1,36 @@
 package com.fclinic.appointmentservice.infrastructure.persistence;
 
-import com.fclinic.appointmentservice.domain.model.AppointmentStatus;
 import com.fclinic.appointmentservice.infrastructure.entity.JpaAppointmentEntity;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import jakarta.persistence.LockModeType;
+import java.time.*;
+import java.util.*;
+import org.springframework.data.jpa.repository.*;
+import org.springframework.data.repository.query.Param;
 
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
+public interface SpringDataJpaAppointmentRepository
+    extends JpaRepository<JpaAppointmentEntity, Long>,
+        JpaSpecificationExecutor<JpaAppointmentEntity> {
+  @Lock(LockModeType.PESSIMISTIC_WRITE)
+  @Query("select a from JpaAppointmentEntity a where a.id=:id")
+  Optional<JpaAppointmentEntity> findLockedById(@Param("id") Long id);
 
-@Repository
-public interface SpringDataJpaAppointmentRepository extends JpaRepository<JpaAppointmentEntity, Long> {
+  @Query(
+      "select a.startTime from JpaAppointmentEntity a where a.doctorId=:doctor and"
+          + " a.appointmentDate=:date and"
+          + " a.status=com.fclinic.appointmentservice.domain.model.AppointmentStatus.CONFIRMED")
+  List<LocalTime> occupied(@Param("doctor") long doctor, @Param("date") LocalDate date);
 
-    Optional<JpaAppointmentEntity> findByBookingCode(String bookingCode);
-
-    List<JpaAppointmentEntity> findByPatientIdOrderByAppointmentDateDesc(Long patientId);
-
-    List<JpaAppointmentEntity> findByPatientPhoneOrderByAppointmentDateDesc(String patientPhone);
-
-    boolean existsByDoctorIdAndSlotIdAndAppointmentDateAndStatusNot(
-            Long doctorId, Long slotId, LocalDate appointmentDate, AppointmentStatus status);
+  @Query(
+      value =
+          "SELECT a.id FROM appointments a WHERE a.status='CONFIRMED' AND"
+              + " ((a.appointment_date+a.start_time) AT TIME ZONE 'Asia/Saigon')>:now AND"
+              + " ((a.appointment_date+a.start_time) AT TIME ZONE 'Asia/Saigon')<=:through AND NOT"
+              + " EXISTS (SELECT 1 FROM reminder_publications r WHERE r.appointment_id=a.id AND"
+              + " r.aggregate_version=a.version AND"
+              + " r.reminder_due_at=(((a.appointment_date+a.start_time) AT TIME ZONE"
+              + " 'Asia/Saigon')-CAST(:lead AS interval))) ORDER BY"
+              + " a.appointment_date,a.start_time,a.id LIMIT 1000",
+      nativeQuery = true)
+  List<Long> reminderCandidates(
+      @Param("now") Instant now, @Param("through") Instant through, @Param("lead") String lead);
 }

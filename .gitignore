@@ -1,5 +1,11 @@
 # Git Ignore Rules for FClinic Monorepo
 
+# Local reports and tests (keep these ignored after running tests)
+/Report/
+**/test/
+**/tests/
+**/__tests__/
+
 # Compiled class and jar files
 **/target/
 *.class
@@ -23,10 +29,8 @@ yarn-error.log*
 
 # Environment and secrets
 **/.env
-**/.env.local
-**/.env.development.local
-**/.env.test.local
-**/.env.production.local
+**/.env.*
+!**/.env.example
 
 # IDEs and Editors
 .idea/

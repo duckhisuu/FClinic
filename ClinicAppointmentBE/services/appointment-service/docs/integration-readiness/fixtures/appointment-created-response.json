@@ -1,0 +1,24 @@
+{
+  "status": 201,
+  "message": "Success",
+  "data": {
+    "id": 101,
+    "bookingCode": "FC-DEMO-0101",
+    "patientId": "74fba630-5953-44b8-86d6-bc236ac1213b",
+    "patientName": "Demo Patient",
+    "patientPhone": "+84900000001",
+    "doctorId": 12,
+    "doctorName": "Demo Doctor",
+    "doctorSpecialty": "General Medicine",
+    "slotId": 45,
+    "appointmentDate": "2026-11-02",
+    "startTime": "09:00:00",
+    "endTime": "10:00:00",
+    "reasonForVisit": "Consultation",
+    "consultationFee": 350000,
+    "status": "CONFIRMED",
+    "version": 0,
+    "createdAt": "2026-10-20T03:00:00Z",
+    "updatedAt": "2026-10-20T03:00:00Z"
+  }
+}

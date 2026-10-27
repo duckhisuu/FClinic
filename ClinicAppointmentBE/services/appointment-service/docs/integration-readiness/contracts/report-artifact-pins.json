@@ -1,0 +1,95 @@
+{
+  "source": "Report/FClinic_Implementation_Ready_Pack",
+  "packRevision": "1.0",
+  "purpose": "Byte-identical copies for handoff while Report is ignored; hashes do not claim provider deployment or owner signoff.",
+  "artifacts": {
+    "02_Shared_Contracts/openapi/appointment.openapi.json": {
+      "sha256": "a333df2e726aba05922b6ba68d9d5924ee56cb3af1405315cc7f1d7adb3912dc",
+      "copy": "contracts/report/appointment.openapi.json"
+    },
+    "02_Shared_Contracts/openapi/doctor.openapi.json": {
+      "sha256": "b0128832bebd66296d11fad8e4fbce0f73b656f09e6d3827af88a724a19a25cd",
+      "copy": "contracts/report/doctor.openapi.json"
+    },
+    "02_Shared_Contracts/openapi/patient.openapi.json": {
+      "sha256": "63e2e306a2b14d89397bb998be43f8de7b982eadf8f3b88353bc952684ebeb71",
+      "copy": "contracts/report/patient.openapi.json"
+    },
+    "02_Shared_Contracts/schemas/created.event.schema.json": {
+      "sha256": "57287400635cae2da95658bc23a858203cbff7fe0322a804afc18fcd075c0a60",
+      "copy": "contracts/events/created.event.schema.json"
+    },
+    "07_Testing_And_QA/fixtures/events/created.json": {
+      "sha256": "78ef05891c4b99711764d5386f83b28586c9d1de81e97d9e4e65fbcf8d7ff033",
+      "copy": "fixtures/events/created.json"
+    },
+    "02_Shared_Contracts/schemas/cancelled.event.schema.json": {
+      "sha256": "f005e15eb53ba2bf36c21936b473efae2ade1c4aaddfaf45fa1ab8a460792ddf",
+      "copy": "contracts/events/cancelled.event.schema.json"
+    },
+    "07_Testing_And_QA/fixtures/events/cancelled.json": {
+      "sha256": "31149ffe210f1188a252416a63452480fa0bbc9aa7e0b3c490dc9aead590f50d",
+      "copy": "fixtures/events/cancelled.json"
+    },
+    "02_Shared_Contracts/schemas/rescheduled.event.schema.json": {
+      "sha256": "ecf21352e13a95e544f282595cda0c6ae7e18c76fd7fb5fd106bb8a1aafceede",
+      "copy": "contracts/events/rescheduled.event.schema.json"
+    },
+    "07_Testing_And_QA/fixtures/events/rescheduled.json": {
+      "sha256": "2de5b0cc4d2988e69cafd90617e2c705047d0462bc3440f96c9af7fc35fa671c",
+      "copy": "fixtures/events/rescheduled.json"
+    },
+    "02_Shared_Contracts/schemas/reminder.event.schema.json": {
+      "sha256": "2fc267906187b38c257eb2098ceadcc918d90e422a1b5ff86038cb86139f2fe3",
+      "copy": "contracts/events/reminder.event.schema.json"
+    },
+    "07_Testing_And_QA/fixtures/events/reminder.json": {
+      "sha256": "94d24dce25fc2931bec42e29585d1571bd162156d4709e2d8d472f0d6702ee17",
+      "copy": "fixtures/events/reminder.json"
+    },
+    "07_Testing_And_QA/fixtures/booking-request.json": {
+      "sha256": "3266ad0fa330d928bc6f31b2386aade6c8115e0dc1d20aeeb07a29636658923c",
+      "copy": "fixtures/booking-request.json"
+    },
+    "07_Testing_And_QA/fixtures/cancel-request.json": {
+      "sha256": "4976ff423e4590ee60b64157dbd022444dfbe7f721c1694804736680cd064de1",
+      "copy": "fixtures/cancel-request.json"
+    },
+    "07_Testing_And_QA/fixtures/reschedule-request.json": {
+      "sha256": "55927356b1e26bd51901d3a97960b4537c970f5ec974d4674148b135a753afa7",
+      "copy": "fixtures/reschedule-request.json"
+    },
+    "07_Testing_And_QA/fixtures/patient-response.json": {
+      "sha256": "9cfcb963ba02f0063185874f7d9ddbf117a9450d9d1cfda20f7e816c1d5cde50",
+      "copy": "fixtures/patient-response.json"
+    },
+    "07_Testing_And_QA/fixtures/doctor-response.json": {
+      "sha256": "bf2030e463ee4a1e0c8c864baab14e812c1f62b59a30a3d9b337e0f2e5843658",
+      "copy": "fixtures/doctor-response.json"
+    },
+    "07_Testing_And_QA/fixtures/slot-response.json": {
+      "sha256": "375037f15b75720c1e5f9dc9fd3e2712af8eab31b5d6338202eec18113377437",
+      "copy": "fixtures/slot-response.json"
+    },
+    "07_Testing_And_QA/fixtures/doctor-slots-response.json": {
+      "sha256": "220e39e1e9846b831090105ab91cf49cb720cd3c647c3a5104e4d75fc97b2ff6",
+      "copy": "fixtures/doctor-slots-response.json"
+    },
+    "07_Testing_And_QA/fixtures/availability-response.json": {
+      "sha256": "725172a45286112c599bcdfaffcc33474e3f0ea83481c8a66e8be739ac2306d8",
+      "copy": "fixtures/availability-response.json"
+    },
+    "07_Testing_And_QA/fixtures/appointment-created-response.json": {
+      "sha256": "69132ee1c460c301ff89dda74ac198de9943931717e85467a84e1a77d2bce97a",
+      "copy": "fixtures/appointment-created-response.json"
+    },
+    "07_Testing_And_QA/fixtures/appointment-rescheduled-response.json": {
+      "sha256": "c860342ee61754755038f1924c083e9447a180ddd33b3bbb68bcc47e30194999",
+      "copy": "fixtures/appointment-rescheduled-response.json"
+    },
+    "07_Testing_And_QA/fixtures/appointment-cancelled-response.json": {
+      "sha256": "1067b963d364e63324e245dfec2d5ba4bdfee290af3b9f2e9f096d07d5b43a12",
+      "copy": "fixtures/appointment-cancelled-response.json"
+    }
+  }
+}

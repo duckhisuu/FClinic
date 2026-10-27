@@ -1,19 +1,13 @@
 package com.fclinic.appointmentservice.application.command;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
+import com.fclinic.appointmentservice.application.AppointmentActor;
+import java.time.*;
+import java.util.*;
 
 public record BookAppointmentCommand(
-        Long patientId,
-        String patientName,
-        String patientPhone,
-        Long doctorId,
-        String doctorName,
-        String doctorSpecialty,
-        Long slotId,
-        LocalDate appointmentDate,
-        LocalTime startTime,
-        LocalTime endTime,
-        String reasonForVisit,
-        Double consultationFee
-) {}
+    AppointmentActor actor,
+    UUID idempotencyKey,
+    UUID patientId,
+    long doctorId,
+    long slotId,
+    String reasonForVisit) {}

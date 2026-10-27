@@ -1,0 +1,33 @@
+{
+  "recordedAt": "2026-10-27T16:17:32.304049+00:00",
+  "architecture": "Original pulled controller/command/input-port/usecase/output-port/domain/JPA adapter structure retained",
+  "originalJavaPathsPreserved": 37,
+  "inputPortImplementations": 10,
+  "applicationDependencyDirection": "PASS: no API/HTTP/JDBC/JPA/Jackson/RabbitMQ imports",
+  "domainDependencyDirection": "PASS: no application/infrastructure/Spring/JPA imports",
+  "mavenPackage": "PASS",
+  "businessRegressionAssertionsPassed": 53,
+  "publishedSlotContractAssertionsPassed": 4,
+  "redisUseCaseAssertionsPassed": 6,
+  "postgresJpaAndRabbitMq": "real isolated dependencies",
+  "externalHttpProviders": "explicit synthetic test doubles",
+  "defaultLockProvider": "postgres",
+  "optionalRedisAdapter": "verified with a separate disposable Redis container; existing project Redis untouched",
+  "securityNewImplementation": false,
+  "fullSystemIntegrationVerified": false,
+  "realSMTPVerified": false,
+  "protectedFilesUnchanged": 656,
+  "moduleSourceManifestSHA256": "a5e6d5c0913ab631be2d82a1ad45c32aa45f4feb7473eb9d29d58cf544e48333",
+  "jarSHA256": "1712353be24d00bc7d99931425bfc3fdd95b80cb68455e8257fde3f1b8a65b15",
+  "frontendChangedInThisRefactor": false,
+  "previousBrowserEvidence": {
+    "scope": "Historical React workflow before backend use-case refactor; API DTO contracts validated again by current backend regression",
+    "databaseCheck": {
+      "status": "CANCELLED",
+      "version": 2,
+      "historyCount": 3,
+      "operationResultCount": 3,
+      "lifecycleOutboxCount": 3
+    }
+  }
+}

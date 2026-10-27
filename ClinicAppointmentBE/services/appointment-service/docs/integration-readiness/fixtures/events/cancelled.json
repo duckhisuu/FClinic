@@ -1,0 +1,35 @@
+{
+  "bookingCode": "FC-DEMO-0101",
+  "patientId": "74fba630-5953-44b8-86d6-bc236ac1213b",
+  "patientName": "Demo Patient",
+  "patientPhone": "+84900000001",
+  "doctorId": 12,
+  "doctorName": "Demo Doctor",
+  "doctorSpecialty": "General Medicine",
+  "slotId": 45,
+  "appointmentDate": "2026-11-02",
+  "startTime": "09:00:00",
+  "endTime": "10:00:00",
+  "eventId": "78357fb9-0d1c-4a4a-9f33-583928367ffd",
+  "eventType": "APPOINTMENT_CANCELLED",
+  "schemaVersion": 2,
+  "occurredAt": "2026-10-20T03:00:00Z",
+  "source": "appointment-service",
+  "appointmentId": 101,
+  "aggregateVersion": 1,
+  "timezone": "Asia/Saigon",
+  "recipients": [
+    {
+      "recipientType": "PATIENT",
+      "userId": 201,
+      "name": "Demo Patient",
+      "email": "patient@example.test"
+    },
+    {
+      "recipientType": "DOCTOR",
+      "userId": 301,
+      "name": "Demo Doctor",
+      "email": "doctor@example.test"
+    }
+  ]
+}

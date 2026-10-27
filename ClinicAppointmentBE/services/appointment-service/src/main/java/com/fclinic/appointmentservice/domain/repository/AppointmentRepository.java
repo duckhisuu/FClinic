@@ -1,28 +1,17 @@
 package com.fclinic.appointmentservice.domain.repository;
 
 import com.fclinic.appointmentservice.domain.aggregate.Appointment;
-import com.fclinic.appointmentservice.domain.model.AppointmentStatus;
-
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
+import java.time.*;
+import java.util.*;
 
 public interface AppointmentRepository {
+  Appointment save(Appointment appointment);
 
-    Appointment save(Appointment appointment);
+  Optional<Appointment> findById(Long id);
 
-    Optional<Appointment> findById(Long id);
+  Optional<Appointment> findByIdForUpdate(Long id);
 
-    Optional<Appointment> findByBookingCode(String bookingCode);
+  Set<LocalTime> occupied(long doctorId, LocalDate date);
 
-    List<Appointment> findByPatientIdOrderByAppointmentDateDesc(Long patientId);
-
-    List<Appointment> findByPatientPhoneOrderByAppointmentDateDesc(String phone);
-
-    List<Appointment> findAll();
-
-    boolean existsByDoctorIdAndSlotIdAndAppointmentDateAndStatusNot(
-            Long doctorId, Long slotId, LocalDate appointmentDate, AppointmentStatus status);
-
-    long count();
+  List<Long> reminderCandidates(Instant now, Duration lead);
 }

@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "published-slot-response — derived without field changes from Report",
+  "type": "object",
+  "properties": {
+    "status": {
+      "const": 200,
+      "type": "integer"
+    },
+    "message": {
+      "type": "string"
+    },
+    "data": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991,
+          "format": "int64"
+        },
+        "doctorId": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991,
+          "format": "int64"
+        },
+        "slotDate": {
+          "type": "string",
+          "format": "date",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "startTime": {
+          "type": "string",
+          "pattern": "^([01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d$"
+        },
+        "endTime": {
+          "type": "string",
+          "pattern": "^([01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d$"
+        },
+        "published": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "doctorId",
+        "slotDate",
+        "startTime",
+        "endTime",
+        "published"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "status",
+    "message",
+    "data"
+  ],
+  "additionalProperties": false
+}
