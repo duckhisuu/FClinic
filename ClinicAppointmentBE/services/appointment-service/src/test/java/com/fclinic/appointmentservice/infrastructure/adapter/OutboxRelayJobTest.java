@@ -6,9 +6,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.springframework.amqp.core.MessagePostProcessor;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -57,12 +59,17 @@ class OutboxRelayJobTest {
 
         relayJob.relay();
 
-        verify(rabbitTemplate).convertAndSend(
+        ArgumentCaptor<Message> messageCaptor = ArgumentCaptor.forClass(Message.class);
+        verify(rabbitTemplate).send(
                 eq("clinic.events"),
                 eq("appointment.created"),
-                eq("{\"eventId\":\"" + eventId + "\"}"),
-                any(MessagePostProcessor.class)
+                messageCaptor.capture()
         );
+
+        assertThat(new String(messageCaptor.getValue().getBody(), StandardCharsets.UTF_8))
+                .isEqualTo("{\"eventId\":\"" + eventId + "\"}");
+        assertThat(messageCaptor.getValue().getMessageProperties().getContentType())
+                .isEqualTo(MessageProperties.CONTENT_TYPE_JSON);
 
         ArgumentCaptor<JpaOutboxEventEntity> captor = ArgumentCaptor.forClass(JpaOutboxEventEntity.class);
         verify(repository).save(captor.capture());

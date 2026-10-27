@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { HeartPulse, Bell, PhoneCall, ShieldCheck } from 'lucide-react';
+import { HeartPulse, Bell, PhoneCall, ShieldCheck, AlertCircle } from 'lucide-react';
 import { notificationApi } from '../services/api';
 
 export const Navbar = ({ onOpenNotifications }) => {
-  const [unreadCount, setUnreadCount] = useState(2);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [hasFailed, setHasFailed] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
@@ -11,12 +12,24 @@ export const Navbar = ({ onOpenNotifications }) => {
     return () => clearInterval(timer);
   }, []);
 
+  const fetchNotificationStats = async () => {
+    try {
+      const res = await notificationApi.getAdminNotifications({ size: 50 });
+      const items = res?.content || (Array.isArray(res) ? res : []);
+      setUnreadCount(res?.totalElements || items.length);
+      const failed = items.some(
+        (item) => item.status === 'FAILED' || item.status === 'PERMANENT_FAILURE'
+      );
+      setHasFailed(failed);
+    } catch {
+      // ignore
+    }
+  };
+
   useEffect(() => {
-    notificationApi.getRecentNotifications(10).then((res) => {
-      if (res && res.length) {
-        setUnreadCount(res.length);
-      }
-    }).catch(() => {});
+    fetchNotificationStats();
+    const interval = setInterval(fetchNotificationStats, 10000);
+    return () => clearInterval(interval);
   }, []);
 
   return (
@@ -59,14 +72,25 @@ export const Navbar = ({ onOpenNotifications }) => {
           {/* Notifications Button */}
           <button
             onClick={onOpenNotifications}
-            className="relative p-2.5 rounded-xl bg-slate-100 hover:bg-teal-50 hover:text-teal-700 transition-colors border border-slate-200/80 text-slate-700"
-            title="Xem thông báo"
+            className={`relative p-2.5 rounded-xl transition-all border ${
+              hasFailed
+                ? 'bg-rose-50 text-rose-700 border-rose-300 hover:bg-rose-100'
+                : 'bg-slate-100 hover:bg-teal-50 hover:text-teal-700 border-slate-200/80 text-slate-700'
+            }`}
+            title="Xem thông báo hệ thống"
           >
             <Bell className="w-5 h-5" />
             {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 px-1.5 py-0.5 min-w-[20px] h-5 bg-rose-500 text-white text-[11px] font-bold rounded-full flex items-center justify-center ring-2 ring-white">
-                {unreadCount > 9 ? '9+' : unreadCount}
+              <span
+                className={`absolute -top-1 -right-1 px-1.5 py-0.5 min-w-[20px] h-5 ${
+                  hasFailed ? 'bg-rose-600 animate-pulse' : 'bg-teal-700'
+                } text-white text-[11px] font-bold rounded-full flex items-center justify-center ring-2 ring-white shadow-xs`}
+              >
+                {unreadCount > 99 ? '99+' : unreadCount}
               </span>
+            )}
+            {hasFailed && (
+              <span className="absolute -bottom-1 -right-1 w-2.5 h-2.5 bg-rose-500 rounded-full ring-2 ring-white"></span>
             )}
           </button>
         </div>

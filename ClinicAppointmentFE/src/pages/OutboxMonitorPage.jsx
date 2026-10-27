@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { appointmentApi } from '../services/api';
 
-export const OutboxMonitorPage = () => {
+export const OutboxMonitorPage = ({ onOpenNotifications }) => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [simulatingLock, setSimulatingLock] = useState(false);
@@ -151,13 +151,22 @@ export const OutboxMonitorPage = () => {
               <div className="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold text-xs mb-2">
                 4
               </div>
-              <h3 className="font-bold text-xs text-slate-900 mb-1">Notification Consumer</h3>
+              <h3 className="font-bold text-xs text-slate-900 mb-1">Notification Service (EDA)</h3>
               <p className="text-[11px] text-slate-600">
-                NotificationConsumer nhận event từ RabbitMQ queue, phân tích thông tin và gửi tin xác nhận SMS/Zalo.
+                Notification Service nhận event từ queue <code>notification.appointment.q</code> (TopicExchange <code>clinic.events</code>), xử lý Idempotency và gửi email HTML xác nhận qua MailHog SMTP.
               </p>
             </div>
-            <div className="mt-3 pt-2 border-t border-emerald-200/60 text-[10px] text-emerald-800 font-mono font-semibold">
-              status: COMPLETED
+            <div className="mt-3 pt-2 border-t border-emerald-200/60 flex items-center justify-between">
+              <span className="text-[10px] text-emerald-800 font-mono font-semibold">status: COMPLETED</span>
+              {onOpenNotifications && (
+                <button
+                  onClick={onOpenNotifications}
+                  className="py-1 px-2 rounded-md bg-emerald-700 hover:bg-emerald-800 text-white text-[10px] font-bold flex items-center gap-1 transition-colors"
+                >
+                  <Bell className="w-3 h-3" />
+                  Xem thông báo
+                </button>
+              )}
             </div>
           </div>
         </div>

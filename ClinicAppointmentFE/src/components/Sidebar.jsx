@@ -1,5 +1,5 @@
 import React from 'react';
-import { Stethoscope, CalendarCheck, Clock, Sparkles } from 'lucide-react';
+import { Stethoscope, CalendarCheck, Clock, Sparkles, Cpu } from 'lucide-react';
 
 export const Sidebar = ({ activeTab, onTabChange }) => {
   const menuItems = [
@@ -20,6 +20,13 @@ export const Sidebar = ({ activeTab, onTabChange }) => {
       label: 'Tra cứu & Quản lý lịch hẹn',
       icon: Clock,
       description: 'Kiểm tra mã FC, trạng thái & hủy lịch',
+    },
+    {
+      id: 'outbox',
+      label: 'Kiến trúc Outbox & EDA',
+      icon: Cpu,
+      description: 'Giám sát Transactional Outbox & sự kiện',
+      badge: 'Live',
     },
   ];
 

@@ -3,6 +3,7 @@ import { Layout } from './components/Layout';
 import { DoctorSchedulePage } from './pages/DoctorSchedulePage';
 import { BookingPage } from './pages/BookingPage';
 import { PatientHistoryPage } from './pages/PatientHistoryPage';
+import { OutboxMonitorPage } from './pages/OutboxMonitorPage';
 
 export const App = () => {
   const [activeTab, setActiveTab] = useState('doctors');
@@ -42,11 +43,14 @@ export const App = () => {
   };
 
   const handleBookingSuccess = (appointment) => {
-    notify(`Đặt lịch khám thành công! Mã hẹn: ${appointment.bookingCode}. Thông báo xác nhận đã được gửi tới quý khách.`, {
-      type: 'success',
-      title: 'Xác nhận thành công',
-      duration: 6000,
-    });
+    notify(
+      `Đặt lịch khám thành công! Mã hẹn: ${appointment.bookingCode}. Thông báo xác nhận đã được tạo và gửi qua email.`,
+      {
+        type: 'success',
+        title: 'Xác nhận thành công',
+        duration: 7000,
+      }
+    );
   };
 
   return (
@@ -55,23 +59,38 @@ export const App = () => {
       onTabChange={setActiveTab}
       toasts={toasts}
       onDismissToast={dismissToast}
+      onNotify={notify}
     >
-      {activeTab === 'doctors' && (
-        <DoctorSchedulePage onSelectSlot={handleSelectSlot} />
-      )}
+      {({ openNotifications }) => (
+        <>
+          {activeTab === 'doctors' && (
+            <DoctorSchedulePage onSelectSlot={handleSelectSlot} />
+          )}
 
-      {activeTab === 'booking' && (
-        <BookingPage
-          selectedDoctor={selectedDoctor}
-          selectedSlot={selectedSlot}
-          onBookingSuccess={handleBookingSuccess}
-          onBackToSchedule={() => setActiveTab('doctors')}
-          onViewHistory={() => setActiveTab('history')}
-        />
-      )}
+          {activeTab === 'booking' && (
+            <BookingPage
+              selectedDoctor={selectedDoctor}
+              selectedSlot={selectedSlot}
+              onBookingSuccess={handleBookingSuccess}
+              onBackToSchedule={() => setActiveTab('doctors')}
+              onViewHistory={() => setActiveTab('history')}
+              onOpenNotifications={openNotifications}
+            />
+          )}
 
-      {activeTab === 'history' && (
-        <PatientHistoryPage onBookNew={() => setActiveTab('doctors')} />
+          {activeTab === 'history' && (
+            <PatientHistoryPage
+              onBookNew={() => setActiveTab('doctors')}
+              onOpenNotifications={openNotifications}
+            />
+          )}
+
+          {activeTab === 'outbox' && (
+            <OutboxMonitorPage
+              onOpenNotifications={openNotifications}
+            />
+          )}
+        </>
       )}
     </Layout>
   );

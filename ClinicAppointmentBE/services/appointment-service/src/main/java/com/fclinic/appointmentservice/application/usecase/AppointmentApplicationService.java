@@ -19,8 +19,10 @@ import com.fclinic.appointmentservice.domain.model.AppointmentStatus;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -39,15 +41,27 @@ public class AppointmentApplicationService implements
     private final AppointmentRepositoryPort appointmentRepository;
     private final AppointmentEventPublisherPort eventPublisher;
     private final DistributedLockPort lockPort;
+    private final TransactionTemplate transactionTemplate;
+
+    @Autowired
+    public AppointmentApplicationService(
+            AppointmentRepositoryPort appointmentRepository,
+            AppointmentEventPublisherPort eventPublisher,
+            DistributedLockPort lockPort,
+            Optional<TransactionTemplate> transactionTemplate
+    ) {
+        this.appointmentRepository = appointmentRepository;
+        this.eventPublisher = eventPublisher;
+        this.lockPort = lockPort;
+        this.transactionTemplate = transactionTemplate.orElse(null);
+    }
 
     public AppointmentApplicationService(
             AppointmentRepositoryPort appointmentRepository,
             AppointmentEventPublisherPort eventPublisher,
             DistributedLockPort lockPort
     ) {
-        this.appointmentRepository = appointmentRepository;
-        this.eventPublisher = eventPublisher;
-        this.lockPort = lockPort;
+        this(appointmentRepository, eventPublisher, lockPort, Optional.empty());
     }
 
     @Override
@@ -55,7 +69,12 @@ public class AppointmentApplicationService implements
         String lockKey = String.format("lock:slot:%d:%d:%s",
                 command.doctorId(), command.slotId(), command.appointmentDate());
 
-        return lockPort.executeWithLock(lockKey, 5, 10, () -> executeBookingInTransaction(command));
+        return lockPort.executeWithLock(lockKey, 5, 10, () -> {
+            if (transactionTemplate != null) {
+                return transactionTemplate.execute(status -> executeBookingInTransaction(command));
+            }
+            return executeBookingInTransaction(command);
+        });
     }
 
     @Transactional
