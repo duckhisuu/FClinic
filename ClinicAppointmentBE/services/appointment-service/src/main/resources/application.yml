@@ -40,8 +40,3 @@ management:
   endpoint:
     health:
       show-details: always
-
-fclinic:
-  rabbitmq:
-    exchange: ${RABBITMQ_EXCHANGE:clinic.events}
-    routingkey: ${RABBITMQ_ROUTING_KEY:appointment.created}

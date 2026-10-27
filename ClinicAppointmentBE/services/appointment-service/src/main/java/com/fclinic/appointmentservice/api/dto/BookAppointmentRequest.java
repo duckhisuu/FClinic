@@ -25,8 +25,6 @@ public class BookAppointmentRequest {
     @NotBlank(message = "Bắt buộc có số điện thoại bệnh nhân")
     private String patientPhone;
 
-    private String patientEmail;
-
     @NotNull(message = "Bắt buộc có doctorId")
     private Long doctorId;
 
@@ -35,8 +33,6 @@ public class BookAppointmentRequest {
 
     @NotBlank(message = "Bắt buộc có chuyên khoa bác sĩ")
     private String doctorSpecialty;
-
-    private String doctorEmail;
 
     @NotNull(message = "Bắt buộc có slotId")
     private Long slotId;

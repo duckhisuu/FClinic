@@ -18,7 +18,6 @@ public class CorsConfig {
         corsConfig.setAllowedOrigins(Arrays.asList("http://localhost:5173", "http://localhost:3000"));
         corsConfig.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         corsConfig.setAllowedHeaders(List.of("*"));
-        corsConfig.setExposedHeaders(Arrays.asList("X-Request-Id", "Authorization", "Content-Disposition"));
         corsConfig.setAllowCredentials(true);
         corsConfig.setMaxAge(3600L);
 

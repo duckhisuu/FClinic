@@ -7,10 +7,6 @@ spring:
   cloud:
     gateway:
       routes:
-        - id: patient-service-v2-route
-          uri: lb://patient-service
-          predicates:
-            - Path=/api/v2/patients/**
         - id: patient-service-route
           uri: lb://patient-service
           predicates:

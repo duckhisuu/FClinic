@@ -14,11 +14,9 @@ public class Appointment {
     private Long patientId;
     private String patientName;
     private String patientPhone;
-    private String patientEmail;
     private Long doctorId;
     private String doctorName;
     private String doctorSpecialty;
-    private String doctorEmail;
     private Long slotId;
     private LocalDate appointmentDate;
     private LocalTime startTime;
@@ -35,11 +33,9 @@ public class Appointment {
             Long patientId,
             String patientName,
             String patientPhone,
-            String patientEmail,
             Long doctorId,
             String doctorName,
             String doctorSpecialty,
-            String doctorEmail,
             Long slotId,
             LocalDate appointmentDate,
             LocalTime startTime,
@@ -55,11 +51,9 @@ public class Appointment {
         this.patientId = patientId;
         this.patientName = patientName;
         this.patientPhone = patientPhone;
-        this.patientEmail = patientEmail;
         this.doctorId = doctorId;
         this.doctorName = doctorName;
         this.doctorSpecialty = doctorSpecialty;
-        this.doctorEmail = doctorEmail;
         this.slotId = slotId;
         this.appointmentDate = appointmentDate;
         this.startTime = startTime;
@@ -71,38 +65,13 @@ public class Appointment {
         this.updatedAt = updatedAt;
     }
 
-    public Appointment(
-            Long id,
-            BookingCode bookingCode,
-            Long patientId,
-            String patientName,
-            String patientPhone,
-            Long doctorId,
-            String doctorName,
-            String doctorSpecialty,
-            Long slotId,
-            LocalDate appointmentDate,
-            LocalTime startTime,
-            LocalTime endTime,
-            String reasonForVisit,
-            Double consultationFee,
-            AppointmentStatus status,
-            Instant createdAt,
-            Instant updatedAt
-    ) {
-        this(id, bookingCode, patientId, patientName, patientPhone, null, doctorId, doctorName, doctorSpecialty, null,
-                slotId, appointmentDate, startTime, endTime, reasonForVisit, consultationFee, status, createdAt, updatedAt);
-    }
-
     public static Appointment createNew(
             Long patientId,
             String patientName,
             String patientPhone,
-            String patientEmail,
             Long doctorId,
             String doctorName,
             String doctorSpecialty,
-            String doctorEmail,
             Long slotId,
             LocalDate appointmentDate,
             LocalTime startTime,
@@ -117,11 +86,9 @@ public class Appointment {
                 patientId,
                 patientName,
                 patientPhone,
-                patientEmail,
                 doctorId,
                 doctorName,
                 doctorSpecialty,
-                doctorEmail,
                 slotId,
                 appointmentDate,
                 startTime,
@@ -132,24 +99,6 @@ public class Appointment {
                 now,
                 now
         );
-    }
-
-    public static Appointment createNew(
-            Long patientId,
-            String patientName,
-            String patientPhone,
-            Long doctorId,
-            String doctorName,
-            String doctorSpecialty,
-            Long slotId,
-            LocalDate appointmentDate,
-            LocalTime startTime,
-            LocalTime endTime,
-            String reasonForVisit,
-            Double consultationFee
-    ) {
-        return createNew(patientId, patientName, patientPhone, null, doctorId, doctorName, doctorSpecialty, null,
-                slotId, appointmentDate, startTime, endTime, reasonForVisit, consultationFee);
     }
 
     public void cancel() {
@@ -190,10 +139,6 @@ public class Appointment {
         return patientPhone;
     }
 
-    public String getPatientEmail() {
-        return patientEmail;
-    }
-
     public Long getDoctorId() {
         return doctorId;
     }
@@ -204,10 +149,6 @@ public class Appointment {
 
     public String getDoctorSpecialty() {
         return doctorSpecialty;
-    }
-
-    public String getDoctorEmail() {
-        return doctorEmail;
     }
 
     public Long getSlotId() {

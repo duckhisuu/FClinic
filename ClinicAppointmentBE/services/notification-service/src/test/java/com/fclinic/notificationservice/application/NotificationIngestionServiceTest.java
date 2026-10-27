@@ -1,7 +1,7 @@
 package com.fclinic.notificationservice.application;
 
 import com.fclinic.notificationservice.application.dto.event.AppointmentNotificationEvent;
-import com.fclinic.notificationservice.application.dto.AppointmentSnapshotDto;
+import com.fclinic.notificationservice.application.dto.event.AppointmentSnapshotDto;
 import com.fclinic.notificationservice.application.dto.PreviousAppointmentSlotDto;
 import com.fclinic.notificationservice.application.dto.RecipientDto;
 import com.fclinic.notificationservice.application.exception.InvalidNotificationEventException;
