@@ -15,7 +15,6 @@ import {
   Printer,
   ChevronRight,
   ShieldCheck,
-  Bell,
 } from 'lucide-react';
 import { appointmentApi, doctorApi, patientApi } from '../services/api';
 
@@ -25,7 +24,6 @@ export const BookingPage = ({
   onBookingSuccess,
   onBackToSchedule,
   onViewHistory,
-  onOpenNotifications,
 }) => {
   const [step, setStep] = useState(selectedDoctor && selectedSlot ? 2 : 1);
   const [doctors, setDoctors] = useState([]);
@@ -123,19 +121,15 @@ export const BookingPage = ({
       });
 
       const patientId = patientData?.id || 1;
-      const patientEmail = patientForm.email || `${patientForm.phoneNumber}@fclinic.local`;
-      const doctorEmail = doctor.email || `doctor.${doctor.id}@fclinic.vn`;
 
       // 2. Book appointment via Clean Architecture Use Case with Distributed Lock & Outbox
       const requestPayload = {
         patientId,
         patientName: patientForm.fullName,
         patientPhone: patientForm.phoneNumber,
-        patientEmail,
         doctorId: doctor.id,
         doctorName: doctor.name,
         doctorSpecialty: doctor.specialty,
-        doctorEmail,
         slotId: slot.id,
         appointmentDate: appointmentDate,
         startTime: slot.startTime,
@@ -145,32 +139,12 @@ export const BookingPage = ({
       };
 
       const result = await appointmentApi.bookAppointment(requestPayload);
-      setBookingResult({
-        ...result,
-        patientEmail,
-        doctorEmail,
-      });
+      setBookingResult(result);
       if (onBookingSuccess) {
         onBookingSuccess(result);
       }
     } catch (err) {
-      const isConflict =
-        err.message?.includes('Khung giờ này đã có bệnh nhân đặt') ||
-        err.message?.includes('Slot already booked') ||
-        err.message?.includes('409');
-
-      if (isConflict) {
-        setErrorMsg('Khung giờ này vừa có người đặt thành công. Danh sách khung giờ đã được làm mới, vui lòng chọn khung giờ khác.');
-        if (doctor?.id) {
-          doctorApi.getDoctorSlots(doctor.id, appointmentDate).then((slots) => {
-            setAvailableSlots(slots || []);
-            const nextOpen = (slots || []).find((s) => !s.isBooked && s.id !== slot.id);
-            if (nextOpen) setSlot(nextOpen);
-          });
-        }
-      } else {
-        setErrorMsg(err.message || 'Xảy ra lỗi trong quá trình đặt lịch.');
-      }
+      setErrorMsg(err.message || 'Xảy ra lỗi trong quá trình đặt lịch.');
     } finally {
       setLoading(false);
     }
@@ -240,25 +214,6 @@ export const BookingPage = ({
           )}
         </div>
 
-        {/* Email Notification Status */}
-        <div className="p-4 rounded-2xl bg-emerald-50/80 border border-emerald-200/80 text-xs space-y-2 text-emerald-950">
-          <div className="flex items-center gap-2 font-bold text-emerald-800 text-sm">
-            <Mail className="w-4 h-4 text-emerald-600" />
-            <span>Email thông báo xác nhận tự động (Notification Service)</span>
-          </div>
-          <p className="text-slate-600">
-            Hệ thống đã kích hoạt Transactional Outbox và gửi 2 bản email HTML xác nhận lịch hẹn tức thì đến:
-          </p>
-          <div className="flex flex-col sm:flex-row gap-2 pt-1 font-mono text-[11px] text-slate-700">
-            <span className="bg-white px-2.5 py-1 rounded-lg border border-emerald-200 shadow-2xs">
-              👤 Bệnh nhân: <strong>{bookingResult.patientEmail || patientForm.email}</strong>
-            </span>
-            <span className="bg-white px-2.5 py-1 rounded-lg border border-emerald-200 shadow-2xs">
-              👨‍⚕️ Bác sĩ: <strong>{bookingResult.doctorEmail || (doctor ? doctor.email || `doctor.${doctor.id}@fclinic.vn` : '')}</strong>
-            </span>
-          </div>
-        </div>
-
         {/* Patient Instructions */}
         <div className="p-5 rounded-2xl bg-teal-50/70 border border-teal-100 text-xs space-y-2.5 text-teal-950">
           <div className="flex items-center gap-2 font-bold text-teal-800 text-sm">
@@ -274,15 +229,6 @@ export const BookingPage = ({
 
         {/* Actions */}
         <div className="flex flex-col sm:flex-row gap-3 pt-2">
-          {onOpenNotifications && (
-            <button
-              onClick={onOpenNotifications}
-              className="py-3 px-5 rounded-xl bg-teal-50 text-teal-800 border border-teal-200 font-semibold text-sm hover:bg-teal-100 transition-colors flex items-center justify-center gap-2"
-            >
-              <Bell className="w-4 h-4 text-teal-600" />
-              Xem Thông Báo Đã Gửi
-            </button>
-          )}
           <button
             onClick={() => {
               setBookingResult(null);

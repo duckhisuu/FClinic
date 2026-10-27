@@ -4,14 +4,7 @@ import { Sidebar } from './Sidebar';
 import { NotificationDrawer } from './NotificationDrawer';
 import { ToastStack } from './Toast';
 
-export const Layout = ({
-  activeTab,
-  onTabChange,
-  toasts = [],
-  onDismissToast,
-  onNotify,
-  children,
-}) => {
+export const Layout = ({ activeTab, onTabChange, toasts = [], onDismissToast, children }) => {
   const [isNotifOpen, setIsNotifOpen] = useState(false);
 
   return (
@@ -21,17 +14,11 @@ export const Layout = ({
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col lg:flex-row gap-8 items-start">
           <Sidebar activeTab={activeTab} onTabChange={onTabChange} />
-          <section className="flex-1 w-full min-w-0">
-            {typeof children === 'function' ? children({ openNotifications: () => setIsNotifOpen(true) }) : children}
-          </section>
+          <section className="flex-1 w-full min-w-0">{children}</section>
         </div>
       </main>
 
-      <NotificationDrawer
-        isOpen={isNotifOpen}
-        onClose={() => setIsNotifOpen(false)}
-        onNotify={onNotify}
-      />
+      <NotificationDrawer isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} />
       <ToastStack toasts={toasts} onDismiss={onDismissToast} />
 
       <footer className="bg-white border-t border-slate-200/80 py-6 mt-12 text-center text-xs text-slate-500">

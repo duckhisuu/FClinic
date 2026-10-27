@@ -155,46 +155,16 @@ let mockOutboxEvents = [
 
 let mockNotifications = [
   {
-    id: 1,
-    eventId: 'e1000000-0000-0000-0000-000000000001',
-    appointmentId: 101,
-    recipientUserId: 1,
-    recipientType: 'PATIENT',
-    recipientName: 'Trần Thị Mai Phương',
-    recipientEmail: 'phuong.tran@gmail.com',
-    type: 'APPOINTMENT_CONFIRMATION',
-    channel: 'EMAIL',
+    id: 'notif-1',
+    bookingCode: 'FC-DEMO001',
+    recipientName: 'Nguyễn Văn Hùng',
+    recipientPhone: '0912345678',
+    doctorName: 'BS. CKII Nguyễn Văn An',
+    appointmentTime: `${new Date().toISOString().split('T')[0]} 08:00`,
+    channel: 'SMS/ZALO',
+    message: 'FClinic: Quý khách Nguyễn Văn Hùng đã đặt lịch khám thành công với BS. CKII Nguyễn Văn An. Mã hẹn: FC-DEMO001.',
     status: 'SENT',
-    subject: 'Xác nhận lịch hẹn với BS. CKII Nguyễn Văn An',
-    attemptCount: 0,
-    nextAttemptAt: null,
-    lastAttemptAt: new Date().toISOString(),
-    sentAt: new Date().toISOString(),
-    lastErrorCode: null,
-    lastErrorMessage: null,
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 2,
-    eventId: 'e1000000-0000-0000-0000-000000000001',
-    appointmentId: 101,
-    recipientUserId: 1,
-    recipientType: 'DOCTOR',
-    recipientName: 'BS. CKII Nguyễn Văn An',
-    recipientEmail: 'doctor.an@fclinic.vn',
-    type: 'APPOINTMENT_CONFIRMATION',
-    channel: 'EMAIL',
-    status: 'SENT',
-    subject: 'Xác nhận lịch hẹn với Trần Thị Mai Phương',
-    attemptCount: 0,
-    nextAttemptAt: null,
-    lastAttemptAt: new Date().toISOString(),
-    sentAt: new Date().toISOString(),
-    lastErrorCode: null,
-    lastErrorMessage: null,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
   },
 ];
 
@@ -314,38 +284,18 @@ export const appointmentApi = {
         createdAt: new Date().toISOString(),
       });
 
-      // Append dual notifications (Patient & Doctor) matching EDA backend
-      const notifBase = {
-        eventId,
-        appointmentId: newAppt.id,
-        attemptCount: 0,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        sentAt: new Date().toISOString(),
-      };
+      // Append notification
       mockNotifications.unshift({
-        id: Date.now() + 1,
-        ...notifBase,
-        recipientUserId: requestData.doctorId || 1,
-        recipientType: 'DOCTOR',
-        recipientName: requestData.doctorName,
-        recipientEmail: requestData.doctorEmail || `doctor.${requestData.doctorId || 1}@fclinic.vn`,
-        type: 'APPOINTMENT_CONFIRMATION',
-        channel: 'EMAIL',
-        status: 'SENT',
-        subject: `Xác nhận lịch hẹn với ${requestData.patientName}`,
-      });
-      mockNotifications.unshift({
-        id: Date.now(),
-        ...notifBase,
-        recipientUserId: requestData.patientId || 1,
-        recipientType: 'PATIENT',
+        id: 'notif-' + Date.now(),
+        bookingCode,
         recipientName: requestData.patientName,
-        recipientEmail: requestData.patientEmail || `${requestData.patientPhone}@fclinic.local`,
-        type: 'APPOINTMENT_CONFIRMATION',
-        channel: 'EMAIL',
+        recipientPhone: requestData.patientPhone,
+        doctorName: requestData.doctorName,
+        appointmentTime: `${requestData.appointmentDate} ${requestData.startTime}`,
+        channel: 'SMS/ZALO',
+        message: `FClinic: Quý khách ${requestData.patientName} đã đặt lịch khám thành công với ${requestData.doctorName}. Mã đặt hẹn: ${bookingCode}.`,
         status: 'SENT',
-        subject: `Xác nhận lịch hẹn với ${requestData.doctorName}`,
+        createdAt: new Date().toISOString(),
       });
 
       return newAppt;
@@ -360,9 +310,8 @@ export const appointmentApi = {
       if (!appt) throw new Error('Không tìm thấy cuộc hẹn');
       appt.status = 'CANCELLED';
 
-      const cancelEventId = crypto.randomUUID ? crypto.randomUUID() : 'outbox-' + Date.now();
       mockOutboxEvents.unshift({
-        id: cancelEventId,
+        id: 'outbox-' + Date.now(),
         aggregateId: String(appt.id),
         aggregateType: 'APPOINTMENT',
         eventType: 'APPOINTMENT_CANCELLED',
@@ -372,37 +321,17 @@ export const appointmentApi = {
         createdAt: new Date().toISOString(),
       });
 
-      const notifBase = {
-        eventId: cancelEventId,
-        appointmentId: appt.id,
-        attemptCount: 0,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        sentAt: new Date().toISOString(),
-      };
       mockNotifications.unshift({
-        id: Date.now() + 1,
-        ...notifBase,
-        recipientUserId: appt.doctorId || 1,
-        recipientType: 'DOCTOR',
-        recipientName: appt.doctorName,
-        recipientEmail: appt.doctorEmail || `doctor.${appt.doctorId || 1}@fclinic.vn`,
-        type: 'APPOINTMENT_CANCELLATION',
-        channel: 'EMAIL',
-        status: 'SENT',
-        subject: `Lịch hẹn với ${appt.patientName} đã bị hủy`,
-      });
-      mockNotifications.unshift({
-        id: Date.now(),
-        ...notifBase,
-        recipientUserId: appt.patientId || 1,
-        recipientType: 'PATIENT',
+        id: 'notif-' + Date.now(),
+        bookingCode: appt.bookingCode,
         recipientName: appt.patientName,
-        recipientEmail: appt.patientEmail || `${appt.patientPhone}@fclinic.local`,
-        type: 'APPOINTMENT_CANCELLATION',
-        channel: 'EMAIL',
+        recipientPhone: appt.patientPhone,
+        doctorName: appt.doctorName,
+        appointmentTime: `${appt.appointmentDate} ${appt.startTime}`,
+        channel: 'SMS/ZALO',
+        message: `FClinic: Lịch khám ${appt.bookingCode} đã được hủy thành công. Lý do: ${reason}.`,
         status: 'SENT',
-        subject: `Lịch hẹn với ${appt.doctorName} đã bị hủy`,
+        createdAt: new Date().toISOString(),
       });
 
       return appt;
@@ -422,14 +351,6 @@ export const appointmentApi = {
 export const patientApi = {
   getPatientByPhone: async (phone) => {
     try {
-      // Try v2 search first (matches PatientController: GET /api/v2/patients?phone=...)
-      const res = await apiClient.get(`/api/v2/patients?phone=${encodeURIComponent(phone)}`);
-      if (res && Array.isArray(res.content) && res.content.length > 0) {
-        return res.content[0];
-      }
-      if (Array.isArray(res) && res.length > 0) {
-        return res[0];
-      }
       return await apiClient.get(`/api/v1/patients/by-phone?phone=${encodeURIComponent(phone)}`);
     } catch {
       return null;
@@ -438,100 +359,20 @@ export const patientApi = {
 
   createOrUpdatePatient: async (data) => {
     try {
-      // Try v2 patient creation first
-      return await apiClient.post('/api/v2/patients', data);
+      return await apiClient.post('/api/v1/patients', data);
     } catch {
-      try {
-        return await apiClient.post('/api/v1/patients', data);
-      } catch {
-        return { id: 1, ...data };
-      }
+      return { id: 1, ...data };
     }
   },
 };
 
-// Notification Service APIs (matches real backend NotificationController)
+// Notification Service APIs
 export const notificationApi = {
-  /**
-   * Fetch paginated notifications with optional status filter.
-   * Matches GET /api/v1/admin/notifications?status={status}&page={page}&size={size}
-   */
-  getAdminNotifications: async ({ status, page = 0, size = 50 } = {}) => {
-    try {
-      const params = new URLSearchParams();
-      if (status && status !== 'ALL') params.append('status', status);
-      params.append('page', String(page));
-      params.append('size', String(size));
-      const response = await apiClient.get(`/api/v1/admin/notifications?${params.toString()}`);
-      if (response && Array.isArray(response.content)) {
-        return response;
-      }
-      if (Array.isArray(response)) {
-        return { content: response, totalElements: response.length, totalPages: 1, page: 0 };
-      }
-      return { content: [], totalElements: 0, totalPages: 0, page: 0 };
-    } catch {
-      let filtered = [...mockNotifications];
-      if (status && status !== 'ALL') {
-        filtered = filtered.filter((n) => n.status === status);
-      }
-      return {
-        content: filtered.slice(page * size, (page + 1) * size),
-        totalElements: filtered.length,
-        totalPages: Math.ceil(filtered.length / size),
-        page,
-        size,
-      };
-    }
-  },
-
-  /**
-   * Fetch user notifications: GET /api/v1/notifications/me?userId={userId}&page={page}&size={size}
-   */
-  getUserNotifications: async (userId, page = 0, size = 20) => {
-    try {
-      const response = await apiClient.get(`/api/v1/notifications/me?userId=${userId}&page=${page}&size=${size}`);
-      return response?.content || (Array.isArray(response) ? response : []);
-    } catch {
-      return mockNotifications.filter((n) => n.recipientUserId === Number(userId) || n.recipientType === 'PATIENT');
-    }
-  },
-
-  /**
-   * Get single notification by ID: GET /api/v1/notifications/{id}
-   */
-  getNotificationById: async (id) => {
-    try {
-      return await apiClient.get(`/api/v1/notifications/${id}`);
-    } catch {
-      return mockNotifications.find((n) => n.id === Number(id)) || null;
-    }
-  },
-
-  /**
-   * Manually retry delivery of a notification: POST /api/v1/admin/notifications/{id}/retry
-   */
-  retryNotification: async (id) => {
-    try {
-      return await apiClient.post(`/api/v1/admin/notifications/${id}/retry`);
-    } catch {
-      const notif = mockNotifications.find((n) => n.id === Number(id));
-      if (notif) {
-        notif.status = 'SENT';
-        notif.sentAt = new Date().toISOString();
-        notif.attemptCount = (notif.attemptCount || 0) + 1;
-        notif.lastErrorMessage = null;
-        return notif;
-      }
-      throw new Error('Không thể thử lại gửi thông báo.');
-    }
-  },
-
-  /**
-   * Backward-compatible alias for existing components
-   */
   getRecentNotifications: async (limit = 50) => {
-    const res = await notificationApi.getAdminNotifications({ size: limit });
-    return res.content;
+    try {
+      return await apiClient.get(`/api/v1/notifications?limit=${limit}`);
+    } catch {
+      return mockNotifications;
+    }
   },
 };

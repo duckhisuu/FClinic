@@ -12,12 +12,10 @@ import {
   FileCheck,
   AlertCircle,
   HelpCircle,
-  Bell,
-  Mail,
 } from 'lucide-react';
 import { appointmentApi } from '../services/api';
 
-export const PatientHistoryPage = ({ onBookNew, onOpenNotifications }) => {
+export const PatientHistoryPage = ({ onBookNew }) => {
   const [searchPhone, setSearchPhone] = useState('0912345678');
   const [searchCode, setSearchCode] = useState('');
   const [appointments, setAppointments] = useState([]);
@@ -276,17 +274,7 @@ export const PatientHistoryPage = ({ onBookNew, onOpenNotifications }) => {
               <h3 className="text-lg font-bold text-slate-900">Xác nhận hủy lịch khám?</h3>
               <p className="text-xs text-slate-500 mt-1">
                 Lịch hẹn <strong className="text-slate-800">{cancelModalAppt.bookingCode}</strong> với{' '}
-                <strong>{cancelModalAppt.doctorName}</strong> sẽ được hủy trên hệ thống.
-              </p>
-            </div>
-
-            <div className="p-3 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs space-y-1">
-              <div className="flex items-center gap-1.5 font-bold text-amber-800">
-                <Bell className="w-3.5 h-3.5 text-amber-600" />
-                <span>Email thông báo hủy tự động</span>
-              </div>
-              <p className="text-[11px] text-slate-600">
-                Hệ thống sẽ gửi sự kiện <code>appointment.cancelled</code> qua RabbitMQ để <strong>Notification Service</strong> dispatch email thông báo hủy kèm lý do đến cả bệnh nhân và bác sĩ.
+                <strong>{cancelModalAppt.doctorName}</strong> sẽ được hủy trên hệ thống và gửi thông báo tới phòng khám.
               </p>
             </div>
 

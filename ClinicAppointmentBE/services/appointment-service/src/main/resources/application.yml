@@ -22,11 +22,6 @@ spring:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
       timeout: 3000ms
-  rabbitmq:
-    host: ${RABBITMQ_HOST:localhost}
-    port: ${RABBITMQ_PORT:5672}
-    username: ${RABBITMQ_DEFAULT_USER:fclinic_rabbit}
-    password: ${RABBITMQ_DEFAULT_PASS:rabbit_secret}
 
 eureka:
   instance:

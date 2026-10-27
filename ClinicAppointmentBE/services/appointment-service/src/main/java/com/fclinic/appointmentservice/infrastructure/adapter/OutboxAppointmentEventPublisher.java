@@ -35,7 +35,7 @@ public class OutboxAppointmentEventPublisher implements AppointmentEventPublishe
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.MANDATORY)
     public void publish(DomainEvent event) {
         try {
             String payload;
