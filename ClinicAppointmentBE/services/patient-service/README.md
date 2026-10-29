@@ -1,5 +1,7 @@
 # Patient Service v2
 
+**P-FINAL,26/10/2026: IMPLEMENTATION COMPLETE / CONSUMER INTEGRATION READY / REAL AUTH & SCOPE PENDING.** [Acceptance](docs/integration-readiness/19_P_FINAL_ACCEPTANCE_REPORT.md), [Auth handoff](docs/integration-readiness/16_P_FINAL_AUTH_CONSUMER_HANDOFF.md), [WorkScope handoff](docs/integration-readiness/17_P_FINAL_WORKSCOPE_HANDOFF.md), [real integration runbook](docs/integration-readiness/18_P_FINAL_REAL_INTEGRATION_RUNBOOK.md). Fresh Patient257tests and full9-module reactor SUCCESS; B-04/B-05 actual provider profiles rerun. Completion is scoped to Patient code/consumers; real Auth/scope, whole-chain/Gateway/E2E and M6 remain pending. Historical sections below retain their original results.
+
 Patient Service sở hữu hồ sơ hành chính UUID, medical summaries và hai loại revision. Module này là target binary v2; không tương thích với Patient database v1 hoặc consumer còn Long patientId.
 
 ## Phạm vi hiện có
@@ -100,3 +102,7 @@ Sau shared phone/UUID, rollback bằng coordinated restore hoặc forward fix đ
 ## M5-D1 Doctor provider
 
 [Actual B-04 report](docs/integration-readiness/13_M5_D1_DOCTOR_PROVIDER_VERIFICATION.md):5mandatory +1technical vector REAL PROVIDER PASS against Doctor executable JAR.59Doctor tests/254Patient normal tests/255Patient opt-in tests pass,F/E/S0. Real profile dùng một Failsafe execution giữ mọi defaultIT include và thêm harness; reports/summary mới ở target/real-provider-reports/current, observations vẫn target/real-provider-reports/observations.json. Historical preflight summary giữ nguyên. Doctor reference-only profile intentionally denies public directory/slot/mutation APIs; không thay Gateway/FE. B-05/B-02/Auth/scope vẫn chưa verified.
+
+## Patient-only bao sync scope
+
+This branch restores accepted Patient tests/configuration and P-FINAL/R3 handoffs on remote main b6554cb. Historical 534-test and actual B-05 PASS evidence describes the accepted original workspace, not this remote-based branch. Proposed-branch verification is reported separately in the pull request. Remote Appointment B-05 compatibility remains an Appointment-owner dependency; real Auth/Scope remain pending. No Appointment/Doctor/Notification production source is changed.

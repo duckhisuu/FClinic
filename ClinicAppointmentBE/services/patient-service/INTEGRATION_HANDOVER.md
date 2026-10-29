@@ -1,5 +1,11 @@
 # Patient v2 integration handover
 
+## P-FINAL current handoff — 26/10/2026
+
+Patient implementation and all4production consumers are ready within selected scope; real Auth/scope remain pending. [Auth owner16](docs/integration-readiness/16_P_FINAL_AUTH_CONSUMER_HANDOFF.md) supplies exact contract/request/USER-SERVICE/mapping/lifecycle/config/tests without mandating provider technology; [administrative+clinical scope owners17](docs/integration-readiness/17_P_FINAL_WORKSCOPE_HANDOFF.md) supplies distinct current grants/valid visits; [runbook18](docs/integration-readiness/18_P_FINAL_REAL_INTEGRATION_RUNBOOK.md) connects genuine providers by configuration and retains fail-closed gates. Requests prepared, not sent/accepted. [Acceptance19](docs/integration-readiness/19_P_FINAL_ACCEPTANCE_REPORT.md), [new evidence](evidence/patient-p-final-verification.json).
+
+Fresh257Patient tests and full524service tests PASS,F/E/S0; B-04/B-05 actual binary harness6/8vectors rerun PASS. Auth/scope TCP evidence remains WITH DOUBLES; no new real identity/encounter authority or whole B-02/E2E claim. Do not enable booking/default relay/SMTP/delivery or perform M6 on this acceptance. Canonical adoption/D-21/F-05/shared deployment tests still require the responsible owners. Historical handoff below remains unchanged.
+
 ## M5-D2 latest handoff — 24/10/2026
 
 [Actual Appointment/B-05 verification and B-02 limit](docs/integration-readiness/14_M5_D2_APPOINTMENT_PROVIDER_VERIFICATION.md), [evidence](evidence/m5-d2-appointment-provider-verification.json). B-05 selected profile now implemented/verified against the real isolated Appointment binary, preserving pinned schema b2ce460335e273e227b45e982c6cefb2512d2625f6f7ff05f2342d29e34c1e86. B-04 remains verified. No whole-chain adoption or release approval is implied.
