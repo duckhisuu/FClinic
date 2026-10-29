@@ -1,0 +1,631 @@
+{
+  "schemaVersion": 2,
+  "evidenceScope": "Sanitized Patient R3 historical accepted ORIGINAL baseline; not proposed bao/main verification",
+  "generatedAt": "2026-10-29T09:38:47.133102+07:00",
+  "classifications": {
+    "implementation": "COMPLETE",
+    "sourceConflicts": "NONE",
+    "patient257Regression": "PASS",
+    "acceptedB05": "ACCEPTED B-05 REAL VERIFIED",
+    "remoteAppointment": "PARTIAL STATIC / REMOTE B-05 NOT VERIFIED / OWNER ACTION REQUIRED",
+    "directNotificationContract": "NONE",
+    "realAuthScope": "PENDING",
+    "patientProductionChanges": "NONE"
+  },
+  "contractPins": [
+    {
+      "path": "docs/FClinic_Implementation_Ready_Pack/FClinic_Implementation_Ready_Pack/02_Shared_Contracts/openapi/patient.openapi.json",
+      "expected": "63e2e306a2b14d89397bb998be43f8de7b982eadf8f3b88353bc952684ebeb71",
+      "current": "63e2e306a2b14d89397bb998be43f8de7b982eadf8f3b88353bc952684ebeb71",
+      "matches": true
+    },
+    {
+      "path": "docs/FClinic_Implementation_Ready_Pack/FClinic_Implementation_Ready_Pack/07_Testing_And_QA/fixtures/registry.json",
+      "expected": "64d6b73b655638365417bde67b70300295a01c1c1a9d22f230d8d266af33bb67",
+      "current": "64d6b73b655638365417bde67b70300295a01c1c1a9d22f230d8d266af33bb67",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/resources/db/schema/V001__patient_v2_empty.sql",
+      "expected": "1500fb0c94d9a504237889201ce900185c771bc80403d484a1d9d47384536ef6",
+      "current": "1500fb0c94d9a504237889201ce900185c771bc80403d484a1d9d47384536ef6",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/docs/integration-readiness/contracts/patient-identity-introspection-v1.schema.json",
+      "expected": "1ed4764c1480cc0e7776f36bdd0d6fbd9e97e6766a64dd827308dd2785b61088",
+      "current": "1ed4764c1480cc0e7776f36bdd0d6fbd9e97e6766a64dd827308dd2785b61088",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/docs/integration-readiness/contracts/patient-work-scope-v1.schema.json",
+      "expected": "e402cf523fe69f2fcf35eacb3517ebebc27d3f44653fdad4ab8ac52e7e919de1",
+      "current": "e402cf523fe69f2fcf35eacb3517ebebc27d3f44653fdad4ab8ac52e7e919de1",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/docs/integration-readiness/contracts/patient-doctor-reference-v1.schema.json",
+      "expected": "098d3651fe4bc5daad3ec813ce459acfc624a0888ad209f789aa6a4bcd08c172",
+      "current": "098d3651fe4bc5daad3ec813ce459acfc624a0888ad209f789aa6a4bcd08c172",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/docs/integration-readiness/contracts/patient-appointment-medical-reference-v1.schema.json",
+      "expected": "b2ce460335e273e227b45e982c6cefb2512d2625f6f7ff05f2342d29e34c1e86",
+      "current": "b2ce460335e273e227b45e982c6cefb2512d2625f6f7ff05f2342d29e34c1e86",
+      "matches": true
+    }
+  ],
+  "acceptedSourcePins": [
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/pom.xml",
+      "pFinalSha256": "aab90e78359d8a4244f442fed12b0863167c437df14b8b539eadee29b902893c",
+      "currentSha256": "aab90e78359d8a4244f442fed12b0863167c437df14b8b539eadee29b902893c",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/api/controller/PatientController.java",
+      "pFinalSha256": "2ddc691d4d2b0cecd1207537e8bd7c027d6f2357be11e12e363d5e8cc66a8568",
+      "currentSha256": "2ddc691d4d2b0cecd1207537e8bd7c027d6f2357be11e12e363d5e8cc66a8568",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/api/dto/MedicalRecordResponse.java",
+      "pFinalSha256": "4464db425b6e98656e90f5e1c7cb05c1661bd687220ea5a9206774905492efdd",
+      "currentSha256": "4464db425b6e98656e90f5e1c7cb05c1661bd687220ea5a9206774905492efdd",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/api/dto/PatientInput.java",
+      "pFinalSha256": "7a2c38affa9494668c0423c623c599efad66030d9e718897b3ddac7932896f74",
+      "currentSha256": "7a2c38affa9494668c0423c623c599efad66030d9e718897b3ddac7932896f74",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/api/dto/PatientResponse.java",
+      "pFinalSha256": "8f9a962b9d2d406909a0193562936ece0d8c71fc547c93c5a0775b5420e86366",
+      "currentSha256": "8f9a962b9d2d406909a0193562936ece0d8c71fc547c93c5a0775b5420e86366",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/api/exception/GlobalExceptionHandler.java",
+      "pFinalSha256": "672be4e29574548cf5bd6c2896a6d575ed2f9b5a8a08ec5f1461338a12740b7e",
+      "currentSha256": "672be4e29574548cf5bd6c2896a6d575ed2f9b5a8a08ec5f1461338a12740b7e",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/api/security/PatientAuthentication.java",
+      "pFinalSha256": "2ca81a8295c23e5405d4443ef63ad2cd99ba89baf074dbcf88a413580d736bfa",
+      "currentSha256": "2ca81a8295c23e5405d4443ef63ad2cd99ba89baf074dbcf88a413580d736bfa",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/application/port/out/AppointmentClientPort.java",
+      "pFinalSha256": "2c560ab0aba9887e1a3925eda0536f95f05342b293611dd4b2aa6206d61c6cc1",
+      "currentSha256": "2c560ab0aba9887e1a3925eda0536f95f05342b293611dd4b2aa6206d61c6cc1",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/application/port/out/DoctorClientPort.java",
+      "pFinalSha256": "7ebd19416aa823b089182f0014f37737508681834400f01c8ccd876cccd92c6b",
+      "currentSha256": "7ebd19416aa823b089182f0014f37737508681834400f01c8ccd876cccd92c6b",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/application/port/out/IdentityVerifierPort.java",
+      "pFinalSha256": "6e4fc8ffb80fa8f8638670dfa07c84983db389fce933ee4416f9b890f6548016",
+      "currentSha256": "6e4fc8ffb80fa8f8638670dfa07c84983db389fce933ee4416f9b890f6548016",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/application/port/out/PatientRepositoryPort.java",
+      "pFinalSha256": "727535f78a01eb8a453356c3be7bc0a81f31768e905ed356db04f6d2dbed0804",
+      "currentSha256": "727535f78a01eb8a453356c3be7bc0a81f31768e905ed356db04f6d2dbed0804",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/application/port/out/RevisionPort.java",
+      "pFinalSha256": "eb323ee4bd285bafb034316f379f82ebc2bf96c4b7104c72c4047031316578be",
+      "currentSha256": "eb323ee4bd285bafb034316f379f82ebc2bf96c4b7104c72c4047031316578be",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/application/port/out/WorkScopePort.java",
+      "pFinalSha256": "18cf9841e8822ae8fe4b16fb9df6e865941a2e6dd0c925c6af47a079ca9e8dd0",
+      "currentSha256": "18cf9841e8822ae8fe4b16fb9df6e865941a2e6dd0c925c6af47a079ca9e8dd0",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/application/security/BearerTokens.java",
+      "pFinalSha256": "aad4ba13e89c49426137696b19fab8787b964cbdec1448d6066a858c402b5712",
+      "currentSha256": "aad4ba13e89c49426137696b19fab8787b964cbdec1448d6066a858c402b5712",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/application/security/PatientPolicy.java",
+      "pFinalSha256": "8ede644fe54c7660d676f203e173267ddbbac00784c2daa723427004c1dd82a5",
+      "currentSha256": "8ede644fe54c7660d676f203e173267ddbbac00784c2daa723427004c1dd82a5",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/application/security/TrustedCaller.java",
+      "pFinalSha256": "7c4ba7c242e88702291706d1e7252c8b1a5c80bbd08b5f9daa40864e884c9400",
+      "currentSha256": "7c4ba7c242e88702291706d1e7252c8b1a5c80bbd08b5f9daa40864e884c9400",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/application/usecase/PatientApplicationService.java",
+      "pFinalSha256": "d33af9e8c06717e133f769f54769e345d4525d5a2a8e81bc22874edb753b4bf0",
+      "currentSha256": "d33af9e8c06717e133f769f54769e345d4525d5a2a8e81bc22874edb753b4bf0",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/application/usecase/PatientWriter.java",
+      "pFinalSha256": "72b060dab91ec38618fdeb9333acd4417ee62bf19e72356279156359c842a93d",
+      "currentSha256": "72b060dab91ec38618fdeb9333acd4417ee62bf19e72356279156359c842a93d",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/config/PatientConfiguration.java",
+      "pFinalSha256": "9ffeb80d076c3c670a8595bafd2d37d28c9fc29efd1ea374df031d9395657055",
+      "currentSha256": "9ffeb80d076c3c670a8595bafd2d37d28c9fc29efd1ea374df031d9395657055",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/config/PatientIdentityConfiguration.java",
+      "pFinalSha256": "11bcfce0efeaa5526a861a97e9b6763abebd62ad04f9756cb6768e3762d25d08",
+      "currentSha256": "11bcfce0efeaa5526a861a97e9b6763abebd62ad04f9756cb6768e3762d25d08",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/config/PatientReferenceConfiguration.java",
+      "pFinalSha256": "552be5005b24756b6c41f8d2512fb969fd0f70575c6ace17944e97824f308c91",
+      "currentSha256": "552be5005b24756b6c41f8d2512fb969fd0f70575c6ace17944e97824f308c91",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/config/PatientScopeConfiguration.java",
+      "pFinalSha256": "9d33dc9abf5f3689a36821eb18c55d45acafa2a01d0c0aaaebd8a042499ba3a8",
+      "currentSha256": "9d33dc9abf5f3689a36821eb18c55d45acafa2a01d0c0aaaebd8a042499ba3a8",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/config/PatientWebConfiguration.java",
+      "pFinalSha256": "338f6900b219762f3eacad98df33a8caf7bf277e0a01b7ad116cb4398960ada7",
+      "currentSha256": "338f6900b219762f3eacad98df33a8caf7bf277e0a01b7ad116cb4398960ada7",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/domain/aggregate/MedicalRecord.java",
+      "pFinalSha256": "4acf3550ecf42f07486cad4c402ecf9604a1cdd9a9522d10273f2790179a3313",
+      "currentSha256": "4acf3550ecf42f07486cad4c402ecf9604a1cdd9a9522d10273f2790179a3313",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/domain/aggregate/Patient.java",
+      "pFinalSha256": "4859c9cf5086126f67eaaf6f7ed97685df7fef0ff854da914b34f6ab5880fef8",
+      "currentSha256": "4859c9cf5086126f67eaaf6f7ed97685df7fef0ff854da914b34f6ab5880fef8",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/domain/model/ClinicalData.java",
+      "pFinalSha256": "63956389b70c3820585a9f1c2287a497cc42e74987d54af3b667094988699c84",
+      "currentSha256": "63956389b70c3820585a9f1c2287a497cc42e74987d54af3b667094988699c84",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/domain/model/PageResult.java",
+      "pFinalSha256": "f4ffdbc29341bf84829947d7953bff94624b5d10e34e01e02602d1dd65444578",
+      "currentSha256": "f4ffdbc29341bf84829947d7953bff94624b5d10e34e01e02602d1dd65444578",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/domain/model/PatientError.java",
+      "pFinalSha256": "1612ae95883fbbf0002849b104d606835ee8cc40e528a9585397c7cc752c931d",
+      "currentSha256": "1612ae95883fbbf0002849b104d606835ee8cc40e528a9585397c7cc752c931d",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/domain/model/ProfileData.java",
+      "pFinalSha256": "b8eefdb69ee073ee72e70c80a712254bcf48d5541fbf5e0ce97975f7d5942a40",
+      "currentSha256": "b8eefdb69ee073ee72e70c80a712254bcf48d5541fbf5e0ce97975f7d5942a40",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/domain/model/SearchQuery.java",
+      "pFinalSha256": "2adbbcaeb239bc82589120b1b2d4c9179ee8a609d0ca8fe748c47415e77a99e5",
+      "currentSha256": "2adbbcaeb239bc82589120b1b2d4c9179ee8a609d0ca8fe748c47415e77a99e5",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/identity/IdentitySettings.java",
+      "pFinalSha256": "1794269d201ead9dc2b2231779fc55a8b291e169a55f2737fa4fd7246b99f2ff",
+      "currentSha256": "1794269d201ead9dc2b2231779fc55a8b291e169a55f2737fa4fd7246b99f2ff",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/identity/IntrospectionDecoder.java",
+      "pFinalSha256": "00c14b8acf51587b65836946b008ab67ae9751eeff3e66b99321cb7ca83f32fb",
+      "currentSha256": "00c14b8acf51587b65836946b008ab67ae9751eeff3e66b99321cb7ca83f32fb",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/identity/IntrospectionIdentityVerifier.java",
+      "pFinalSha256": "4f538855df3c20a1d629690dafe7d2e11f8c13220f44f8dbbed5089d021a80cb",
+      "currentSha256": "4f538855df3c20a1d629690dafe7d2e11f8c13220f44f8dbbed5089d021a80cb",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/JpaPatientRepositoryAdapter.java",
+      "pFinalSha256": "26942d7c51b279510116a83b5f9119a3a1055e2dd8b915adcd58f342019cdadc",
+      "currentSha256": "26942d7c51b279510116a83b5f9119a3a1055e2dd8b915adcd58f342019cdadc",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/JpaRevisionAdapter.java",
+      "pFinalSha256": "6f118cf23240ce1e60927e0a06c8259e9c30efa9039e77bd3dd7e067403ca95c",
+      "currentSha256": "6f118cf23240ce1e60927e0a06c8259e9c30efa9039e77bd3dd7e067403ca95c",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/reference/AppointmentReferenceDecoder.java",
+      "pFinalSha256": "5f764a3a453343e7e29542e92f79b78172479781b37d0d12d3b8b817e1671266",
+      "currentSha256": "5f764a3a453343e7e29542e92f79b78172479781b37d0d12d3b8b817e1671266",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/reference/DoctorReferenceDecoder.java",
+      "pFinalSha256": "cd09715b4638e4a7c6ce2e566722cf5a28a169eca6d39d70a6a0fcbe1c0866fe",
+      "currentSha256": "cd09715b4638e4a7c6ce2e566722cf5a28a169eca6d39d70a6a0fcbe1c0866fe",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/reference/ReferenceHttpClient.java",
+      "pFinalSha256": "f4cc335ce4cc263e56ee1a95aff495de7c24be89ecd9f1c7a3240cf0ec4cf1e3",
+      "currentSha256": "f4cc335ce4cc263e56ee1a95aff495de7c24be89ecd9f1c7a3240cf0ec4cf1e3",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/reference/ReferenceJson.java",
+      "pFinalSha256": "497e5cf1d668bcf50376c6385671d2f45dc58f44bf59efa8fcbd9347a2e5a03f",
+      "currentSha256": "497e5cf1d668bcf50376c6385671d2f45dc58f44bf59efa8fcbd9347a2e5a03f",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/reference/ReferenceSettings.java",
+      "pFinalSha256": "e18be0413a7f81ed35bd135887c603f1ae4d5ed330504dd766cb5890b9459f5f",
+      "currentSha256": "e18be0413a7f81ed35bd135887c603f1ae4d5ed330504dd766cb5890b9459f5f",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/reference/RemoteAppointmentClientAdapter.java",
+      "pFinalSha256": "5a23194be3cc1dee0b1f5dbc7c93c04edf8c6ba527e883a0cc2621e180902652",
+      "currentSha256": "5a23194be3cc1dee0b1f5dbc7c93c04edf8c6ba527e883a0cc2621e180902652",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/reference/RemoteDoctorClientAdapter.java",
+      "pFinalSha256": "e79913ed1b330f2bc0e32af8c239735d441704d84057843afa0e53808d32024d",
+      "currentSha256": "e79913ed1b330f2bc0e32af8c239735d441704d84057843afa0e53808d32024d",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/scope/RemoteWorkScopeAdapter.java",
+      "pFinalSha256": "82f58d290210a7c76f54bbf4f66bfd45548aae97acb27a70a437d2ade0de73b0",
+      "currentSha256": "82f58d290210a7c76f54bbf4f66bfd45548aae97acb27a70a437d2ade0de73b0",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/scope/ScopeAuthorityClient.java",
+      "pFinalSha256": "3ef3e9f71cb4581f767048769118eda2220eb156f1e56a3ec4d9370f5082ff8a",
+      "currentSha256": "3ef3e9f71cb4581f767048769118eda2220eb156f1e56a3ec4d9370f5082ff8a",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/scope/ScopeDecisionDecoder.java",
+      "pFinalSha256": "9d514f8cd4202c867a86159a7d992162038435142a093be1d77aad41d8bed321",
+      "currentSha256": "9d514f8cd4202c867a86159a7d992162038435142a093be1d77aad41d8bed321",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/scope/ScopeQuery.java",
+      "pFinalSha256": "058879a171c0ee578856883c57d42072b24ecd0f671e8d092d29dfaebbee5132",
+      "currentSha256": "058879a171c0ee578856883c57d42072b24ecd0f671e8d092d29dfaebbee5132",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/scope/ScopeSettings.java",
+      "pFinalSha256": "afff6af36874050d633bce0087c6756d6ad6bd804be449c91b1ca5538c02c8ff",
+      "currentSha256": "afff6af36874050d633bce0087c6756d6ad6bd804be449c91b1ca5538c02c8ff",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/entity/JpaMedicalRecordEntity.java",
+      "pFinalSha256": "d965f05b281e08d4ff7b516bb3ecca8710b3937e097695a48aaa85fa50fde365",
+      "currentSha256": "d965f05b281e08d4ff7b516bb3ecca8710b3937e097695a48aaa85fa50fde365",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/entity/JpaMedicalRevisionEntity.java",
+      "pFinalSha256": "ffe008e698be571255d2b1ef7561454c513094d684b8ebe707247fe2e9f5a432",
+      "currentSha256": "ffe008e698be571255d2b1ef7561454c513094d684b8ebe707247fe2e9f5a432",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/entity/JpaPatientEntity.java",
+      "pFinalSha256": "43bc1e105962cb91a3ddf071e4bd99eefeac0854e5171ee7b794b04b31637770",
+      "currentSha256": "43bc1e105962cb91a3ddf071e4bd99eefeac0854e5171ee7b794b04b31637770",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/entity/JpaPatientRevisionEntity.java",
+      "pFinalSha256": "862f09374670bc466528be4b498c9dafc52679bf30b518a3b6ebb44113f21137",
+      "currentSha256": "862f09374670bc466528be4b498c9dafc52679bf30b518a3b6ebb44113f21137",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/PatientServiceApplication.java",
+      "pFinalSha256": "ab6252e15f71b3863853971581f86e765339db1eebc4615174af28d4f917079e",
+      "currentSha256": "ab6252e15f71b3863853971581f86e765339db1eebc4615174af28d4f917079e",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/resources/application-appointment-reference.yml",
+      "pFinalSha256": "00bfd4e1447733aec7ea11da33a0c3967e5872424ee62bb7701a06207878bfd8",
+      "currentSha256": "00bfd4e1447733aec7ea11da33a0c3967e5872424ee62bb7701a06207878bfd8",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/resources/application-doctor-reference.yml",
+      "pFinalSha256": "51600beca17ae98c22ef5d7e3cd29b58c60a0a9a6a6ef23b3178fdb0e8157aeb",
+      "currentSha256": "51600beca17ae98c22ef5d7e3cd29b58c60a0a9a6a6ef23b3178fdb0e8157aeb",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/resources/application-identity-introspection.yml",
+      "pFinalSha256": "961ba7971af57f7af3393bc9650034e16cbe55cdafa1cbbb0ac4d5260a2e5d79",
+      "currentSha256": "961ba7971af57f7af3393bc9650034e16cbe55cdafa1cbbb0ac4d5260a2e5d79",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/resources/application-scope-authority.yml",
+      "pFinalSha256": "9a9107b3a07412aa8ebafe7fd30eda00487f4cab8639b5777385cbf86d4a03d2",
+      "currentSha256": "9a9107b3a07412aa8ebafe7fd30eda00487f4cab8639b5777385cbf86d4a03d2",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/resources/application.yml",
+      "pFinalSha256": "f86c195e69da58c3cee4b1f551e2a838b5e42299c53dc98d4e6608ed16b277b1",
+      "currentSha256": "f86c195e69da58c3cee4b1f551e2a838b5e42299c53dc98d4e6608ed16b277b1",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/resources/db/schema/V001__patient_v2_empty.sql",
+      "pFinalSha256": "1500fb0c94d9a504237889201ce900185c771bc80403d484a1d9d47384536ef6",
+      "currentSha256": "1500fb0c94d9a504237889201ce900185c771bc80403d484a1d9d47384536ef6",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/config/PatientAuthenticationTest.java",
+      "pFinalSha256": "c11c8358c6f1b0a6f674486a27954d4306d28a5d85ec18d112d56cd2e5fea9d5",
+      "currentSha256": "c11c8358c6f1b0a6f674486a27954d4306d28a5d85ec18d112d56cd2e5fea9d5",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/contract/ContractSchemas.java",
+      "pFinalSha256": "98d5fc58ee8381a64e5336e2a4ef8c7c79b7fee45d3fb1b8977e5c9eb6a6525a",
+      "currentSha256": "98d5fc58ee8381a64e5336e2a4ef8c7c79b7fee45d3fb1b8977e5c9eb6a6525a",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/contract/PatientProviderContractTest.java",
+      "pFinalSha256": "7ca54263921f3b82290c242403271ff4ede41fc30d41694052de1cff9f1ecd42",
+      "currentSha256": "7ca54263921f3b82290c242403271ff4ede41fc30d41694052de1cff9f1ecd42",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/contract/ProviderContractPlan.java",
+      "pFinalSha256": "41da207020aebf6a5e718e5c5bb96974de98608a4cd22874f23799c255076983",
+      "currentSha256": "41da207020aebf6a5e718e5c5bb96974de98608a4cd22874f23799c255076983",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/contract/ProviderContractPreflightTest.java",
+      "pFinalSha256": "31654cc744170308a237ba68dff3b77a879e9b99ff0900262a5bea5149e23acc",
+      "currentSha256": "31654cc744170308a237ba68dff3b77a879e9b99ff0900262a5bea5149e23acc",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/contract/ProviderProbe.java",
+      "pFinalSha256": "2de2ae1c1a30ec5752b025bc6fc347e1d70b35bf8e2949fa050e1b563dbe8ab7",
+      "currentSha256": "2de2ae1c1a30ec5752b025bc6fc347e1d70b35bf8e2949fa050e1b563dbe8ab7",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/contract/RealProviderContractCheck.java",
+      "pFinalSha256": "e3fa1604864e7c2de78ab1dd2c8bc55a06e09d6cb6f8573f5df6e4da3256c0be",
+      "currentSha256": "e3fa1604864e7c2de78ab1dd2c8bc55a06e09d6cb6f8573f5df6e4da3256c0be",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/identity/IdentityConfigurationTest.java",
+      "pFinalSha256": "accb845c79aca7fe32985213799618a2c2bf78223d1701dcb9895cbf7c4889fb",
+      "currentSha256": "accb845c79aca7fe32985213799618a2c2bf78223d1701dcb9895cbf7c4889fb",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/identity/IdentityFixtures.java",
+      "pFinalSha256": "3fe13319c8eee9aed55fcb7e66b5caed21df370a11fc879f4725a92728a54208",
+      "currentSha256": "3fe13319c8eee9aed55fcb7e66b5caed21df370a11fc879f4725a92728a54208",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/identity/IntrospectionDecoderTest.java",
+      "pFinalSha256": "c2e8699e1b5305e19ade177ccea72da1b87a9820eb110a26ab07fd057f40d99d",
+      "currentSha256": "c2e8699e1b5305e19ade177ccea72da1b87a9820eb110a26ab07fd057f40d99d",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/identity/IntrospectionTransportTest.java",
+      "pFinalSha256": "a61b012f3fd6759c7cdbc4488e038a251127bc017fbf5957659817eac6ae4d34",
+      "currentSha256": "a61b012f3fd6759c7cdbc4488e038a251127bc017fbf5957659817eac6ae4d34",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/identity/PatientIdentityTcpIT.java",
+      "pFinalSha256": "57c275a670e385ffffc09fe8d25d928e0283a9cbd54ce5d146b028a63d008df6",
+      "currentSha256": "57c275a670e385ffffc09fe8d25d928e0283a9cbd54ce5d146b028a63d008df6",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/identity/RealAuthIdentityContractCheck.java",
+      "pFinalSha256": "627f90ced3b9dd796608da2b11ad2a7d05d2d6a5a24c2df60d8feda5864ba886",
+      "currentSha256": "627f90ced3b9dd796608da2b11ad2a7d05d2d6a5a24c2df60d8feda5864ba886",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/identity/TestAuthServer.java",
+      "pFinalSha256": "502ec7484210bbc86373c6a41f9fe3a94439fb9c176784a270a2b216e2caae61",
+      "currentSha256": "502ec7484210bbc86373c6a41f9fe3a94439fb9c176784a270a2b216e2caae61",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/PatientInputTest.java",
+      "pFinalSha256": "edc0f0f896a7caac15450d2bde6259d68f2c728996b1dc70aa3581e6b0a619f2",
+      "currentSha256": "edc0f0f896a7caac15450d2bde6259d68f2c728996b1dc70aa3581e6b0a619f2",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/PatientOrchestrationTest.java",
+      "pFinalSha256": "e740c7edd797c1cee4c695c973f368e038c2a68828e665ac8da4566642d8aead",
+      "currentSha256": "e740c7edd797c1cee4c695c973f368e038c2a68828e665ac8da4566642d8aead",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/PatientPolicyTest.java",
+      "pFinalSha256": "6bc6331004da7a034b6c18234459a1bf6f99c0487acb29d4735540ad1eb315f9",
+      "currentSha256": "6bc6331004da7a034b6c18234459a1bf6f99c0487acb29d4735540ad1eb315f9",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/PatientServiceIT.java",
+      "pFinalSha256": "12efc9fa51cb1fc9d6426b20bd5b895e0f453e8007214c7a2c59924b1dd1423f",
+      "currentSha256": "12efc9fa51cb1fc9d6426b20bd5b895e0f453e8007214c7a2c59924b1dd1423f",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/reference/AppointmentReferenceDecoderTest.java",
+      "pFinalSha256": "d6574c55616fb069e3255bb4097dc6d8a3f5eb45d18b4cd69c2e6f7008cd37bf",
+      "currentSha256": "d6574c55616fb069e3255bb4097dc6d8a3f5eb45d18b4cd69c2e6f7008cd37bf",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/reference/AppointmentReferenceTransportTest.java",
+      "pFinalSha256": "105c940b2a357680edb80a0d86e005a3ceacab94cdfc1e0597b5c578ca89528b",
+      "currentSha256": "105c940b2a357680edb80a0d86e005a3ceacab94cdfc1e0597b5c578ca89528b",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/reference/DoctorReferenceDecoderTest.java",
+      "pFinalSha256": "d6179d9fe1b1ac99fe20cfe68f80c59e912d6082b5280f134eaf85e03bf07d8f",
+      "currentSha256": "d6179d9fe1b1ac99fe20cfe68f80c59e912d6082b5280f134eaf85e03bf07d8f",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/reference/DoctorReferenceTransportTest.java",
+      "pFinalSha256": "216db3ab091749e13beb2d319a08ee46ebf1dda336eb4c8518572afa564f5815",
+      "currentSha256": "216db3ab091749e13beb2d319a08ee46ebf1dda336eb4c8518572afa564f5815",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/reference/PatientReferenceTcpIT.java",
+      "pFinalSha256": "bf9cada6c0bbdb9f4712f466932e7dae9396236aba2a3fca1b03b3218c046006",
+      "currentSha256": "bf9cada6c0bbdb9f4712f466932e7dae9396236aba2a3fca1b03b3218c046006",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/reference/ReferenceConfigurationTest.java",
+      "pFinalSha256": "974d571f9037571b3bfc97963a0e251b0131594f42d3051fcc1b953b5d154a3c",
+      "currentSha256": "974d571f9037571b3bfc97963a0e251b0131594f42d3051fcc1b953b5d154a3c",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/reference/ReferenceFixtures.java",
+      "pFinalSha256": "c6f30a09982feeef03322b6532db344af4b9fdd4fb4716f72409614d8c764dc7",
+      "currentSha256": "c6f30a09982feeef03322b6532db344af4b9fdd4fb4716f72409614d8c764dc7",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/reference/TestReferenceServer.java",
+      "pFinalSha256": "5a272196bf2bf9c9b8ea42daa420f97c37963685d1b78f9556c17de47bd6faf7",
+      "currentSha256": "5a272196bf2bf9c9b8ea42daa420f97c37963685d1b78f9556c17de47bd6faf7",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/scope/PatientScopeTcpIT.java",
+      "pFinalSha256": "bc1105e06837f17af754ed9b46eb42fc069629066cbc3c72a1ef8983f6425821",
+      "currentSha256": "bc1105e06837f17af754ed9b46eb42fc069629066cbc3c72a1ef8983f6425821",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/scope/ScopeAdapterTest.java",
+      "pFinalSha256": "b14a0a658a23950bc3e55c24766e8cbc633764bb524e21abf143d98e63e74184",
+      "currentSha256": "b14a0a658a23950bc3e55c24766e8cbc633764bb524e21abf143d98e63e74184",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/scope/ScopeConfigurationTest.java",
+      "pFinalSha256": "5ed50048ffab6e5dbc535457989885ba3dbea8763904fbb39eed151a021eba7e",
+      "currentSha256": "5ed50048ffab6e5dbc535457989885ba3dbea8763904fbb39eed151a021eba7e",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/scope/ScopeDecisionDecoderTest.java",
+      "pFinalSha256": "64fbe92f5e178746e0f53d41c6cff49f0b4a1d0a79f6ae0ddcdcb4eda96a03fc",
+      "currentSha256": "64fbe92f5e178746e0f53d41c6cff49f0b4a1d0a79f6ae0ddcdcb4eda96a03fc",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/scope/ScopeFixtures.java",
+      "pFinalSha256": "66e21128ee654a3130b8970974805b8769a1ed25cb4bd74d0d589cf184af64f0",
+      "currentSha256": "66e21128ee654a3130b8970974805b8769a1ed25cb4bd74d0d589cf184af64f0",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/scope/ScopePolicyTest.java",
+      "pFinalSha256": "63daa09b1c46c7c049d3105bec9f15c2020771ef65f3238e8045ca5244f60257",
+      "currentSha256": "63daa09b1c46c7c049d3105bec9f15c2020771ef65f3238e8045ca5244f60257",
+      "matches": true
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/scope/TestScopeServer.java",
+      "pFinalSha256": "1434ca9f45e51de1d8c7b6d2ea2bebd50f0d92adafa2aba991530b61a728d185",
+      "currentSha256": "1434ca9f45e51de1d8c7b6d2ea2bebd50f0d92adafa2aba991530b61a728d185",
+      "matches": true
+    }
+  ],
+  "testSourceAggregate": "e8b3b9ea40f20f510433e82a3ab3ec8eeaea15f352ce456a34af4991e3ed667e",
+  "acceptedPatientTests": {
+    "tests": 257,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "acceptedFullReactorTests": {
+    "tests": 534,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "acceptedB05": {
+    "binarySha256": "37efbd03caf9aa08c43b45568d977adfd75be7588483bdad56a06f49dc97c38b",
+    "processStopped": true,
+    "noUnexpectedDatabaseMutation": true,
+    "observedDbRole": "appointment_reference_app",
+    "patientRealHarness": "BUILD SUCCESS;8real vectors PASS,7mandatory+persisted PENDING5xx"
+  },
+  "remoteB05": "NOT VERIFIED; Appointment owner action required",
+  "patientProductionChanges": [],
+  "realAuthScope": "PENDING",
+  "directPatientNotificationContract": "NONE"
+}

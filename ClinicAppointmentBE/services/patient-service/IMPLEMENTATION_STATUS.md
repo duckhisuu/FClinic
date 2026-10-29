@@ -1,5 +1,13 @@
 # Patient v2 — implementation và evidence
 
+## P-FINAL — 26/10/2026
+
+**PATIENT CORE IMPLEMENTATION COMPLETE / AUTH CONSUMER READY / WORKSCOPE CONSUMER READY; REAL AUTH & SCOPE PROVIDERS PENDING.** [Review15](docs/integration-readiness/15_P_FINAL_IMPLEMENTATION_REVIEW.md), [acceptance19](docs/integration-readiness/19_P_FINAL_ACCEPTANCE_REPORT.md), [new evidence](evidence/patient-p-final-verification.json). No production Java/resources/POM change;3TCP security tests added for all mutation routes on invalid Auth contract, inactive response after allowed no-op and timeout, asserting full4table content and no downstream calls. COMPONENT/TCP WITH AUTH DOUBLE; not signature/issuance/live revoke proof.
+
+Actual Patient verify SUCCESS09:02:07+07:00,257=180Surefire+77Failsafe,F/E/S0. Full9-module reactor SUCCESS09:07:01+07:00: Patient257,Doctor59,Appointment138,Notification70=524,F/E/S0. Existing actual Doctor/Appointment provider ITs also reran Patient production reference harness: B-04 six real vectors, B-05 eight real vectors PASS; isolated HTTPS/SELECT-only freshPG/no-write/process cleanup checked. No whole Patient trust-chain claim.
+
+Auth technology belongs to teammate; [handoff16](docs/integration-readiness/16_P_FINAL_AUTH_CONSUMER_HANDOFF.md) freezes wire/identity requirements without choosing their issuer implementation. [Separate scope handoff17](docs/integration-readiness/17_P_FINAL_WORKSCOPE_HANDOFF.md), [configuration-first integration runbook18](docs/integration-readiness/18_P_FINAL_REAL_INTEGRATION_RUNBOOK.md). Real Auth/scope/B-02/Gateway/Frontend pending; D-21/F-05 exclusions remain explicit; M6 NOT EXECUTED; WHOLE FCLINIC NOT RELEASE READY. No commit/push in P-FINAL; original main/HEAD/index preserved. Prior sections and evidence are historical snapshots, not overwritten.
+
 ## M5-D2 Appointment UUID / protected B-05 — 24/10/2026
 
 [New implementation/verification report](docs/integration-readiness/14_M5_D2_APPOINTMENT_PROVIDER_VERIFICATION.md); [new machine evidence](evidence/m5-d2-appointment-provider-verification.json). Appointment target now uses UUID through domain/entity/API/event, fresh validate-only PostgreSQL schema, no seed/v1 writer; protected minimum reference with dedicated Basic/TLS/effective SELECT-only role. **B-05 CODE COMPLETE / COMPONENT VERIFIED / REAL APPOINTMENT PROVIDER VERIFIED / CONTRACT VERIFIED** in the isolated selected profile:7mandatory +1actual persisted-PENDING technical vector, no mutation.
