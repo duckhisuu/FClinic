@@ -1,0 +1,36 @@
+{
+  "version": 2,
+  "boundary": "B-04",
+  "vectors": [
+    {
+      "case": "ACTIVE",
+      "resourceId": "550e8400-e29b-41d4-a716-0000000de2b1",
+      "patientId": null,
+      "doctorId": null
+    },
+    {
+      "case": "INACTIVE",
+      "resourceId": "550e8400-e29b-41d4-a716-0000000de2b2",
+      "patientId": null,
+      "doctorId": null
+    },
+    {
+      "case": "MISSING",
+      "resourceId": "550e8400-e29b-41d4-a716-0000000de2b3",
+      "patientId": null,
+      "doctorId": null
+    },
+    {
+      "case": "INVALID_CREDENTIAL",
+      "resourceId": "550e8400-e29b-41d4-a716-0000000de2b1",
+      "patientId": null,
+      "doctorId": null
+    },
+    {
+      "case": "WRONG_VERSION_REQUEST",
+      "resourceId": "550e8400-e29b-41d4-a716-0000000de2b1",
+      "patientId": null,
+      "doctorId": null
+    }
+  ]
+}

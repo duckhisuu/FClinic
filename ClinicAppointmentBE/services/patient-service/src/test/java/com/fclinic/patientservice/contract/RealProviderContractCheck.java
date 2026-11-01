@@ -102,7 +102,7 @@ class RealProviderContractCheck {
             }
             if(v.scenario()==Case.WRONG_RESOURCE) {
                 ContractSchemas.reference(response.bytes(),p.doctor);
-                check(ProviderContractPlan.safeId(ProviderContractPlan.JSON.readTree(response.bytes()).at("/data/id"))!=v.resourceId());
+                check(!ProviderContractPlan.safeId(ProviderContractPlan.JSON.readTree(response.bytes()).at("/data/id")).equals(v.resourceId()));
             }
             if(v.scenario()==Case.INVALID_PAYLOAD) {
                 boolean rejected=false;

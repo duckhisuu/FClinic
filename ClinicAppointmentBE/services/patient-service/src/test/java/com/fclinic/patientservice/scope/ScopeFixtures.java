@@ -1,4 +1,5 @@
 package com.fclinic.patientservice.scope;
+import static com.fclinic.patientservice.UuidFixtures.*;
 
 import com.fclinic.patientservice.application.security.TrustedCaller;
 import com.fclinic.patientservice.infrastructure.adapter.scope.*;
@@ -14,13 +15,13 @@ public final class ScopeFixtures {
     public static final TrustedCaller STAFF=new TrustedCaller("opaque-staff-fixture",TrustedCaller.PrincipalType.USER,
             Set.of("ROLE_STAFF"),null,null,null,true);
     public static final TrustedCaller DOCTOR=new TrustedCaller("opaque-doctor-fixture",TrustedCaller.PrincipalType.USER,
-            Set.of("ROLE_DOCTOR"),null,12L,null,true);
+            Set.of("ROLE_DOCTOR"),null,fixture(12),null,true);
     public static ScopeQuery query(ScopeQuery.Operation operation) {
         boolean admin=operation.name().startsWith("ADMIN") || operation==ScopeQuery.Operation.APPOINTMENT_PROFILE_READ;
         boolean collection=operation.name().startsWith("ADMIN_ASSIGNMENT") || operation.name().endsWith("SEARCH");
         return ScopeQuery.create(admin?ScopeQuery.Authority.ADMINISTRATIVE:ScopeQuery.Authority.CLINICAL,
                 operation,admin?STAFF:DOCTOR,collection?null:PATIENT,
-                operation==ScopeQuery.Operation.VALID_VISIT?102L:null,
+                operation==ScopeQuery.Operation.VALID_VISIT?fixture(102):null,
                 operation==ScopeQuery.Operation.VALID_VISIT?CLOCK.instant().minusSeconds(60):null,CLOCK.instant());
     }
     public static Map<String,Object> grant(Map<String,Object> request,Collection<UUID> patients) {
@@ -30,10 +31,10 @@ public final class ScopeFixtures {
         boolean search=Set.of("ADMIN_SEARCH","DOCTOR_SEARCH").contains(request.get("operation"));
         result.put("patientIds",search?patients.stream().map(UUID::toString).toList():null);
         Map<String,Object> evidence=new LinkedHashMap<>();
-        evidence.put("assignmentId","opaque-assignment-fixture"); evidence.put("active",true);
+        evidence.put("assignmentId",fixture(501).toString()); evidence.put("active",true);
         evidence.put("validFrom",CLOCK.instant().minusSeconds(3600).toString());
         evidence.put("validUntil",CLOCK.instant().plusSeconds(300).toString());
-        evidence.put("visitId","VALID_VISIT".equals(request.get("operation"))?"opaque-encounter-fixture":null);
+        evidence.put("visitId","VALID_VISIT".equals(request.get("operation"))?fixture(502).toString():null);
         result.put("evidence",evidence); return result;
     }
     public static Map<String,Object> deny(Map<String,Object> request) {

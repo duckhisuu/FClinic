@@ -1,4 +1,5 @@
 package com.fclinic.patientservice.scope;
+import static com.fclinic.patientservice.UuidFixtures.*;
 
 import com.fclinic.patientservice.application.port.out.WorkScopePort;
 import com.fclinic.patientservice.application.security.*;
@@ -16,10 +17,10 @@ class ScopePolicyTest {
         when(scopes.clinical(DOCTOR,PATIENT,ClinicalAction.CREATE)).thenReturn(true);
         when(scopes.validVisit(DOCTOR,PATIENT,null,CLOCK.instant())).thenReturn(true);
         policy.prepareCreateMedical(DOCTOR,PATIENT);
-        policy.createMedical(DOCTOR,PATIENT,12,null,CLOCK.instant());
+        policy.createMedical(DOCTOR,PATIENT,fixture(12),null,CLOCK.instant());
         denied(() -> policy.readMedical(DOCTOR,PATIENT));
         denied(() -> policy.editMedical(DOCTOR,PATIENT));
-        denied(() -> policy.createMedical(DOCTOR,PATIENT,13,null,CLOCK.instant()));
+        denied(() -> policy.createMedical(DOCTOR,PATIENT,fixture(13),null,CLOCK.instant()));
     }
     @Test void administrativeActionDoesNotGrantOtherOperations() {
         when(scopes.receptionist(STAFF,AdministrativeAction.CREATE)).thenReturn(true);

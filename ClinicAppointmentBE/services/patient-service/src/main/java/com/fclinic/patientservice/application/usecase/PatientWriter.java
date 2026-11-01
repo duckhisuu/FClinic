@@ -40,7 +40,7 @@ public class PatientWriter {
         return saved;
     }
     @Transactional
-    public MedicalRecord createRecord(UUID patientId, long doctorId, Long appointmentId,
+    public MedicalRecord createRecord(UUID patientId, UUID doctorId, UUID appointmentId,
                                       ClinicalData data, String actor) {
         Patient parent = repository.lock(patientId).orElseThrow(() -> new PatientError(PATIENT_NOT_FOUND));
         if (parent.status() != ProfileData.Status.ACTIVE) throw new PatientError(PATIENT_INACTIVE);
@@ -50,14 +50,14 @@ public class PatientWriter {
         return saved;
     }
     @Transactional
-    public MedicalRecord replaceRecord(UUID patientId, long id, long version, ClinicalData data,
-                                       String reason, String actor, long doctorId) {
+    public MedicalRecord replaceRecord(UUID patientId, UUID id, long version, ClinicalData data,
+                                       String reason, String actor, UUID doctorId) {
         if (reason == null || reason.isBlank() || reason.length() > 1000) throw PatientError.invalid("changeReason");
         repository.find(patientId).orElseThrow(() -> new PatientError(PATIENT_NOT_FOUND));
         MedicalRecord before = repository.findRecord(patientId, id)
                 .orElseThrow(() -> new PatientError(MEDICAL_RECORD_NOT_FOUND));
         // Both immutable author subject and doctor identity must match.
-        if (!before.createdBy().equals(actor) || before.doctorId() != doctorId) throw new PatientError(FORBIDDEN);
+        if (!before.createdBy().equals(actor) || !before.doctorId().equals(doctorId)) throw new PatientError(FORBIDDEN);
         PatientError.checkVersion(version, before.version());
         if (before.clinical().equals(data)) {
             repository.checkAtCommit(before);

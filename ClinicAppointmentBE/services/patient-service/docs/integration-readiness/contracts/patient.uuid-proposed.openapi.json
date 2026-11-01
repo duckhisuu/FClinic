@@ -1,0 +1,2175 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "PROPOSED Patient UUID API \u2014 group approval pending",
+    "version": "3.0.0-proposed",
+    "description": "APPROVED TARGET DESIGN n\u1ed9i b\u1ed9 Patient Service ng\u00e0y 2026-10-09; NOT IMPLEMENTED. Patient PK UUID string; phone nonunique/create-only. Self-booking ch\u1ec9 ch\u00ednh PATIENT; RECEPTIONIST h\u1ed7 tr\u1ee3; DOCTOR theo work scope. MedicalRecord/walk-in/t\u1ed1i \u0111a m\u1ed9t summary m\u1ed7i linked appointment. Maintenance backup/drain/migration/backfill/constraints/compatibility/smoke tr\u01b0\u1edbc m\u1edf ghi. Internal auth v\u00e0 Appointment UUID/original caller authorization c\u1ea7n CROSS-SERVICE AGREEMENT REQUIRED, kh\u00f4ng kh\u1eb3ng \u0111\u1ecbnh provider/JWT claims/mapping ho\u1eb7c consumer \u0111\u00e3 tri\u1ec3n khai. POST ch\u01b0a idempotent; no blind retry."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080",
+      "description": "Gateway: route hi\u1ec7n t\u1ea1i ch\u1ec9 v1"
+    },
+    {
+      "url": "http://localhost:8081",
+      "description": "Patient direct: quy\u1ec1n c\u1ea7n \u00e1p d\u1ee5ng t\u1ea1i service"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Patients"
+    },
+    {
+      "name": "MedicalRecords"
+    }
+  ],
+  "paths": {
+    "/api/v3/patients": {
+      "get": {
+        "tags": [
+          "Patients"
+        ],
+        "operationId": "listPatientsV2",
+        "summary": "T\u00ecm v\u00e0 ph\u00e2n trang",
+        "description": "RECEPTIONIST ho\u1eb7c DOCTOR trong ph\u1ea1m vi c\u00f4ng vi\u1ec7c \u0111\u01b0\u1ee3c c\u1ea5p \u0111\u1ed1i v\u1edbi Patient; PATIENT/SERVICE kh\u00f4ng \u0111\u01b0\u1ee3c search",
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 255
+            },
+            "description": "fullName/patientCode, blank b\u1ecf qua"
+          },
+          {
+            "name": "phoneNumber",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 40,
+              "pattern": "^[+0-9 ()-]+$",
+              "description": "Trim/b\u1ecf spaces-hyphens-parentheses; VN10digit \u0111\u1ea7u0 -> +84 b\u1ecf0, ho\u1eb7c E164. Chu\u1ea9n h\u00f3a r\u1ed3i validate ^\\+[1-9][0-9]{7,14}$. Kh\u00f4ng t\u1ef1 x\u00e1c minh s\u1edf h\u1eefu. Shared phone \u0111\u01b0\u1ee3c ph\u00e9p."
+            },
+            "description": "Exact normalized phone, present blank400"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            },
+            "description": "Zero based"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10
+            },
+            "description": "Max100"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "fullName,asc",
+                "fullName,desc",
+                "createdAt,asc",
+                "createdAt,desc"
+              ],
+              "default": "fullName,asc"
+            },
+            "description": "id tie c\u00f9ng chi\u1ec1u"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Th\u00e0nh c\u00f4ng m\u1ee5c ti\u00eau ch\u01b0a ch\u1ea1y",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PatientPageResponse"
+                },
+                "example": {
+                  "status": 200,
+                  "message": "Th\u00e0nh c\u00f4ng",
+                  "data": {
+                    "content": [
+                      {
+                        "id": "74fba630-5953-44b8-86d6-bc236ac1213b",
+                        "fullName": "Demo Patient",
+                        "phoneNumber": "+84900000001",
+                        "email": "patient@example.test",
+                        "dateOfBirth": "1995-05-15",
+                        "gender": "UNKNOWN",
+                        "address": "\u0110\u1ecba ch\u1ec9 m\u00f4 ph\u1ecfng",
+                        "createdAt": "2026-10-01T02:00:00Z",
+                        "updatedAt": "2026-10-01T02:00:00Z",
+                        "patientCode": "PAT-74fba630-5953-44b8-86d6-bc236ac1213b",
+                        "status": "ACTIVE",
+                        "version": 0,
+                        "createdBy": "demo-receptionist",
+                        "updatedBy": "demo-receptionist"
+                      }
+                    ],
+                    "page": 0,
+                    "size": 10,
+                    "totalElements": 1,
+                    "totalPages": 1
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "VALIDATION_ERROR",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "status": 400,
+                  "message": "Th\u00f4ng b\u00e1o l\u1ed7i m\u00f4 ph\u1ecfng",
+                  "data": null,
+                  "code": "VALIDATION_ERROR",
+                  "fieldErrors": [
+                    {
+                      "field": "fullName",
+                      "message": "Kh\u00f4ng h\u1ee3p l\u1ec7"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "status": 401,
+                  "message": "Th\u00f4ng b\u00e1o l\u1ed7i m\u00f4 ph\u1ecfng",
+                  "data": null,
+                  "code": "UNAUTHENTICATED",
+                  "fieldErrors": []
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "status": 403,
+                  "message": "Th\u00f4ng b\u00e1o l\u1ed7i m\u00f4 ph\u1ecfng",
+                  "data": null,
+                  "code": "FORBIDDEN",
+                  "fieldErrors": []
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "INTERNAL_SERVER_ERROR",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "status": 500,
+                  "message": "Th\u00f4ng b\u00e1o l\u1ed7i m\u00f4 ph\u1ecfng",
+                  "data": null,
+                  "code": "INTERNAL_SERVER_ERROR",
+                  "fieldErrors": []
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Patients"
+        ],
+        "operationId": "createPatientV2",
+        "summary": "T\u1ea1o m\u1edbi, kh\u00f4ng upsert",
+        "description": "RECEPTIONIST; code/id/status ACTIVE/version0/actors server sinh; shared phone \u0111\u01b0\u1ee3c ph\u00e9p sau cutover; POST kh\u00f4ng idempotent",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePatient"
+              },
+              "example": {
+                "fullName": "Demo Patient",
+                "phoneNumber": "0900000001",
+                "email": "patient@example.test",
+                "dateOfBirth": "1995-05-15",
+                "gender": "UNKNOWN",
+                "address": "\u0110\u1ecba ch\u1ec9 m\u00f4 ph\u1ecfng"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Th\u00e0nh c\u00f4ng m\u1ee5c ti\u00eau ch\u01b0a ch\u1ea1y",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PatientCreated"
+                },
+                "example": {
+                  "status": 201,
+                  "message": "Th\u00e0nh c\u00f4ng",
+                  "data": {
+                    "id": "74fba630-5953-44b8-86d6-bc236ac1213b",
+                    "fullName": "Demo Patient",
+                    "phoneNumber": "+84900000001",
+                    "email": "patient@example.test",
+                    "dateOfBirth": "1995-05-15",
+                    "gender": "UNKNOWN",
+                    "address": "\u0110\u1ecba ch\u1ec9 m\u00f4 ph\u1ecfng",
+                    "createdAt": "2026-10-01T02:00:00Z",
+                    "updatedAt": "2026-10-01T02:00:00Z",
+                    "patientCode": "PAT-74fba630-5953-44b8-86d6-bc236ac1213b",
+                    "status": "ACTIVE",
+                    "version": 0,
+                    "createdBy": "demo-receptionist",
+                    "updatedBy": "demo-receptionist"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "VALIDATION_ERROR",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "status": 400,
+                  "message": "Th\u00f4ng b\u00e1o l\u1ed7i m\u00f4 ph\u1ecfng",
+                  "data": null,
+                  "code": "VALIDATION_ERROR",
+                  "fieldErrors": [
+                    {
+                      "field": "fullName",
+                      "message": "Kh\u00f4ng h\u1ee3p l\u1ec7"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "status": 401,
+                  "message": "Th\u00f4ng b\u00e1o l\u1ed7i m\u00f4 ph\u1ecfng",
+                  "data": null,
+                  "code": "UNAUTHENTICATED",
+                  "fieldErrors": []
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "status": 403,
+                  "message": "Th\u00f4ng b\u00e1o l\u1ed7i m\u00f4 ph\u1ecfng",
+                  "data": null,
+                  "code": "FORBIDDEN",
+                  "fieldErrors": []
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "INTERNAL_SERVER_ERROR",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "status": 500,
+                  "message": "Th\u00f4ng b\u00e1o l\u1ed7i m\u00f4 ph\u1ecfng",
+                  "data": null,
+                  "code": "INTERNAL_SERVER_ERROR",
+                  "fieldErrors": []
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v3/patients/{id}": {
+      "get": {
+        "tags": [
+          "Patients"
+        ],
+        "operationId": "getPatientV2",
+        "summary": "Profile theo ID",
+        "description": "RECEPTIONIST/DOCTOR ph\u1ea1m vi c\u00f4ng vi\u1ec7c \u0111\u01b0\u1ee3c c\u1ea5p \u0111\u1ed1i v\u1edbi Patient; PATIENT self; SERVICE Appointment trusted. SERVICE d\u00f9ng full canonical DTO, minimized projection ch\u01b0a c\u00f3 Appointment ph\u1ea3i ki\u1ec3m quy\u1ec1n caller g\u1ed1c \u0111\u1ed1i v\u1edbi patientId tr\u01b0\u1edbc SERVICE lookup; machine credential kh\u00f4ng ch\u1ee9ng minh quy\u1ec1n ng\u01b0\u1eddi \u0111\u1eb7t l\u1ecbch.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "description": "Patient UUID; sai c\u00fa ph\u00e1p400, UUID h\u1ee3p l\u1ec7 nh\u01b0ng kh\u00f4ng t\u1ed3n t\u1ea1i404 khi caller \u0111\u01b0\u1ee3c lookup."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Th\u00e0nh c\u00f4ng m\u1ee5c ti\u00eau ch\u01b0a ch\u1ea1y",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PatientResponse"
+                },
+                "example": {
+                  "status": 200,
+                  "message": "Th\u00e0nh c\u00f4ng",
+                  "data": {
+                    "id": "74fba630-5953-44b8-86d6-bc236ac1213b",
+                    "fullName": "Demo Patient",
+                    "phoneNumber": "+84900000001",
+                    "email": "patient@example.test",
+                    "dateOfBirth": "1995-05-15",
+                    "gender": "UNKNOWN",
+                    "address": "\u0110\u1ecba ch\u1ec9 m\u00f4 ph\u1ecfng",
+                    "createdAt": "2026-10-01T02:00:00Z",
+                    "updatedAt": "2026-10-01T02:00:00Z",
+                    "patientCode": "PAT-74fba630-5953-44b8-86d6-bc236ac1213b",
+                    "status": "ACTIVE",
+                    "version": 0,
+                    "createdBy": "demo-receptionist",
+                    "updatedBy": "demo-receptionist"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "VALIDATION_ERROR",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "status": 400,
+                  "message": "Th\u00f4ng b\u00e1o l\u1ed7i m\u00f4 ph\u1ecfng",
+                  "data": null,
+                  "code": "VALIDATION_ERROR",
+                  "fieldErrors": [
+                    {
+                      "field": "fullName",
+                      "message": "Kh\u00f4ng h\u1ee3p l\u1ec7"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "status": 401,
+                  "message": "Th\u00f4ng b\u00e1o l\u1ed7i m\u00f4 ph\u1ecfng",
+                  "data": null,
+                  "code": "UNAUTHENTICATED",
+                  "fieldErrors": []
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "status": 403,
+                  "message": "Th\u00f4ng b\u00e1o l\u1ed7i m\u00f4 ph\u1ecfng",
+                  "data": null,
+                  "code": "FORBIDDEN",
+                  "fieldErrors": []
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "PATIENT_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "status": 404,
+                  "message": "Th\u00f4ng b\u00e1o l\u1ed7i m\u00f4 ph\u1ecfng",
+                  "data": null,
+                  "code": "PATIENT_NOT_FOUND",
+                  "fieldErrors": []
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "INTERNAL_SERVER_ERROR",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "status": 500,
+                  "message": "Th\u00f4ng b\u00e1o l\u1ed7i m\u00f4 ph\u1ecfng",
+                  "data": null,
+                  "code": "INTERNAL_SERVER_ERROR",
+                  "fieldErrors": []
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Patients"
+        ],
+        "operationId": "replacePatientV2",
+        "summary": "Thay to\u00e0n b\u1ed9 mutable profile",
+        "description": "RECEPTIONIST; version required; optional omitted/null x\u00f3a. INACTIVE ch\u1eb7n m\u1edbi nh\u01b0ng gi\u1eef \u0111\u1ecdc/s\u1eeda medical c\u0169; kh\u00f4ng t\u1ef1 h\u1ee7y l\u1ecbch PUT ki\u1ec3m version tr\u01b0\u1edbc so s\u00e1nh n\u1ed9i dung chu\u1ea9n h\u00f3a: stale lu\u00f4n409; no-op200 gi\u1eef version/updatedAt/updatedBy, kh\u00f4ng UPDATE revision. C\u00f3 thay \u0111\u1ed5i th\u00ec flush entity v\u00e0 ghi revision \u0111\u00fang persisted version trong c\u00f9ng transaction. M\u1ea5t response ph\u1ea3i GET/\u0111\u1ed1i chi\u1ebfu, kh\u00f4ng blind retry v\u1edbi version m\u1edbi.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "description": "Patient UUID; sai c\u00fa ph\u00e1p400, UUID h\u1ee3p l\u1ec7 nh\u01b0ng kh\u00f4ng t\u1ed3n t\u1ea1i404 khi caller \u0111\u01b0\u1ee3c lookup."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReplacePatient"
+              },
+              "example": {
+                "fullName": "Demo Patient",
+                "phoneNumber": "+84900000001",
+                "gender": "UNKNOWN",
+                "status": "ACTIVE",
+                "version": 0,
+                "email": null,
+                "dateOfBirth": "1995-05-15",
+                "address": null
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Th\u00e0nh c\u00f4ng m\u1ee5c ti\u00eau ch\u01b0a ch\u1ea1y",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PatientResponse"
+                },
+                "example": {
+                  "status": 200,
+                  "message": "Th\u00e0nh c\u00f4ng",
+                  "data": {
+                    "id": "74fba630-5953-44b8-86d6-bc236ac1213b",
+                    "fullName": "Demo Patient",
+                    "phoneNumber": "+84900000001",
+                    "email": null,
+                    "dateOfBirth": "1995-05-15",
+                    "gender": "UNKNOWN",
+                    "address": null,
+                    "createdAt": "2026-10-01T02:00:00Z",
+                    "updatedAt": "2026-10-01T02:00:00Z",
+                    "patientCode": "PAT-74fba630-5953-44b8-86d6-bc236ac1213b",
+                    "status": "ACTIVE",
+                    "version": 1,
+                    "createdBy": "demo-receptionist",
+                    "updatedBy": "demo-receptionist"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "VALIDATION_ERROR",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "status": 400,
+                  "message": "Th\u00f4ng b\u00e1o l\u1ed7i m\u00f4 ph\u1ecfng",
+                  "data": null,
+                  "code": "VALIDATION_ERROR",
+                  "fieldErrors": [
+                    {
+                      "field": "fullName",
+                      "message": "Kh\u00f4ng h\u1ee3p l\u1ec7"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "status": 401,
+                  "message": "Th\u00f4ng b\u00e1o l\u1ed7i m\u00f4 ph\u1ecfng",
+                  "data": null,
+                  "code": "UNAUTHENTICATED",
+                  "fieldErrors": []
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "status": 403,
+                  "message": "Th\u00f4ng b\u00e1o l\u1ed7i m\u00f4 ph\u1ecfng",
+                  "data": null,
+                  "code": "FORBIDDEN",
+                  "fieldErrors": []
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "PATIENT_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "status": 404,
+                  "message": "Th\u00f4ng b\u00e1o l\u1ed7i m\u00f4 ph\u1ecfng",
+                  "data": null,
+                  "code": "PATIENT_NOT_FOUND",
+                  "fieldErrors": []
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "VERSION_CONFLICT",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "status": 409,
+                  "message": "Th\u00f4ng b\u00e1o l\u1ed7i m\u00f4 ph\u1ecfng",
+                  "data": null,
+                  "code": "VERSION_CONFLICT",
+                  "fieldErrors": []
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "INTERNAL_SERVER_ERROR",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "status": 500,
+                  "message": "Th\u00f4ng b\u00e1o l\u1ed7i m\u00f4 ph\u1ecfng",
+                  "data": null,
+                  "code": "INTERNAL_SERVER_ERROR",
+                  "fieldErrors": []
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v3/patients/{patientId}/medical-records": {
+      "get": {
+        "tags": [
+          "MedicalRecords"
+        ],
+        "operationId": "listMedicalRecordsV2",
+        "summary": "L\u1ecbch s\u1eed y t\u1ebf",
+        "description": "DOCTOR ph\u1ea1m vi c\u00f4ng vi\u1ec7c \u0111\u01b0\u1ee3c c\u1ea5p \u0111\u1ed1i v\u1edbi Patient ho\u1eb7c PATIENT self; INACTIVE v\u1eabn \u0111\u1ecdc; parent t\u1ed3n t\u1ea1i ch\u01b0a record ->page r\u1ed7ng",
+        "parameters": [
+          {
+            "name": "patientId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "description": "Patient UUID; sai c\u00fa ph\u00e1p400, UUID h\u1ee3p l\u1ec7 nh\u01b0ng kh\u00f4ng t\u1ed3n t\u1ea1i404 khi caller \u0111\u01b0\u1ee3c lookup."
+          },
+          {
+            "name": "appointmentId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "description": "Filter \u0111\u1ed1i so\u00e1t sau POST timeout"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            },
+            "description": "Zero based"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10
+            },
+            "description": "Max100"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "visitDate,asc",
+                "visitDate,desc"
+              ],
+              "default": "visitDate,desc"
+            },
+            "description": "id tie c\u00f9ng chi\u1ec1u"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Th\u00e0nh c\u00f4ng m\u1ee5c ti\u00eau ch\u01b0a ch\u1ea1y",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MedicalRecordPageResponse"
+                },
+                "example": {
+                  "status": 200,
+                  "message": "Th\u00e0nh c\u00f4ng",
+                  "data": {
+                    "content": [
+                      {
+                        "id": "550e8400-e29b-41d4-a716-0000000001f5",
+                        "patientId": "74fba630-5953-44b8-86d6-bc236ac1213b",
+                        "doctorId": "550e8400-e29b-41d4-a716-00000000000c",
+                        "appointmentId": "550e8400-e29b-41d4-a716-000000000066",
+                        "visitDate": "2026-10-01T02:00:00Z",
+                        "symptoms": "Tri\u1ec7u ch\u1ee9ng gi\u1ea3 l\u1eadp A",
+                        "diagnosis": "Ch\u1ea9n \u0111o\u00e1n gi\u1ea3 l\u1eadp A",
+                        "treatment": "Ch\u1ec9 \u0111\u1ecbnh gi\u1ea3 l\u1eadp",
+                        "notes": null,
+                        "version": 0,
+                        "createdAt": "2026-10-01T03:00:00Z",
+                        "updatedAt": "2026-10-01T03:00:00Z",
+                        "createdBy": "demo-doctor",
+                        "updatedBy": "demo-doctor"
+                      }
+                    ],
+                    "page": 0,
+                    "size": 10,
+                    "totalElements": 1,
+                    "totalPages": 1
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "VALIDATION_ERROR",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "status": 400,
+                  "message": "Th\u00f4ng b\u00e1o l\u1ed7i m\u00f4 ph\u1ecfng",
+                  "data": null,
+                  "code": "VALIDATION_ERROR",
+                  "fieldErrors": [
+                    {
+                      "field": "fullName",
+                      "message": "Kh\u00f4ng h\u1ee3p l\u1ec7"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "status": 401,
+                  "message": "Th\u00f4ng b\u00e1o l\u1ed7i m\u00f4 ph\u1ecfng",
+                  "data": null,
+                  "code": "UNAUTHENTICATED",
+                  "fieldErrors": []
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "status": 403,
+                  "message": "Th\u00f4ng b\u00e1o l\u1ed7i m\u00f4 ph\u1ecfng",
+                  "data": null,
+                  "code": "FORBIDDEN",
+                  "fieldErrors": []
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "PATIENT_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "status": 404,
+                  "message": "Th\u00f4ng b\u00e1o l\u1ed7i m\u00f4 ph\u1ecfng",
+                  "data": null,
+                  "code": "PATIENT_NOT_FOUND",
+                  "fieldErrors": []
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "INTERNAL_SERVER_ERROR",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "status": 500,
+                  "message": "Th\u00f4ng b\u00e1o l\u1ed7i m\u00f4 ph\u1ecfng",
+                  "data": null,
+                  "code": "INTERNAL_SERVER_ERROR",
+                  "fieldErrors": []
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "MedicalRecords"
+        ],
+        "operationId": "createMedicalRecordV2",
+        "summary": "Nh\u1eadp k\u1ebft qu\u1ea3 kh\u00e1m",
+        "description": "DOCTOR c\u00f3 scope c\u00f4ng vi\u1ec7c v\u1edbi patient v\u00e0 identity matches doctorId; patient ACTIVE; verify active Doctor/appointment match not CANCELLED before local transaction; actual visit b\u00e1c s\u0129 x\u00e1c nh\u1eadn. T\u1ed1i \u0111a m\u1ed9t summary/non-null appointment, Q-03 \u0111\u00e3 ch\u1ed1t; walk-in allowed. POST kh\u00f4ng idempotent",
+        "parameters": [
+          {
+            "name": "patientId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "description": "Patient UUID; sai c\u00fa ph\u00e1p400, UUID h\u1ee3p l\u1ec7 nh\u01b0ng kh\u00f4ng t\u1ed3n t\u1ea1i404 khi caller \u0111\u01b0\u1ee3c lookup."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateMedicalRecord"
+              },
+              "example": {
+                "doctorId": "550e8400-e29b-41d4-a716-00000000000c",
+                "appointmentId": "550e8400-e29b-41d4-a716-000000000066",
+                "visitDate": "2026-10-01T02:00:00Z",
+                "symptoms": "Tri\u1ec7u ch\u1ee9ng gi\u1ea3 l\u1eadp A",
+                "diagnosis": "Ch\u1ea9n \u0111o\u00e1n gi\u1ea3 l\u1eadp A",
+                "treatment": "Ch\u1ec9 \u0111\u1ecbnh gi\u1ea3 l\u1eadp",
+                "notes": null
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Th\u00e0nh c\u00f4ng m\u1ee5c ti\u00eau ch\u01b0a ch\u1ea1y",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MedicalRecordCreated"
+                },
+                "example": {
+                  "status": 201,
+                  "message": "Th\u00e0nh c\u00f4ng",
+                  "data": {
+                    "id": "550e8400-e29b-41d4-a716-0000000001f5",
+                    "patientId": "74fba630-5953-44b8-86d6-bc236ac1213b",
+                    "doctorId": "550e8400-e29b-41d4-a716-00000000000c",
+                    "appointmentId": "550e8400-e29b-41d4-a716-000000000066",
+                    "visitDate": "2026-10-01T02:00:00Z",
+                    "symptoms": "Tri\u1ec7u ch\u1ee9ng gi\u1ea3 l\u1eadp A",
+                    "diagnosis": "Ch\u1ea9n \u0111o\u00e1n gi\u1ea3 l\u1eadp A",
+                    "treatment": "Ch\u1ec9 \u0111\u1ecbnh gi\u1ea3 l\u1eadp",
+                    "notes": null,
+                    "version": 0,
+                    "createdAt": "2026-10-01T03:00:00Z",
+                    "updatedAt": "2026-10-01T03:00:00Z",
+                    "createdBy": "demo-doctor",
+                    "updatedBy": "demo-doctor"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "VALIDATION_ERROR",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "status": 400,
+                  "message": "Th\u00f4ng b\u00e1o l\u1ed7i m\u00f4 ph\u1ecfng",
+                  "data": null,
+                  "code": "VALIDATION_ERROR",
+                  "fieldErrors": [
+                    {
+                      "field": "fullName",
+                      "message": "Kh\u00f4ng h\u1ee3p l\u1ec7"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "status": 401,
+                  "message": "Th\u00f4ng b\u00e1o l\u1ed7i m\u00f4 ph\u1ecfng",
+                  "data": null,
+                  "code": "UNAUTHENTICATED",
+                  "fieldErrors": []
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "status": 403,
+                  "message": "Th\u00f4ng b\u00e1o l\u1ed7i m\u00f4 ph\u1ecfng",
+                  "data": null,
+                  "code": "FORBIDDEN",
+                  "fieldErrors": []
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "PATIENT_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "status": 404,
+                  "message": "Th\u00f4ng b\u00e1o l\u1ed7i m\u00f4 ph\u1ecfng",
+                  "data": null,
+                  "code": "PATIENT_NOT_FOUND",
+                  "fieldErrors": []
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "APPOINTMENT_RECORD_EXISTS | PATIENT_INACTIVE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "status": 409,
+                  "message": "Th\u00f4ng b\u00e1o l\u1ed7i m\u00f4 ph\u1ecfng",
+                  "data": null,
+                  "code": "APPOINTMENT_RECORD_EXISTS",
+                  "fieldErrors": []
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "REFERENCE_MISMATCH",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "status": 422,
+                  "message": "Th\u00f4ng b\u00e1o l\u1ed7i m\u00f4 ph\u1ecfng",
+                  "data": null,
+                  "code": "REFERENCE_MISMATCH",
+                  "fieldErrors": []
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "INTERNAL_SERVER_ERROR",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "status": 500,
+                  "message": "Th\u00f4ng b\u00e1o l\u1ed7i m\u00f4 ph\u1ecfng",
+                  "data": null,
+                  "code": "INTERNAL_SERVER_ERROR",
+                  "fieldErrors": []
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "DEPENDENCY_UNAVAILABLE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "status": 503,
+                  "message": "Th\u00f4ng b\u00e1o l\u1ed7i m\u00f4 ph\u1ecfng",
+                  "data": null,
+                  "code": "DEPENDENCY_UNAVAILABLE",
+                  "fieldErrors": []
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v3/patients/{patientId}/medical-records/{recordId}": {
+      "get": {
+        "tags": [
+          "MedicalRecords"
+        ],
+        "operationId": "getMedicalRecordV2",
+        "summary": "Chi ti\u1ebft k\u1ebft qu\u1ea3",
+        "description": "DOCTOR ph\u1ea1m vi c\u00f4ng vi\u1ec7c \u0111\u01b0\u1ee3c c\u1ea5p \u0111\u1ed1i v\u1edbi Patient ho\u1eb7c PATIENT self; sai parent ->404 MEDICAL_RECORD_NOT_FOUND",
+        "parameters": [
+          {
+            "name": "patientId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "description": "Patient UUID; sai c\u00fa ph\u00e1p400, UUID h\u1ee3p l\u1ec7 nh\u01b0ng kh\u00f4ng t\u1ed3n t\u1ea1i404 khi caller \u0111\u01b0\u1ee3c lookup."
+          },
+          {
+            "name": "recordId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "description": "Record ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Th\u00e0nh c\u00f4ng m\u1ee5c ti\u00eau ch\u01b0a ch\u1ea1y",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MedicalRecordResponse"
+                },
+                "example": {
+                  "status": 200,
+                  "message": "Th\u00e0nh c\u00f4ng",
+                  "data": {
+                    "id": "550e8400-e29b-41d4-a716-0000000001f5",
+                    "patientId": "74fba630-5953-44b8-86d6-bc236ac1213b",
+                    "doctorId": "550e8400-e29b-41d4-a716-00000000000c",
+                    "appointmentId": "550e8400-e29b-41d4-a716-000000000066",
+                    "visitDate": "2026-10-01T02:00:00Z",
+                    "symptoms": "Tri\u1ec7u ch\u1ee9ng gi\u1ea3 l\u1eadp A",
+                    "diagnosis": "Ch\u1ea9n \u0111o\u00e1n gi\u1ea3 l\u1eadp A",
+                    "treatment": "Ch\u1ec9 \u0111\u1ecbnh gi\u1ea3 l\u1eadp",
+                    "notes": null,
+                    "version": 0,
+                    "createdAt": "2026-10-01T03:00:00Z",
+                    "updatedAt": "2026-10-01T03:00:00Z",
+                    "createdBy": "demo-doctor",
+                    "updatedBy": "demo-doctor"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "VALIDATION_ERROR",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "status": 400,
+                  "message": "Th\u00f4ng b\u00e1o l\u1ed7i m\u00f4 ph\u1ecfng",
+                  "data": null,
+                  "code": "VALIDATION_ERROR",
+                  "fieldErrors": [
+                    {
+                      "field": "fullName",
+                      "message": "Kh\u00f4ng h\u1ee3p l\u1ec7"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "status": 401,
+                  "message": "Th\u00f4ng b\u00e1o l\u1ed7i m\u00f4 ph\u1ecfng",
+                  "data": null,
+                  "code": "UNAUTHENTICATED",
+                  "fieldErrors": []
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "status": 403,
+                  "message": "Th\u00f4ng b\u00e1o l\u1ed7i m\u00f4 ph\u1ecfng",
+                  "data": null,
+                  "code": "FORBIDDEN",
+                  "fieldErrors": []
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "PATIENT_NOT_FOUND | MEDICAL_RECORD_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "status": 404,
+                  "message": "Th\u00f4ng b\u00e1o l\u1ed7i m\u00f4 ph\u1ecfng",
+                  "data": null,
+                  "code": "PATIENT_NOT_FOUND",
+                  "fieldErrors": []
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "INTERNAL_SERVER_ERROR",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "status": 500,
+                  "message": "Th\u00f4ng b\u00e1o l\u1ed7i m\u00f4 ph\u1ecfng",
+                  "data": null,
+                  "code": "INTERNAL_SERVER_ERROR",
+                  "fieldErrors": []
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "MedicalRecords"
+        ],
+        "operationId": "replaceMedicalRecordV2",
+        "summary": "S\u1eeda n\u1ed9i dung c\u00f3 audit",
+        "description": "Only author DOCTOR; refs immutable, local principal/parent/version checks; kh\u00f4ng mandatory remote lookup l\u1ea1i; INACTIVE v\u1eabn s\u1eeda record c\u0169; optional omitted/null x\u00f3a; changeReason audit only PUT ki\u1ec3m version tr\u01b0\u1edbc so s\u00e1nh n\u1ed9i dung chu\u1ea9n h\u00f3a: stale lu\u00f4n409; no-op200 gi\u1eef version/updatedAt/updatedBy, kh\u00f4ng UPDATE revision. C\u00f3 thay \u0111\u1ed5i th\u00ec flush entity v\u00e0 ghi revision \u0111\u00fang persisted version trong c\u00f9ng transaction. M\u1ea5t response ph\u1ea3i GET/\u0111\u1ed1i chi\u1ebfu, kh\u00f4ng blind retry v\u1edbi version m\u1edbi. No-op v\u1eabn c\u1ea7n changeReason h\u1ee3p l\u1ec7; reason-only kh\u00f4ng \u0111\u1ed5i clinical record. Author match kh\u00f4ng thay ki\u1ec3m work scope; ngo\u1ea1i l\u1ec7 sai Patient/b\u00e1c s\u0129 ngh\u1ec9 vi\u1ec7c/ho\u00e0n th\u00e0nh ch\u01b0a c\u00f3 quy\u1ec1n Staff ho\u1eb7c endpoint override.",
+        "parameters": [
+          {
+            "name": "patientId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "description": "Patient UUID; sai c\u00fa ph\u00e1p400, UUID h\u1ee3p l\u1ec7 nh\u01b0ng kh\u00f4ng t\u1ed3n t\u1ea1i404 khi caller \u0111\u01b0\u1ee3c lookup."
+          },
+          {
+            "name": "recordId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "description": "Record ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReplaceMedicalRecord"
+              },
+              "example": {
+                "visitDate": "2026-10-01T02:00:00Z",
+                "symptoms": "Tri\u1ec7u ch\u1ee9ng gi\u1ea3 l\u1eadp A",
+                "diagnosis": "Ch\u1ea9n \u0111o\u00e1n gi\u1ea3 l\u1eadp \u0111\u00e3 s\u1eeda",
+                "treatment": null,
+                "notes": null,
+                "version": 0,
+                "changeReason": "S\u1eeda l\u1ed7i nh\u1eadp d\u1eef li\u1ec7u demo"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Th\u00e0nh c\u00f4ng m\u1ee5c ti\u00eau ch\u01b0a ch\u1ea1y",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MedicalRecordResponse"
+                },
+                "example": {
+                  "status": 200,
+                  "message": "Th\u00e0nh c\u00f4ng",
+                  "data": {
+                    "id": "550e8400-e29b-41d4-a716-0000000001f5",
+                    "patientId": "74fba630-5953-44b8-86d6-bc236ac1213b",
+                    "doctorId": "550e8400-e29b-41d4-a716-00000000000c",
+                    "appointmentId": "550e8400-e29b-41d4-a716-000000000066",
+                    "visitDate": "2026-10-01T02:00:00Z",
+                    "symptoms": "Tri\u1ec7u ch\u1ee9ng gi\u1ea3 l\u1eadp A",
+                    "diagnosis": "Ch\u1ea9n \u0111o\u00e1n gi\u1ea3 l\u1eadp \u0111\u00e3 s\u1eeda",
+                    "treatment": null,
+                    "notes": null,
+                    "version": 1,
+                    "createdAt": "2026-10-01T03:00:00Z",
+                    "updatedAt": "2026-10-01T03:00:00Z",
+                    "createdBy": "demo-doctor",
+                    "updatedBy": "demo-doctor"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "VALIDATION_ERROR",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "status": 400,
+                  "message": "Th\u00f4ng b\u00e1o l\u1ed7i m\u00f4 ph\u1ecfng",
+                  "data": null,
+                  "code": "VALIDATION_ERROR",
+                  "fieldErrors": [
+                    {
+                      "field": "fullName",
+                      "message": "Kh\u00f4ng h\u1ee3p l\u1ec7"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "status": 401,
+                  "message": "Th\u00f4ng b\u00e1o l\u1ed7i m\u00f4 ph\u1ecfng",
+                  "data": null,
+                  "code": "UNAUTHENTICATED",
+                  "fieldErrors": []
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "status": 403,
+                  "message": "Th\u00f4ng b\u00e1o l\u1ed7i m\u00f4 ph\u1ecfng",
+                  "data": null,
+                  "code": "FORBIDDEN",
+                  "fieldErrors": []
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "PATIENT_NOT_FOUND | MEDICAL_RECORD_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "status": 404,
+                  "message": "Th\u00f4ng b\u00e1o l\u1ed7i m\u00f4 ph\u1ecfng",
+                  "data": null,
+                  "code": "PATIENT_NOT_FOUND",
+                  "fieldErrors": []
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "VERSION_CONFLICT",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "status": 409,
+                  "message": "Th\u00f4ng b\u00e1o l\u1ed7i m\u00f4 ph\u1ecfng",
+                  "data": null,
+                  "code": "VERSION_CONFLICT",
+                  "fieldErrors": []
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "INTERNAL_SERVER_ERROR",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "status": 500,
+                  "message": "Th\u00f4ng b\u00e1o l\u1ed7i m\u00f4 ph\u1ecfng",
+                  "data": null,
+                  "code": "INTERNAL_SERVER_ERROR",
+                  "fieldErrors": []
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Patient": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "patientCode": {
+            "type": "string",
+            "pattern": "^PAT-[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+            "description": "M\u00e3 tra c\u1ee9u PAT-<c\u00f9ng Patient.id UUID>, kh\u00f4ng l\u00e0 kh\u00f3a ch\u00ednh; server sinh, b\u1ea5t bi\u1ebfn."
+          },
+          "fullName": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "description": "Trim, kh\u00f4ng whitespace-only"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "maxLength": 16,
+            "pattern": "^\\+[1-9][0-9]{7,14}$",
+            "description": "Normalized E164"
+          },
+          "email": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "email",
+            "maxLength": 255
+          },
+          "dateOfBirth": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "Kh\u00f4ng future theo ng\u00e0y Asia/Saigon; kh\u00f4ng timezone conversion"
+          },
+          "gender": {
+            "type": "string",
+            "enum": [
+              "MALE",
+              "FEMALE",
+              "OTHER",
+              "UNKNOWN"
+            ]
+          },
+          "address": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 2000,
+            "description": "Trim; omitted/null/blank -> null"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "INACTIVE"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdBy": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "updatedBy": {
+            "type": "string",
+            "maxLength": 255
+          }
+        },
+        "required": [
+          "id",
+          "patientCode",
+          "fullName",
+          "phoneNumber",
+          "email",
+          "dateOfBirth",
+          "gender",
+          "address",
+          "status",
+          "version",
+          "createdAt",
+          "updatedAt",
+          "createdBy",
+          "updatedBy"
+        ]
+      },
+      "CreatePatient": {
+        "type": "object",
+        "properties": {
+          "fullName": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "description": "Trim, kh\u00f4ng whitespace-only"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40,
+            "pattern": "^[+0-9 ()-]+$",
+            "description": "Trim/b\u1ecf spaces-hyphens-parentheses; VN10digit \u0111\u1ea7u0 -> +84 b\u1ecf0, ho\u1eb7c E164. Chu\u1ea9n h\u00f3a r\u1ed3i validate ^\\+[1-9][0-9]{7,14}$. Kh\u00f4ng t\u1ef1 x\u00e1c minh s\u1edf h\u1eefu. Shared phone \u0111\u01b0\u1ee3c ph\u00e9p."
+          },
+          "email": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 255,
+            "description": "Blank ->null tr\u01b0\u1edbc validate email; nonnull ph\u1ea3i valid email"
+          },
+          "dateOfBirth": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "Kh\u00f4ng future theo ng\u00e0y Asia/Saigon; kh\u00f4ng timezone conversion Ch\u1ec9 YYYY-MM-DD ho\u1eb7c null; empty/whitespace400; omitted khi PUT x\u00f3a."
+          },
+          "gender": {
+            "type": "string",
+            "enum": [
+              "MALE",
+              "FEMALE",
+              "OTHER",
+              "UNKNOWN"
+            ],
+            "default": "UNKNOWN",
+            "description": "Omitted -> UNKNOWN; explicit null ho\u1eb7c enum kh\u00e1c ->400."
+          },
+          "address": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 2000,
+            "description": "Trim; omitted/null/blank -> null"
+          }
+        },
+        "required": [
+          "fullName",
+          "phoneNumber"
+        ],
+        "additionalProperties": false
+      },
+      "ReplacePatient": {
+        "type": "object",
+        "properties": {
+          "fullName": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "description": "Trim, kh\u00f4ng whitespace-only"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40,
+            "pattern": "^[+0-9 ()-]+$",
+            "description": "Trim/b\u1ecf spaces-hyphens-parentheses; VN10digit \u0111\u1ea7u0 -> +84 b\u1ecf0, ho\u1eb7c E164. Chu\u1ea9n h\u00f3a r\u1ed3i validate ^\\+[1-9][0-9]{7,14}$. Kh\u00f4ng t\u1ef1 x\u00e1c minh s\u1edf h\u1eefu. Shared phone \u0111\u01b0\u1ee3c ph\u00e9p."
+          },
+          "email": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 255,
+            "description": "Blank ->null tr\u01b0\u1edbc validate email; nonnull ph\u1ea3i valid email"
+          },
+          "dateOfBirth": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "Kh\u00f4ng future theo ng\u00e0y Asia/Saigon; kh\u00f4ng timezone conversion Ch\u1ec9 YYYY-MM-DD ho\u1eb7c null; empty/whitespace400; omitted khi PUT x\u00f3a."
+          },
+          "gender": {
+            "type": "string",
+            "enum": [
+              "MALE",
+              "FEMALE",
+              "OTHER",
+              "UNKNOWN"
+            ]
+          },
+          "address": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 2000,
+            "description": "Trim; omitted/null/blank -> null"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "INACTIVE"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "fullName",
+          "phoneNumber",
+          "gender",
+          "status",
+          "version"
+        ],
+        "additionalProperties": false
+      },
+      "MedicalRecord": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "patientId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "doctorId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "appointmentId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "visitDate": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Actual visit instant <=Clock hi\u1ec7n t\u1ea1i, normalize UTC"
+          },
+          "symptoms": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "description": "Trim, kh\u00f4ng whitespace-only"
+          },
+          "diagnosis": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "description": "Trim, kh\u00f4ng whitespace-only"
+          },
+          "treatment": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 4000,
+            "description": "Trim; omitted/null/blank -> null"
+          },
+          "notes": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 4000,
+            "description": "Trim; omitted/null/blank -> null"
+          },
+          "version": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdBy": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "updatedBy": {
+            "type": "string",
+            "maxLength": 255
+          }
+        },
+        "required": [
+          "id",
+          "patientId",
+          "doctorId",
+          "appointmentId",
+          "visitDate",
+          "symptoms",
+          "diagnosis",
+          "treatment",
+          "notes",
+          "version",
+          "createdAt",
+          "updatedAt",
+          "createdBy",
+          "updatedBy"
+        ]
+      },
+      "CreateMedicalRecord": {
+        "type": "object",
+        "properties": {
+          "doctorId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "appointmentId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "visitDate": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Actual visit instant <=Clock hi\u1ec7n t\u1ea1i, normalize UTC"
+          },
+          "symptoms": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "description": "Trim, kh\u00f4ng whitespace-only"
+          },
+          "diagnosis": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "description": "Trim, kh\u00f4ng whitespace-only"
+          },
+          "treatment": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 4000,
+            "description": "Trim; omitted/null/blank -> null"
+          },
+          "notes": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 4000,
+            "description": "Trim; omitted/null/blank -> null"
+          }
+        },
+        "required": [
+          "doctorId",
+          "visitDate",
+          "symptoms",
+          "diagnosis"
+        ],
+        "additionalProperties": false
+      },
+      "ReplaceMedicalRecord": {
+        "type": "object",
+        "properties": {
+          "visitDate": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Actual visit instant <=Clock hi\u1ec7n t\u1ea1i, normalize UTC"
+          },
+          "symptoms": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "description": "Trim, kh\u00f4ng whitespace-only"
+          },
+          "diagnosis": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "description": "Trim, kh\u00f4ng whitespace-only"
+          },
+          "treatment": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 4000,
+            "description": "Trim; omitted/null/blank -> null"
+          },
+          "notes": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 4000,
+            "description": "Trim; omitted/null/blank -> null"
+          },
+          "version": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "changeReason": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 1,
+            "description": "Trim, kh\u00f4ng whitespace-only"
+          }
+        },
+        "required": [
+          "visitDate",
+          "symptoms",
+          "diagnosis",
+          "version",
+          "changeReason"
+        ],
+        "additionalProperties": false
+      },
+      "PatientPage": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Patient"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "size": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "totalElements": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "totalPages": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "content",
+          "page",
+          "size",
+          "totalElements",
+          "totalPages"
+        ]
+      },
+      "MedicalRecordPage": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MedicalRecord"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "size": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "totalElements": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "totalPages": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "content",
+          "page",
+          "size",
+          "totalElements",
+          "totalPages"
+        ]
+      },
+      "PatientResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "integer",
+            "example": 200
+          },
+          "message": {
+            "type": "string",
+            "example": "Th\u00e0nh c\u00f4ng"
+          },
+          "data": {
+            "$ref": "#/components/schemas/Patient"
+          }
+        },
+        "required": [
+          "status",
+          "message",
+          "data"
+        ]
+      },
+      "PatientCreated": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "integer",
+            "example": 201
+          },
+          "message": {
+            "type": "string",
+            "example": "Th\u00e0nh c\u00f4ng"
+          },
+          "data": {
+            "$ref": "#/components/schemas/Patient"
+          }
+        },
+        "required": [
+          "status",
+          "message",
+          "data"
+        ]
+      },
+      "PatientPageResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "integer",
+            "example": 200
+          },
+          "message": {
+            "type": "string",
+            "example": "Th\u00e0nh c\u00f4ng"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PatientPage"
+          }
+        },
+        "required": [
+          "status",
+          "message",
+          "data"
+        ]
+      },
+      "MedicalRecordResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "integer",
+            "example": 200
+          },
+          "message": {
+            "type": "string",
+            "example": "Th\u00e0nh c\u00f4ng"
+          },
+          "data": {
+            "$ref": "#/components/schemas/MedicalRecord"
+          }
+        },
+        "required": [
+          "status",
+          "message",
+          "data"
+        ]
+      },
+      "MedicalRecordCreated": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "integer",
+            "example": 201
+          },
+          "message": {
+            "type": "string",
+            "example": "Th\u00e0nh c\u00f4ng"
+          },
+          "data": {
+            "$ref": "#/components/schemas/MedicalRecord"
+          }
+        },
+        "required": [
+          "status",
+          "message",
+          "data"
+        ]
+      },
+      "MedicalRecordPageResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "integer",
+            "example": 200
+          },
+          "message": {
+            "type": "string",
+            "example": "Th\u00e0nh c\u00f4ng"
+          },
+          "data": {
+            "$ref": "#/components/schemas/MedicalRecordPage"
+          }
+        },
+        "required": [
+          "status",
+          "message",
+          "data"
+        ]
+      },
+      "FieldError": {
+        "type": "object",
+        "properties": {
+          "field": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "field",
+          "message"
+        ]
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "integer"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "Lu\u00f4n null khi l\u1ed7i",
+            "enum": [
+              null
+            ]
+          },
+          "code": {
+            "type": "string",
+            "enum": [
+              "VALIDATION_ERROR",
+              "UNAUTHENTICATED",
+              "FORBIDDEN",
+              "PATIENT_NOT_FOUND",
+              "MEDICAL_RECORD_NOT_FOUND",
+              "VERSION_CONFLICT",
+              "APPOINTMENT_RECORD_EXISTS",
+              "PATIENT_INACTIVE",
+              "REFERENCE_MISMATCH",
+              "DEPENDENCY_UNAVAILABLE",
+              "INTERNAL_SERVER_ERROR"
+            ]
+          },
+          "fieldErrors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FieldError"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "message",
+          "data",
+          "code",
+          "fieldErrors"
+        ]
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "CROSS-SERVICE AGREEMENT REQUIRED IA-02: bearer l\u00e0 transport contract \u0111\u1ec1 xu\u1ea5t \u0111\u1ec3 nh\u00f3m th\u1ed1ng nh\u1ea5t, kh\u00f4ng ch\u1ecdn provider/JWT claims ho\u1eb7c kh\u1eb3ng \u0111\u1ecbnh token/mapping \u0111\u00e3 t\u1ed3n t\u1ea1i. Authentication v\u00e0 object authorization b\u1eaft bu\u1ed9c trong target; trusted account-to-Patient UUID/doctor mapping ph\u1ea3i \u0111\u01b0\u1ee3c tri\u1ec3n khai tr\u01b0\u1edbc m\u1edf quy\u1ec1n."
+      }
+    }
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "x-decision-status": "APPROVED TARGET DESIGN",
+  "x-implementation-status": "NOT IMPLEMENTED",
+  "x-cross-service-agreements": [
+    "IA-01",
+    "IA-02",
+    "IA-03",
+    "IA-04",
+    "IA-05",
+    "IA-06"
+  ],
+  "jsonSchemaDialect": "https://json-schema.org/draft/2020-12/schema",
+  "x-contract-status": "APPROVED_SERVICE_TARGET",
+  "x-shared-adoption": "NOT_ADOPTED",
+  "x-source": "S08: openapi-proposed.yaml; Q-01..Q-05",
+  "x-conversion-notes": [
+    "OAS3.0 nullable converted to type union; fields/operations/examples retained.",
+    "No new shared limits imposed on approved Patient schema; shared safe-integer/output-lowercase rules remain semantic assertions.",
+    "requestId header propagation proposed in shared contract; not falsely added as approved Patient source."
+  ]
+}

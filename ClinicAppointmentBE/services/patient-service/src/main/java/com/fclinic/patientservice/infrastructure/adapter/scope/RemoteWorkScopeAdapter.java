@@ -41,7 +41,7 @@ public final class RemoteWorkScopeAdapter implements WorkScopePort, AutoCloseabl
     public boolean clinical(TrustedCaller c,UUID id,ClinicalAction action) {
         return doctor(c) && query(c,CLINICAL,ScopeQuery.Operation.valueOf("MEDICAL_"+action.name()),id,null,null).allowed();
     }
-    public boolean validVisit(TrustedCaller c,UUID id,Long appointmentId,Instant visitDate) {
+    public boolean validVisit(TrustedCaller c,UUID id,UUID appointmentId,Instant visitDate) {
         return doctor(c) && query(c,CLINICAL,VALID_VISIT,id,appointmentId,visitDate).allowed();
     }
     public boolean appointmentProfileLookup(TrustedCaller c,UUID id) {
@@ -56,12 +56,12 @@ public final class RemoteWorkScopeAdapter implements WorkScopePort, AutoCloseabl
         return decision.allowed()?new SearchScope(decision.patientIds()):null;
     }
     private ScopeDecisionDecoder.Decision query(TrustedCaller c,ScopeQuery.Authority authority,ScopeQuery.Operation operation,
-                                               UUID patient,Long appointment,Instant visit) {
+                                               UUID patient,UUID appointment,Instant visit) {
         if(TransactionSynchronizationManager.isActualTransactionActive())
             throw new PatientError(PatientError.Code.DEPENDENCY_UNAVAILABLE);
         boolean collection=operation.name().startsWith("ADMIN_ASSIGNMENT_") || operation==ADMIN_SEARCH || operation==DOCTOR_SEARCH;
         if(!c.active() || c.subject()==null || c.subject().isBlank() || (!collection && patient==null)
-                || (operation==VALID_VISIT && (visit==null || (appointment!=null && appointment<=0))))
+                || (operation==VALID_VISIT && (visit==null || (appointment!=null && !com.fclinic.patientservice.domain.model.BusinessId.valid(appointment)))))
             throw new PatientError(PatientError.Code.DEPENDENCY_UNAVAILABLE);
         var request=ScopeQuery.create(authority,operation,c,patient,appointment,visit,clock.instant());
         var config=authority==ADMINISTRATIVE?settings.administrative():settings.clinical();
@@ -69,7 +69,7 @@ public final class RemoteWorkScopeAdapter implements WorkScopePort, AutoCloseabl
         return decoder.decode(response,request,config.maxSearchPatients());
     }
     private static boolean doctor(TrustedCaller c) {
-        return c.userRole("ROLE_DOCTOR") && c.doctorId()!=null && c.doctorId()>0;
+        return c.userRole("ROLE_DOCTOR") && c.doctorId()!=null && com.fclinic.patientservice.domain.model.BusinessId.valid(c.doctorId());
     }
     public void close() { try { administrative.close(); } finally { clinical.close(); } }
 }

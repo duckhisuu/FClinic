@@ -14,7 +14,7 @@ public interface PatientRepositoryPort {
     Patient update(Patient patient);
     void checkAtCommit(Patient patient);
     PageResult<Patient> search(SearchQuery query, Set<UUID> allowedPatients);
-    Optional<MedicalRecord> findRecord(UUID patientId, long recordId);
+    Optional<MedicalRecord> findRecord(UUID patientId, UUID recordId);
     MedicalRecord insertRecord(MedicalRecord record);
     MedicalRecord updateRecord(MedicalRecord record);
     void checkAtCommit(MedicalRecord record);

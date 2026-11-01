@@ -14,10 +14,12 @@ public record ReferenceSettings(Endpoint doctor, Endpoint appointment) {
             Path trustStore, String trustStorePassword) {
         @Override public String toString() { return "ReferenceEndpoint[redacted]"; }
         public void validate() {
-            require(collectionUri!=null && "https".equalsIgnoreCase(collectionUri.getScheme()) && collectionUri.getHost()!=null
+            require(collectionUri!=null && ("https".equalsIgnoreCase(collectionUri.getScheme()) || ("http".equalsIgnoreCase(collectionUri.getScheme())
+                    && java.util.Set.of("localhost","127.0.0.1","[::1]").contains(collectionUri.getHost()))) && collectionUri.getHost()!=null
                     && collectionUri.getUserInfo()==null && collectionUri.getQuery()==null && collectionUri.getFragment()==null
                     && collectionUri.getRawPath()!=null && !collectionUri.getRawPath().isEmpty()
-                    && !collectionUri.getRawPath().endsWith("/") && collectionUri.normalize().equals(collectionUri),"HTTPS collection URI required");
+                    && !collectionUri.getRawPath().endsWith("/") && !collectionUri.getRawPath().contains("%")
+                    && !collectionUri.getRawPath().contains("//") && (collectionUri.getPort()==-1 || (collectionUri.getPort()>0 && collectionUri.getPort()<=65535)) && collectionUri.normalize().equals(collectionUri),"HTTPS or loopback HTTP collection URI required");
             require(clientId!=null && clientId.matches("[A-Za-z0-9._-]{1,128}"),"client ID required");
             require(clientSecret!=null && !clientSecret.isBlank() && clientSecret.length()<=4096
                     && clientSecret.chars().noneMatch(Character::isISOControl),"client secret required");

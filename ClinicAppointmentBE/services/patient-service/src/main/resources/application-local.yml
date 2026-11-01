@@ -1,0 +1,8 @@
+# Synthetic localhost demo only. Credentials must be supplied externally.
+patient:
+  reference:
+    doctor:
+      collection-uri: ${PATIENT_DOCTOR_REFERENCE_URI:http://localhost:8082/api/v1/doctors}
+    appointment:
+      collection-uri: ${PATIENT_APPOINTMENT_REFERENCE_URI:http://localhost:8083/internal/v1/appointments}
+# Enable doctor-reference/appointment-reference profiles explicitly; Auth/Scope remain HTTPS/fail-closed.

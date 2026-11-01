@@ -23,7 +23,7 @@ final class ProviderContractPlan {
         INVALID_CREDENTIAL, WRONG_VERSION_REQUEST, WRONG_RESOURCE, UNKNOWN_STATUS,
         WRONG_VERSION_RESPONSE, TECHNICAL_5XX, INVALID_PAYLOAD
     }
-    record Vector(Case scenario,long resourceId,UUID patientId,Long doctorId) { }
+    record Vector(Case scenario,UUID resourceId,UUID patientId,UUID doctorId) { }
     final boolean doctor;
     final ReferenceSettings.Endpoint endpoint,invalidCredentialEndpoint;
     final List<Vector> vectors;
@@ -67,13 +67,13 @@ final class ProviderContractPlan {
                     && proof.path("deploymentId").asText().matches("[0-9a-f-]{36}"));
             Path vectorPath=Path.of(required(env,"VECTOR_PATH")); byte[] bytes=bounded(vectorPath);
             JsonNode root=JSON.readTree(bytes); exact(root,Set.of("version","boundary","vectors"));
-            check(root.path("version").isIntegralNumber() && root.path("version").intValue()==1
+            check(root.path("version").isIntegralNumber() && root.path("version").intValue()==2
                     && required(env,"BOUNDARY").equals(root.path("boundary").asText()) && root.path("vectors").isArray());
             List<Vector> vectors=new ArrayList<>(); Set<Case> seen=EnumSet.noneOf(Case.class);
             for(var node:root.path("vectors")) {
                 exact(node,Set.of("case","resourceId","patientId","doctorId"));
                 Case scenario=Case.valueOf(node.path("case").asText()); check(seen.add(scenario));
-                long id=safeId(node.path("resourceId")); UUID patient=null; Long doctorId=null;
+                UUID id=safeId(node.path("resourceId")); UUID patient=null; UUID doctorId=null;
                 if(!doctor && Set.of(Case.VALID,Case.CANCELLED,Case.PATIENT_MISMATCH,Case.DOCTOR_MISMATCH).contains(scenario)) {
                     String value=node.path("patientId").asText();
                     check(value.matches("[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}"));
@@ -100,7 +100,7 @@ final class ProviderContractPlan {
     }
     static void exact(JsonNode n,Set<String> fields) { check(n!=null && n.isObject() && n.propertyNames().equals(fields)); }
     static void check(boolean ok) { if(!ok) throw blocked(); }
-    static long safeId(JsonNode n) { check(n.isIntegralNumber() && n.canConvertToLong()); long v=n.longValue(); check(v>0 && v<=9007199254740991L); return v; }
+    static UUID safeId(JsonNode n) { check(n.isString()); return com.fclinic.patientservice.domain.model.BusinessId.parse(n.asText()); }
     static byte[] bounded(Path path) throws Exception { check(Files.size(path)<=1048576); return Files.readAllBytes(path); }
     static IllegalStateException blocked() { return new IllegalStateException("Real-provider preflight blocked; see runbook. No credential/URL details emitted."); }
 }

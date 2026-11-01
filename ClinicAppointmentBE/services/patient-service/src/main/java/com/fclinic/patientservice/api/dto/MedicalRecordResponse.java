@@ -3,7 +3,7 @@ import com.fclinic.patientservice.domain.aggregate.MedicalRecord;
 import java.time.Instant;
 import java.util.UUID;
 
-public record MedicalRecordResponse(long id, UUID patientId, long doctorId, Long appointmentId, Instant visitDate,
+public record MedicalRecordResponse(UUID id, UUID patientId, UUID doctorId, UUID appointmentId, Instant visitDate,
                                     String symptoms, String diagnosis, String treatment, String notes, long version,
                                     Instant createdAt, Instant updatedAt, String createdBy, String updatedBy) {
     public static MedicalRecordResponse from(MedicalRecord r) {

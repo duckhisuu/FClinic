@@ -15,7 +15,6 @@ import static com.fclinic.patientservice.domain.model.PatientError.invalid;
 public class PatientInput {
     private static final Set<String> PROFILE = Set.of("fullName","phoneNumber","email","dateOfBirth","gender","address");
     private static final Set<String> CLINICAL = Set.of("visitDate","symptoms","diagnosis","treatment","notes");
-    private static final long SAFE_ID = 9007199254740991L;
     private final Clock clock;
     private final Validator validator;
     public PatientInput(Clock clock, Validator validator) { this.clock = clock; this.validator = validator; }
@@ -38,8 +37,8 @@ public class PatientInput {
         fields(body, replace ? union(CLINICAL, "version", "changeReason") : union(CLINICAL, "doctorId", "appointmentId"));
         if (replace) { version(body); reason(body); }
         else {
-            positiveId(body.get("doctorId"), "doctorId");
-            if (body.get("appointmentId") != null) positiveId(body.get("appointmentId"), "appointmentId");
+            uuid(body.get("doctorId"), "doctorId");
+            if (body.get("appointmentId") != null) uuid(body.get("appointmentId"), "appointmentId");
         }
         String value = text(body, "visitDate", true, 100);
         Instant visit;
@@ -51,16 +50,9 @@ public class PatientInput {
     }
     public long version(Map<String,Object> body) { return integer(body.get("version"), "version", 0, Long.MAX_VALUE); }
     public String reason(Map<String,Object> body) { return requiredText(body, "changeReason", 1000); }
-    public long positiveId(Object value, String field) { return integer(value, field, 1, SAFE_ID); }
-    public UUID uuid(String value, String field) {
-        if (value == null || !value.matches("(?i)^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"))
-            throw invalid(field);
-        return UUID.fromString(value);
-    }
-    public long pathId(String value, String field) {
-        if (value == null || !value.matches("[0-9]+")) throw invalid(field);
-        try { return positiveId(Long.parseLong(value), field); }
-        catch (NumberFormatException ex) { throw invalid(field); }
+    public UUID uuid(Object value, String field) {
+        try { return BusinessId.parse(value); }
+        catch (IllegalArgumentException ex) { throw invalid(field); }
     }
     public SearchQuery query(Map<String,String> params, boolean medical) {
         int page = queryInteger(params, "page", 0, 0, Integer.MAX_VALUE);
@@ -75,7 +67,7 @@ public class PatientInput {
             keyword = keyword.strip(); if (keyword.isEmpty()) keyword = null;
         }
         String phone = params.containsKey("phoneNumber") ? phone(params.get("phoneNumber")) : null;
-        Long appointment = medical && params.containsKey("appointmentId") ? pathId(params.get("appointmentId"), "appointmentId") : null;
+        UUID appointment = medical && params.containsKey("appointmentId") ? uuid(params.get("appointmentId"), "appointmentId") : null;
         return new SearchQuery(keyword, phone, appointment, page, size, sort.split(",")[0], sort.endsWith(",asc"));
     }
     public String phone(String input) {

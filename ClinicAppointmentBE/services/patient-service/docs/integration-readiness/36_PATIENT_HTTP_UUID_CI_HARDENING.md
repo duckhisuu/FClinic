@@ -1,0 +1,13 @@
+# 36 — Patient CI portability hardening
+
+Baseline: existing reviewed87-path HTTP/UUID candidate, SHA-256 `45d887e3f934001045f0ebe3573b23c638e06c4d5bedfdc9ab020696cb0b9135`. All paths/hashes verified before port. Fresh clone starts at current main `3f833711e282e06b71cc88f7030ce762d78ec201`; Patient paths equal old bao `a097c67dbbbf399ec02eeb5b26b801946b7a6f41` and patch applied cleanly. No prior implementation rewritten.
+
+PatientUuidJarIT now resolves the executable from actual java.home plus OS: Windows uses java.exe, other platforms java. Locale.ROOT case normalization and startsWith Windows avoid the Darwin/contains-win trap. ProcessBuilder still receives separate arguments; no shell quoting/hardcoded JDK path. Five parameter cases cover Windows11/WindowsServer/Linux/Mac/Darwin including spaces in the JVM path, plus the actual runtime executable existence/executable assertion. Original process termination, owned PostgreSQL lifecycle, loopback binding, bounded readiness deadline and no-write assertions unchanged.
+
+Windows Java21.0.8: **293 PASS, zero failures/errors/skipped**. All287 prior case identities retained, including all257 historical cases; six portability cases added. Actual Patient JAR/fresh PostgreSQL16.10 smoke included. Linux: **VERIFIED: 293 PASS, zero failures/errors/skipped on WSL Ubuntu / isolated Temurin21 / non-root**. Isolated Linux toolchain is not a system install; native PG tests must run non-root, matching GitHub hosted runner privileges.
+
+Audit found TestAuthServer already selects keytool.exe/keytool by OS. No unconditional cmd.exe/PowerShell/drive-path executable assumptions remain in active Patient Java. Windows paths in historical evidence/runbooks are documentation, not Java test execution. No test skip/exclusion or assertions weakened. UUID/domain/security/transport audit required no new production behavior patch beyond the reviewed implementation.
+
+Inherited GitHub workflow `.github/workflows/ci.yml` runs full `mvn clean compile -B`, then `mvn test -B --fail-at-end`. It does NOT execute Failsafe verify. Repository CI owner must separately approve running `mvn verify` or a Patient module verify job; shared workflow not changed in this Patient-only task. Green unit checks alone cannot replace the full293-case acceptance evidence.
+
+Full nine-module verify was attempted without exclusions and fails in Notification `AppointmentNotificationEvent.java:19`, missing AppointmentSnapshotDto. Patient PASS293 in that reactor. No whole-system/CI pass claimed. Old P-FINAL/R3 and reports29–35 remain historical evidence; final gate is report39.

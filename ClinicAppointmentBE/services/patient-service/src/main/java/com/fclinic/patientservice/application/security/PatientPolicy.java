@@ -55,9 +55,9 @@ public class PatientPolicy {
         allow(c.userRole("ROLE_DOCTOR") && c.doctorId() != null
                 && scope(() -> scopes.clinical(c,id,ClinicalAction.CREATE)));
     }
-    public void createMedical(TrustedCaller c, UUID id, long doctorId, Long appointmentId, Instant visit) {
+    public void createMedical(TrustedCaller c, UUID id, UUID doctorId, UUID appointmentId, Instant visit) {
         authenticated(c);
-        allow(c.userRole("ROLE_DOCTOR") && c.doctorId() != null && c.doctorId() == doctorId
+        allow(c.userRole("ROLE_DOCTOR") && c.doctorId() != null && c.doctorId().equals(doctorId)
                 && scope(() -> scopes.clinical(c,id,ClinicalAction.CREATE))
                 && scope(() -> scopes.validVisit(c,id,appointmentId,visit)));
     }

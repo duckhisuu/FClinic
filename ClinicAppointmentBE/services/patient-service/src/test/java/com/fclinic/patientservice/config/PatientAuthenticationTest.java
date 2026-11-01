@@ -1,4 +1,5 @@
 package com.fclinic.patientservice.config;
+import static com.fclinic.patientservice.UuidFixtures.*;
 
 import com.fclinic.patientservice.api.security.PatientAuthentication;
 import com.fclinic.patientservice.application.security.PatientPolicy;
@@ -33,11 +34,11 @@ class PatientAuthenticationTest {
         assertError(PatientError.Code.UNAUTHENTICATED,() -> interceptor.preHandle(request,new MockHttpServletResponse(),new Object()));
     }
     @Test void defaultScopeAndReferenceAdaptersFailClosed() {
-        var c=new TrustedCaller("user:demo",TrustedCaller.PrincipalType.USER,Set.of("ROLE_DOCTOR"),null,12L,null,true);
+        var c=new TrustedCaller("user:demo",TrustedCaller.PrincipalType.USER,Set.of("ROLE_DOCTOR"),null,fixture(12),null,true);
         assertThat(config.workScope().clinical(c,UUID.randomUUID())).isFalse();
         assertThat(config.workScope().search(c)).isNull();
-        assertError(PatientError.Code.DEPENDENCY_UNAVAILABLE,() -> config.doctorClient().find(12));
-        assertError(PatientError.Code.DEPENDENCY_UNAVAILABLE,() -> config.appointmentClient().find(102));
+        assertError(PatientError.Code.DEPENDENCY_UNAVAILABLE,() -> config.doctorClient().find(fixture(12)));
+        assertError(PatientError.Code.DEPENDENCY_UNAVAILABLE,() -> config.appointmentClient().find(fixture(102)));
     }
     private void assertError(PatientError.Code code,Runnable call) {
         assertThatThrownBy(call::run).isInstanceOfSatisfying(PatientError.class,e -> assertThat(e.code()).isEqualTo(code));

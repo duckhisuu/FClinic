@@ -1,3 +1,5 @@
+> HTTP+UUID isolated candidate: see [35 acceptance](docs/integration-readiness/35_PATIENT_HTTP_UUID_ACCEPTANCE.md) and [34 demo runbook](docs/integration-readiness/34_PATIENT_HTTP_UUID_DEMO_RUNBOOK.md). API `/api/v3/patients`, proposed UUID `/2` consumers and fresh `PATIENT_UUID_DB_*` are breaking changes. Historical P-FINAL/v1/provider evidence below does not verify the new target. No GitHub change is made by this candidate.
+
 # Patient Service v2
 
 **P-FINAL,26/10/2026: IMPLEMENTATION COMPLETE / CONSUMER INTEGRATION READY / REAL AUTH & SCOPE PENDING.** [Acceptance](docs/integration-readiness/19_P_FINAL_ACCEPTANCE_REPORT.md), [Auth handoff](docs/integration-readiness/16_P_FINAL_AUTH_CONSUMER_HANDOFF.md), [WorkScope handoff](docs/integration-readiness/17_P_FINAL_WORKSCOPE_HANDOFF.md), [real integration runbook](docs/integration-readiness/18_P_FINAL_REAL_INTEGRATION_RUNBOOK.md). Fresh Patient257tests and full9-module reactor SUCCESS; B-04/B-05 actual provider profiles rerun. Completion is scoped to Patient code/consumers; real Auth/scope, whole-chain/Gateway/E2E and M6 remain pending. Historical sections below retain their original results.

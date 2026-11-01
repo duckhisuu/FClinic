@@ -1,0 +1,546 @@
+{
+  "status": "PRE_EDIT_INVENTORY",
+  "baseline": "a097c67dbbbf399ec02eeb5b26b801946b7a6f41",
+  "entries": [
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/config/PatientConfiguration.java",
+      "line": 40,
+      "source": "            public boolean validVisit(TrustedCaller c, UUID p, Long a, Instant v) { return false; }"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/api/controller/PatientController.java",
+      "line": 50,
+      "source": "        long doctorId = input.positiveId(body.get(\"doctorId\"),\"doctorId\");"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/api/controller/PatientController.java",
+      "line": 51,
+      "source": "        Long appointmentId = body.get(\"appointmentId\") == null ? null : input.positiveId(body.get(\"appointmentId\"),\"appointmentId\");"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/api/dto/MedicalRecordResponse.java",
+      "line": 6,
+      "source": "public record MedicalRecordResponse(long id, UUID patientId, long doctorId, Long appointmentId, Instant visitDate,"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/api/dto/MedicalRecordResponse.java",
+      "line": 7,
+      "source": "                                    String symptoms, String diagnosis, String treatment, String notes, long version,"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/api/dto/PatientInput.java",
+      "line": 18,
+      "source": "    private static final long SAFE_ID = 9007199254740991L;"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/api/dto/PatientInput.java",
+      "line": 52,
+      "source": "    public long version(Map<String,Object> body) { return integer(body.get(\"version\"), \"version\", 0, Long.MAX_VALUE); }"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/api/dto/PatientInput.java",
+      "line": 54,
+      "source": "    public long positiveId(Object value, String field) { return integer(value, field, 1, SAFE_ID); }"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/api/dto/PatientInput.java",
+      "line": 60,
+      "source": "    public long pathId(String value, String field) {"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/api/dto/PatientInput.java",
+      "line": 62,
+      "source": "        try { return positiveId(Long.parseLong(value), field); }"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/api/dto/PatientInput.java",
+      "line": 66,
+      "source": "        int page = queryInteger(params, \"page\", 0, 0, Integer.MAX_VALUE);"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/api/dto/PatientInput.java",
+      "line": 67,
+      "source": "        int size = queryInteger(params, \"size\", 10, 1, 100);"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/api/dto/PatientInput.java",
+      "line": 78,
+      "source": "        Long appointment = medical && params.containsKey(\"appointmentId\") ? pathId(params.get(\"appointmentId\"), \"appointmentId\") : null;"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/api/dto/PatientInput.java",
+      "line": 99,
+      "source": "    private static long integer(Object value, String field, long min, long max) {"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/api/dto/PatientInput.java",
+      "line": 100,
+      "source": "        if (!(value instanceof Byte || value instanceof Short || value instanceof Integer || value instanceof Long"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/api/dto/PatientInput.java",
+      "line": 103,
+      "source": "            long number = new BigDecimal(value.toString()).longValueExact();"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/api/dto/PatientInput.java",
+      "line": 108,
+      "source": "    private static int queryInteger(Map<String,String> params, String field, int defaultValue, int min, int max) {"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/api/dto/PatientInput.java",
+      "line": 112,
+      "source": "        try { long n = Long.parseLong(value); if (n < min || n > max) throw invalid(field); return (int) n; }"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/api/dto/PatientInput.java",
+      "line": 120,
+      "source": "    private static String requiredText(Map<String,Object> body, String field, int max) { return text(body,field,true,max); }"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/api/dto/PatientInput.java",
+      "line": 121,
+      "source": "    private static String text(Map<String,Object> body, String field, boolean required, int max) {"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/api/dto/PatientResponse.java",
+      "line": 10,
+      "source": "                              LocalDate dateOfBirth, Gender gender, String address, Status status, long version,"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/api/exception/GlobalExceptionHandler.java",
+      "line": 15,
+      "source": "    public record ErrorResponse(int status, String message, Object data, String code, List<PatientError.FieldIssue> fieldErrors) { }"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/application/security/PatientPolicy.java",
+      "line": 58,
+      "source": "    public void createMedical(TrustedCaller c, UUID id, long doctorId, Long appointmentId, Instant visit) {"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/application/security/TrustedCaller.java",
+      "line": 7,
+      "source": "                            UUID patientId, Long doctorId, String serviceName, boolean active) {"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/application/usecase/PatientApplicationService.java",
+      "line": 37,
+      "source": "    public Patient replace(TrustedCaller c, UUID id, long version, ProfileData data) {"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/application/usecase/PatientApplicationService.java",
+      "line": 41,
+      "source": "    public MedicalRecord createRecord(TrustedCaller c, UUID patientId, long doctorId, Long appointmentId,"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/application/usecase/PatientApplicationService.java",
+      "line": 67,
+      "source": "    public MedicalRecord record(TrustedCaller c, UUID patientId, long recordId) {"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/application/usecase/PatientApplicationService.java",
+      "line": 73,
+      "source": "    public MedicalRecord replaceRecord(TrustedCaller c, UUID patientId, long recordId, long version,"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/application/usecase/PatientWriter.java",
+      "line": 30,
+      "source": "    public Patient replace(UUID id, long version, ProfileData data, String actor) {"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/application/usecase/PatientWriter.java",
+      "line": 43,
+      "source": "    public MedicalRecord createRecord(UUID patientId, long doctorId, Long appointmentId,"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/application/usecase/PatientWriter.java",
+      "line": 53,
+      "source": "    public MedicalRecord replaceRecord(UUID patientId, long id, long version, ClinicalData data,"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/application/usecase/PatientWriter.java",
+      "line": 54,
+      "source": "                                       String reason, String actor, long doctorId) {"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/application/port/out/AppointmentClientPort.java",
+      "line": 6,
+      "source": "    record AppointmentReference(long id, UUID patientId, long doctorId, boolean cancelled) { }"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/application/port/out/AppointmentClientPort.java",
+      "line": 7,
+      "source": "    Optional<AppointmentReference> find(long appointmentId);"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/application/port/out/DoctorClientPort.java",
+      "line": 4,
+      "source": "    record DoctorReference(long id, boolean active) { }"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/application/port/out/DoctorClientPort.java",
+      "line": 5,
+      "source": "    Optional<DoctorReference> find(long doctorId);"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/application/port/out/PatientRepositoryPort.java",
+      "line": 17,
+      "source": "    Optional<MedicalRecord> findRecord(UUID patientId, long recordId);"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/application/port/out/WorkScopePort.java",
+      "line": 18,
+      "source": "    boolean validVisit(TrustedCaller caller, UUID patientId, Long appointmentId, Instant visitDate);"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/domain/aggregate/MedicalRecord.java",
+      "line": 6,
+      "source": "public record MedicalRecord(Long id, UUID patientId, long doctorId, Long appointmentId, Instant visitDate,"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/domain/aggregate/MedicalRecord.java",
+      "line": 7,
+      "source": "                            String symptoms, String diagnosis, String treatment, String notes, long version,"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/domain/aggregate/MedicalRecord.java",
+      "line": 9,
+      "source": "    public static MedicalRecord create(UUID patientId, long doctorId, Long appointmentId,"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/domain/aggregate/Patient.java",
+      "line": 10,
+      "source": "                      LocalDate dateOfBirth, Gender gender, String address, Status status, long version,"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/domain/model/PageResult.java",
+      "line": 5,
+      "source": "public record PageResult<T>(List<T> content, int page, int size, long totalElements, int totalPages) {"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/domain/model/PatientError.java",
+      "line": 10,
+      "source": "        public final int status;"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/domain/model/PatientError.java",
+      "line": 11,
+      "source": "        Code(int status) { this.status = status; }"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/domain/model/PatientError.java",
+      "line": 27,
+      "source": "    public static void checkVersion(long expected, long actual) {"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/domain/model/SearchQuery.java",
+      "line": 2,
+      "source": "public record SearchQuery(String keyword, String phoneNumber, Long appointmentId, int page, int size,"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/JpaPatientRepositoryAdapter.java",
+      "line": 53,
+      "source": "    public Optional<MedicalRecord> findRecord(UUID patientId, long id) {"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/JpaPatientRepositoryAdapter.java",
+      "line": 83,
+      "source": "        var count = em.createQuery(\"select count(\" + alias + \") from \" + entity + \" \" + alias + where, Long.class);"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/JpaPatientRepositoryAdapter.java",
+      "line": 88,
+      "source": "        long total = count.getSingleResult();"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/JpaPatientRepositoryAdapter.java",
+      "line": 89,
+      "source": "        long offset = (long) q.page() * q.size();"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/JpaPatientRepositoryAdapter.java",
+      "line": 90,
+      "source": "        List<T> content = offset > Integer.MAX_VALUE ? List.of()"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/JpaPatientRepositoryAdapter.java",
+      "line": 91,
+      "source": "                : rows.setFirstResult((int) offset).setMaxResults(q.size()).getResultStream().map(mapper).toList();"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/JpaPatientRepositoryAdapter.java",
+      "line": 92,
+      "source": "        return new PageResult<>(content, q.page(), q.size(), total, (int) ((total + q.size() - 1) / q.size()));"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/entity/JpaMedicalRecordEntity.java",
+      "line": 14,
+      "source": "    private Long id;"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/entity/JpaMedicalRecordEntity.java",
+      "line": 18,
+      "source": "    private Long doctorId;"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/entity/JpaMedicalRecordEntity.java",
+      "line": 20,
+      "source": "    private Long appointmentId;"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/entity/JpaMedicalRecordEntity.java",
+      "line": 32,
+      "source": "    private Long version;"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/entity/JpaMedicalRevisionEntity.java",
+      "line": 14,
+      "source": "    private Long id;"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/entity/JpaMedicalRevisionEntity.java",
+      "line": 16,
+      "source": "    private Long medicalRecordId;"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/entity/JpaMedicalRevisionEntity.java",
+      "line": 18,
+      "source": "    private long entityVersion;"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/entity/JpaPatientEntity.java",
+      "line": 16,
+      "source": "    private Long legacyPatientId;"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/entity/JpaPatientEntity.java",
+      "line": 34,
+      "source": "    private Long version;"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/entity/JpaPatientRevisionEntity.java",
+      "line": 14,
+      "source": "    private Long id;"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/entity/JpaPatientRevisionEntity.java",
+      "line": 18,
+      "source": "    private long entityVersion;"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/identity/IdentitySettings.java",
+      "line": 19,
+      "source": "        @DefaultValue(\"65536\") int maxResponseBytes,"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/identity/IdentitySettings.java",
+      "line": 20,
+      "source": "        @DefaultValue(\"32\") int maxConcurrentRequests,"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/identity/IntrospectionDecoder.java",
+      "line": 21,
+      "source": "    private static final long MAX_ID = 9007199254740991L;"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/identity/IntrospectionDecoder.java",
+      "line": 45,
+      "source": "            long expiry = integer(root.path(\"exp\"), false);"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/identity/IntrospectionDecoder.java",
+      "line": 51,
+      "source": "            Long userId = nullableId(root.path(\"userId\"));"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/identity/IntrospectionDecoder.java",
+      "line": 52,
+      "source": "            Long doctorId = nullableId(root.path(\"doctorId\"));"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/identity/IntrospectionDecoder.java",
+      "line": 90,
+      "source": "    private static Long nullableId(JsonNode n) { return n.isNull() ? null : integer(n, true); }"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/identity/IntrospectionDecoder.java",
+      "line": 91,
+      "source": "    private static long integer(JsonNode n, boolean positive) {"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/identity/IntrospectionDecoder.java",
+      "line": 93,
+      "source": "        long v = n.longValue();"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/identity/IntrospectionDecoder.java",
+      "line": 97,
+      "source": "    private static String text(JsonNode root, String field, int max) { return value(root.path(field), max); }"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/identity/IntrospectionDecoder.java",
+      "line": 98,
+      "source": "    private static String value(JsonNode n, int max) {"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/identity/IntrospectionIdentityVerifier.java",
+      "line": 98,
+      "source": "        private final int maximum;"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/identity/IntrospectionIdentityVerifier.java",
+      "line": 100,
+      "source": "        LimitedBody(int maximum) { this.maximum = maximum; }"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/reference/AppointmentReferenceDecoder.java",
+      "line": 11,
+      "source": "    public Optional<AppointmentReference> decode(int status,byte[] bytes,long requestedId) {"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/reference/AppointmentReferenceDecoder.java",
+      "line": 17,
+      "source": "            long id=id(data.path(\"id\")); check(id==requestedId);"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/reference/AppointmentReferenceDecoder.java",
+      "line": 21,
+      "source": "            long doctorId=id(data.path(\"doctorId\"));"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/reference/DoctorReferenceDecoder.java",
+      "line": 11,
+      "source": "    public Optional<DoctorReference> decode(int status,byte[] bytes,long requestedId) {"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/reference/DoctorReferenceDecoder.java",
+      "line": 16,
+      "source": "            object(data,FIELDS); long id=id(data.path(\"id\")); check(id==requestedId);"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/reference/ReferenceHttpClient.java",
+      "line": 26,
+      "source": "    public record Response(int status,byte[] body) { }"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/reference/ReferenceHttpClient.java",
+      "line": 44,
+      "source": "    public Response get(long id) {"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/reference/ReferenceHttpClient.java",
+      "line": 49,
+      "source": "            URI uri=URI.create(settings.collectionUri().toASCIIString()+\"/\"+Long.toString(id)+profile.suffix);"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/reference/ReferenceHttpClient.java",
+      "line": 81,
+      "source": "        private final int max;"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/reference/ReferenceHttpClient.java",
+      "line": 83,
+      "source": "        LimitedBody(int max) { this.max=max; }"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/reference/ReferenceJson.java",
+      "line": 13,
+      "source": "    static final long MAX_ID=9007199254740991L;"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/reference/ReferenceJson.java",
+      "line": 24,
+      "source": "    static long id(JsonNode n) {"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/reference/ReferenceJson.java",
+      "line": 25,
+      "source": "        check(n.isIntegralNumber() && n.canConvertToLong()); long id=n.longValue(); requireId(id); return id;"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/reference/ReferenceJson.java",
+      "line": 27,
+      "source": "    static void requireId(long id) { check(id>0 && id<=MAX_ID); }"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/reference/ReferenceJson.java",
+      "line": 32,
+      "source": "    static JsonNode body(int httpStatus,byte[] bytes,String missingCode) {"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/reference/ReferenceJson.java",
+      "line": 43,
+      "source": "    private static void status(JsonNode root,int expected) {"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/reference/ReferenceSettings.java",
+      "line": 13,
+      "source": "            @DefaultValue(\"65536\") int maxResponseBytes, @DefaultValue(\"16\") int maxConcurrentRequests,"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/reference/RemoteAppointmentClientAdapter.java",
+      "line": 12,
+      "source": "    public Optional<AppointmentReference> find(long id) {"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/reference/RemoteDoctorClientAdapter.java",
+      "line": 12,
+      "source": "    public Optional<DoctorReference> find(long id) {"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/scope/RemoteWorkScopeAdapter.java",
+      "line": 44,
+      "source": "    public boolean validVisit(TrustedCaller c,UUID id,Long appointmentId,Instant visitDate) {"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/scope/RemoteWorkScopeAdapter.java",
+      "line": 59,
+      "source": "                                               UUID patient,Long appointment,Instant visit) {"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/scope/ScopeAuthorityClient.java",
+      "line": 69,
+      "source": "        private final int max;"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/scope/ScopeAuthorityClient.java",
+      "line": 71,
+      "source": "        LimitedBody(int max) { this.max=max; }"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/scope/ScopeDecisionDecoder.java",
+      "line": 25,
+      "source": "    public Decision decode(byte[] bytes,ScopeQuery query,int maxPatients) {"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/scope/ScopeDecisionDecoder.java",
+      "line": 66,
+      "source": "    private static String text(JsonNode n,int max) {"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/scope/ScopeQuery.java",
+      "line": 11,
+      "source": "                         Operation operation, Caller caller, UUID patientId, Long appointmentId, Instant visitDate) {"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/scope/ScopeQuery.java",
+      "line": 21,
+      "source": "                         Long doctorId, String serviceName) {"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/scope/ScopeQuery.java",
+      "line": 25,
+      "source": "                                    Long appointment,Instant visit,Instant now) {"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/scope/ScopeSettings.java",
+      "line": 13,
+      "source": "            @DefaultValue(\"262144\") int maxResponseBytes, @DefaultValue(\"32\") int maxConcurrentRequests,"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/scope/ScopeSettings.java",
+      "line": 14,
+      "source": "            @DefaultValue(\"1000\") int maxSearchPatients, Path trustStore, String trustStorePassword) {"
+    }
+  ]
+}

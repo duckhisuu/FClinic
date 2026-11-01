@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:fclinic:patient:proposed:patient-appointment-medical-reference-v2-proposed.schema",
+  "title": "PROPOSED HTTP loopback / UUIDv4 reference v2 \u2014 owner approval pending",
+  "x-http": {
+    "method": "GET",
+    "candidate": "/internal/v1/appointments/{id}/medical-reference",
+    "requiredResponseHeader": {
+      "X-FClinic-Reference-Contract": "patient-appointment-medical-reference/2"
+    },
+    "contentType": "application/json",
+    "authentication": "Dedicated backend Basic over loopback HTTP or verified HTTPS; no human bearer"
+  },
+  "oneOf": [
+    {
+      "type": "object",
+      "properties": {
+        "status": {
+          "const": 200
+        },
+        "message": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "data": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "patientId": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "doctorId": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "status": {
+              "enum": [
+                "CONFIRMED",
+                "CANCELLED",
+                "COMPLETED",
+                "NO_SHOW"
+              ]
+            }
+          },
+          "required": [
+            "id",
+            "patientId",
+            "doctorId",
+            "status"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "status",
+        "message",
+        "data"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "status": {
+          "const": 404
+        },
+        "message": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "data": {
+          "type": "null"
+        },
+        "code": {
+          "const": "APPOINTMENT_NOT_FOUND"
+        },
+        "fieldErrors": {
+          "type": "array",
+          "maxItems": 0
+        }
+      },
+      "required": [
+        "status",
+        "message",
+        "data",
+        "code",
+        "fieldErrors"
+      ],
+      "additionalProperties": false
+    }
+  ]
+}

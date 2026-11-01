@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v2/patients")
+@RequestMapping("/api/v3/patients")
 public class PatientController {
     private final PatientApplicationService service;
     private final PatientPolicy policy;
@@ -47,8 +47,8 @@ public class PatientController {
                                            @RequestBody Map<String,Object> body) {
         UUID id = input.uuid(patientId,"patientId"); policy.prepareCreateMedical(c,id);
         var data = input.clinical(body,false);
-        long doctorId = input.positiveId(body.get("doctorId"),"doctorId");
-        Long appointmentId = body.get("appointmentId") == null ? null : input.positiveId(body.get("appointmentId"),"appointmentId");
+        UUID doctorId = input.uuid(body.get("doctorId"),"doctorId");
+        UUID appointmentId = body.get("appointmentId") == null ? null : input.uuid(body.get("appointmentId"),"appointmentId");
         return ResponseEntity.status(201).body(ApiResponse.success(201,"Created",
                 MedicalRecordResponse.from(service.createRecord(c,id,doctorId,appointmentId,data))));
     }
@@ -62,14 +62,14 @@ public class PatientController {
     public Object record(@RequestAttribute("patientCaller") TrustedCaller c, @PathVariable String patientId,
                          @PathVariable String recordId) {
         return ApiResponse.success(MedicalRecordResponse.from(
-                service.record(c,input.uuid(patientId,"patientId"),input.pathId(recordId,"recordId"))));
+                service.record(c,input.uuid(patientId,"patientId"),input.uuid(recordId,"recordId"))));
     }
     @PutMapping("/{patientId}/medical-records/{recordId}")
     public Object replaceRecord(@RequestAttribute("patientCaller") TrustedCaller c, @PathVariable String patientId,
                                  @PathVariable String recordId, @RequestBody Map<String,Object> body) {
         UUID id = input.uuid(patientId,"patientId"); policy.editMedical(c,id);
         var data = input.clinical(body,true);
-        return ApiResponse.success(MedicalRecordResponse.from(service.replaceRecord(c,id,input.pathId(recordId,"recordId"),
+        return ApiResponse.success(MedicalRecordResponse.from(service.replaceRecord(c,id,input.uuid(recordId,"recordId"),
                 input.version(body),data,input.reason(body))));
     }
 }

@@ -12,8 +12,6 @@ import java.util.UUID;
 public class JpaPatientEntity {
     @Id
     private UUID id;
-    @Column(name="legacy_patient_id")
-    private Long legacyPatientId;
     @Column(name="patient_code", nullable=false, unique=true, length=40)
     private String patientCode;
     @Column(name="full_name", nullable=false, length=255)

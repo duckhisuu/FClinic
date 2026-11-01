@@ -1,4 +1,5 @@
 package com.fclinic.patientservice.reference;
+import static com.fclinic.patientservice.UuidFixtures.*;
 
 import com.fclinic.patientservice.application.port.out.*;
 import com.fclinic.patientservice.infrastructure.adapter.reference.*;
@@ -35,7 +36,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-/** Actual Patient TCP, all FOUR production ports, five independent upstream HTTPS doubles, fresh PostgreSQL16.10. */
+/** Actual Patient TCP, all FOUR production ports, HTTP reference doubles and HTTPS Auth/Scope doubles, fresh PostgreSQL16.10. */
 @SpringBootTest(webEnvironment=SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties={"eureka.client.enabled=false","spring.cloud.discovery.enabled=false","server.address=127.0.0.1"})
 @Import(PatientReferenceTcpIT.FixedClock.class)
@@ -43,8 +44,8 @@ import static org.mockito.Mockito.*;
 class PatientReferenceTcpIT {
     static final TestAuthServer AUTH=new TestAuthServer();
     static final TestScopeServer ADMIN=new TestScopeServer(), CLINICAL=new TestScopeServer();
-    static final TestReferenceServer DOC=new TestReferenceServer(ReferenceHttpClient.Profile.DOCTOR);
-    static final TestReferenceServer APT=new TestReferenceServer(ReferenceHttpClient.Profile.APPOINTMENT);
+    static final TestReferenceServer DOC=new TestReferenceServer(ReferenceHttpClient.Profile.DOCTOR,true);
+    static final TestReferenceServer APT=new TestReferenceServer(ReferenceHttpClient.Profile.APPOINTMENT,true);
     static final EmbeddedPostgres PG=startPostgres();
     static final HttpClient HTTP=HttpClient.newHttpClient();
     static final List<String> EVENTS=new CopyOnWriteArrayList<>();
@@ -71,8 +72,6 @@ class PatientReferenceTcpIT {
             String prefix="patient.reference."+(provider==DOC?"doctor":"appointment")+".";
             r.add(prefix+"enabled",() -> true); r.add(prefix+"collection-uri",provider::collectionUri);
             r.add(prefix+"client-id",() -> provider.clientId); r.add(prefix+"client-secret",() -> provider.secret);
-            r.add(prefix+"trust-store",() -> TestAuthServer.TLS.store);
-            r.add(prefix+"trust-store-password",() -> TestAuthServer.TLS.password);
         }
     }
     @TestConfiguration static class FixedClock { @Bean @Primary Clock referenceClock() { return CLOCK; } }
@@ -99,8 +98,8 @@ class PatientReferenceTcpIT {
                 ScopeFixtures.bytes(ScopeFixtures.grant(q,Set.of()))); };
         DOC.rejectAuthentication=false; APT.rejectAuthentication=false;
         DOC.handler=id -> { EVENTS.add("DOCTOR"); return DOC.json(200,doctor(id,true)); };
-        APT.handler=id -> { EVENTS.add("APPOINTMENT"); return APT.json(200,appointment(id,own,12,"CONFIRMED")); };
-        var profile=request("POST","/api/v2/patients","staff",profile());
+        APT.handler=id -> { EVENTS.add("APPOINTMENT"); return APT.json(200,appointment(id,own,fixture(12),"CONFIRMED")); };
+        var profile=request("POST","/api/v3/patients","staff",profile());
         assertThat(profile.statusCode()).as(profile.body()).isEqualTo(201);
         own=UUID.fromString(json(profile).at("/data/id").asText());
         EVENTS.clear(); DOC.requests.clear(); APT.requests.clear(); DOC.calls.set(0); APT.calls.set(0);
@@ -112,12 +111,12 @@ class PatientReferenceTcpIT {
 
     @ParameterizedTest @ValueSource(strings={"CONFIRMED","COMPLETED","NO_SHOW"})
     void linkedCreateAcceptsEachSelectedNonCancelledStatusWithoutCompletionMutation(String status) {
-        APT.handler=id -> { EVENTS.add("APPOINTMENT"); return APT.json(200,appointment(id,own,12,status)); };
-        var created=request("POST",records(),"doctor",medical(102L));
+        APT.handler=id -> { EVENTS.add("APPOINTMENT"); return APT.json(200,appointment(id,own,fixture(12),status)); };
+        var created=request("POST",records(),"doctor",medical(fixture(102)));
         assertThat(created.statusCode()).as(created.body()).isEqualTo(201);
         assertThat(json(created).at("/data/patientId").asText()).isEqualTo(own.toString());
-        assertThat(json(created).at("/data/doctorId").asLong()).isEqualTo(12);
-        assertThat(json(created).at("/data/appointmentId").asLong()).isEqualTo(102);
+        assertThat(UUID.fromString(json(created).at("/data/doctorId").asText())).isEqualTo(fixture(12));
+        assertThat(UUID.fromString(json(created).at("/data/appointmentId").asText())).isEqualTo(fixture(102));
         assertThat(json(created).at("/data/visitDate").asText()).isEqualTo("2026-10-20T02:00:00Z");
         assertThat(EVENTS).containsSubsequence("IDENTITY","CLINICAL:MEDICAL_CREATE","CLINICAL:VALID_VISIT","DOCTOR","APPOINTMENT");
         assertCounts(1,1,1,1); assertThat(DOC.requests).hasSize(1); assertThat(APT.requests).hasSize(1);
@@ -135,79 +134,79 @@ class PatientReferenceTcpIT {
     @ParameterizedTest @ValueSource(strings={"MISSING","INACTIVE"})
     void doctorBusinessFailuresAre422AndStopBeforeAppointment(String mode) {
         DOC.handler=id -> mode.equals("MISSING")?DOC.json(404,missing("DOCTOR_NOT_FOUND")):DOC.json(200,doctor(id,false));
-        var before=snapshot(); expect(request("POST",records(),"doctor",medical(102L)),422,"REFERENCE_MISMATCH");
+        var before=snapshot(); expect(request("POST",records(),"doctor",medical(fixture(102))),422,"REFERENCE_MISMATCH");
         assertThat(snapshot()).isEqualTo(before); assertThat(APT.calls.get()).isZero();
     }
     @Test void wrongDoctorIdentityOrMalformedActiveIsTechnical503() {
         var before=snapshot();
         for(String mode:List.of("wrong-id","active-missing","active-null")) {
             DOC.handler=id -> {
-                var body=doctor(mode.equals("wrong-id")?13:id,true);
+                var body=doctor(mode.equals("wrong-id")?fixture(13):id,true);
                 if(mode.equals("active-missing")) data(body).remove("active");
                 if(mode.equals("active-null")) data(body).put("active",null);
                 return DOC.json(200,body);
             };
-            expect(request("POST",records(),"doctor",medical(102L)),503,"DEPENDENCY_UNAVAILABLE");
+            expect(request("POST",records(),"doctor",medical(fixture(102))),503,"DEPENDENCY_UNAVAILABLE");
         }
         assertThat(snapshot()).isEqualTo(before); assertThat(APT.calls.get()).isZero();
     }
     @ParameterizedTest @ValueSource(strings={"MISSING","CANCELLED"})
     void missingOrCancelledAppointmentIs422(String mode) {
         APT.handler=id -> mode.equals("MISSING")?APT.json(404,missing("APPOINTMENT_NOT_FOUND")):
-                APT.json(200,appointment(id,own,12,"CANCELLED"));
-        var before=snapshot(); expect(request("POST",records(),"doctor",medical(102L)),422,"REFERENCE_MISMATCH");
+                APT.json(200,appointment(id,own,fixture(12),"CANCELLED"));
+        var before=snapshot(); expect(request("POST",records(),"doctor",medical(fixture(102))),422,"REFERENCE_MISMATCH");
         assertThat(snapshot()).isEqualTo(before); assertThat(DOC.calls.get()).isEqualTo(1);
     }
     @ParameterizedTest @ValueSource(strings={"PATIENT","DOCTOR"})
     void wellFormedReferencePatientOrDoctorMismatchIs422(String mode) {
-        APT.handler=id -> APT.json(200,appointment(id,mode.equals("PATIENT")?UUID.randomUUID():own,mode.equals("DOCTOR")?13:12,"CONFIRMED"));
-        var before=snapshot(); expect(request("POST",records(),"doctor",medical(102L)),422,"REFERENCE_MISMATCH");
+        APT.handler=id -> APT.json(200,appointment(id,mode.equals("PATIENT")?UUID.randomUUID():own,mode.equals("DOCTOR")?fixture(13):fixture(12),"CONFIRMED"));
+        var before=snapshot(); expect(request("POST",records(),"doctor",medical(fixture(102))),422,"REFERENCE_MISMATCH");
         assertThat(snapshot()).isEqualTo(before);
     }
     @Test void unknownAppointmentStatusIs503NeverDefaultedToAllowed() {
-        APT.handler=id -> APT.json(200,appointment(id,own,12,"PENDING"));
-        var before=snapshot(); expect(request("POST",records(),"doctor",medical(102L)),503,"DEPENDENCY_UNAVAILABLE");
+        APT.handler=id -> APT.json(200,appointment(id,own,fixture(12),"PENDING"));
+        var before=snapshot(); expect(request("POST",records(),"doctor",medical(fixture(102))),503,"DEPENDENCY_UNAVAILABLE");
         assertThat(snapshot()).isEqualTo(before);
     }
     @Test void wrongAppointmentIdAndLegacyUnmarked404Are503() {
         var before=snapshot();
-        APT.handler=id -> APT.json(200,appointment(103,own,12,"CONFIRMED"));
-        expect(request("POST",records(),"doctor",medical(102L)),503,"DEPENDENCY_UNAVAILABLE");
+        APT.handler=id -> APT.json(200,appointment(fixture(103),own,fixture(12),"CONFIRMED"));
+        expect(request("POST",records(),"doctor",medical(fixture(102))),503,"DEPENDENCY_UNAVAILABLE");
         APT.handler=id -> new TestReferenceServer.Reply(404,"application/json",null,bytes(missing("APPOINTMENT_NOT_FOUND")),null);
-        expect(request("POST",records(),"doctor",medical(102L)),503,"DEPENDENCY_UNAVAILABLE");
+        expect(request("POST",records(),"doctor",medical(fixture(102))),503,"DEPENDENCY_UNAVAILABLE");
         assertThat(snapshot()).isEqualTo(before);
     }
     @ParameterizedTest @ValueSource(strings={"DOCTOR","APPOINTMENT"})
     void machineCredentialDenialIs503NotHuman401AndHasNoWrite(String kind) {
         (kind.equals("DOCTOR")?DOC:APT).rejectAuthentication=true;
-        var before=snapshot(); var response=request("POST",records(),"doctor",medical(102L));
+        var before=snapshot(); var response=request("POST",records(),"doctor",medical(fixture(102)));
         expect(response,503,"DEPENDENCY_UNAVAILABLE"); privateError(response);
         assertThat(snapshot()).isEqualTo(before);
     }
     @Test void provider5xxDoesNotBecomeBusinessMissingAndNoReferenceCacheHidesOutage() {
         var before=snapshot();
         DOC.handler=id -> DOC.json(503,missing("DOCTOR_NOT_FOUND"));
-        expect(request("POST",records(),"doctor",medical(102L)),503,"DEPENDENCY_UNAVAILABLE");
+        expect(request("POST",records(),"doctor",medical(fixture(102))),503,"DEPENDENCY_UNAVAILABLE");
         DOC.handler=id -> DOC.json(200,doctor(id,true)); APT.handler=id -> APT.json(503,missing("APPOINTMENT_NOT_FOUND"));
-        expect(request("POST",records(),"doctor",medical(102L)),503,"DEPENDENCY_UNAVAILABLE");
+        expect(request("POST",records(),"doctor",medical(fixture(102))),503,"DEPENDENCY_UNAVAILABLE");
         assertThat(snapshot()).isEqualTo(before);
     }
     @ParameterizedTest @ValueSource(strings={"MEDICAL_CREATE","VALID_VISIT"})
     void clinicalScopeDenialPrecedesReferencesAndMutation(String operation) {
         CLINICAL.handler=(kind,q) -> TestAuthServer.Reply.json(200,ScopeFixtures.bytes(
                 operation.equals(q.get("operation"))?ScopeFixtures.deny(q):ScopeFixtures.grant(q,Set.of())));
-        var before=snapshot(); expect(request("POST",records(),"doctor",medical(102L)),403,"FORBIDDEN");
+        var before=snapshot(); expect(request("POST",records(),"doctor",medical(fixture(102))),403,"FORBIDDEN");
         assertThat(DOC.calls.get()).isZero(); assertThat(APT.calls.get()).isZero(); assertThat(snapshot()).isEqualTo(before);
     }
     @Test void bodyDoctorSpoofCannotInvokeReferenceProviders() {
-        var wrong=medical(102L); wrong.put("doctorId",13);
+        var wrong=medical(fixture(102)); wrong.put("doctorId",fixture(13).toString());
         var before=snapshot(); expect(request("POST",records(),"doctor",wrong),403,"FORBIDDEN");
         assertThat(DOC.calls.get()).isZero(); assertThat(APT.calls.get()).isZero(); assertThat(snapshot()).isEqualTo(before);
     }
     @Test void inactiveParentRemainsFinalLocalWriteGuardAfterValidReferences() {
         var replace=new LinkedHashMap<>(profile()); replace.put("gender","UNKNOWN"); replace.put("status","INACTIVE"); replace.put("version",0);
-        assertThat(request("PUT","/api/v2/patients/"+own,"staff",replace).statusCode()).isEqualTo(200);
-        var before=snapshot(); expect(request("POST",records(),"doctor",medical(102L)),409,"PATIENT_INACTIVE");
+        assertThat(request("PUT","/api/v3/patients/"+own,"staff",replace).statusCode()).isEqualTo(200);
+        var before=snapshot(); expect(request("POST",records(),"doctor",medical(fixture(102))),409,"PATIENT_INACTIVE");
         assertThat(snapshot()).isEqualTo(before); assertThat(APT.calls.get()).isEqualTo(1);
     }
     @Test void concurrentLinkedCreatesYield201And409WithOneRecordRevisionAndNoOrphan() throws Exception {
@@ -215,11 +214,11 @@ class PatientReferenceTcpIT {
         APT.handler=id -> {
             try { barrier.await(10,TimeUnit.SECONDS); }
             catch(Exception e) { throw new IllegalStateException("test reference barrier",e); }
-            return APT.json(200,appointment(id,own,12,"CONFIRMED"));
+            return APT.json(200,appointment(id,own,fixture(12),"CONFIRMED"));
         };
         try(var pool=Executors.newFixedThreadPool(2)) {
-            var a=pool.submit(() -> request("POST",records(),"doctor",medical(102L)));
-            var b=pool.submit(() -> request("POST",records(),"doctor",medical(102L)));
+            var a=pool.submit(() -> request("POST",records(),"doctor",medical(fixture(102))));
+            var b=pool.submit(() -> request("POST",records(),"doctor",medical(fixture(102))));
             var x=a.get(15,TimeUnit.SECONDS); var y=b.get(15,TimeUnit.SECONDS);
             assertThat(List.of(x.statusCode(),y.statusCode())).containsExactlyInAnyOrder(201,409);
             expect(x.statusCode()==409?x:y,409,"APPOINTMENT_RECORD_EXISTS");
@@ -230,14 +229,14 @@ class PatientReferenceTcpIT {
     }
     @Test void revisionFailureAfterAllRealAdapterLookupsRollsBackMedicalDataAndAudit() {
         doThrow(new IllegalStateException("test-only private revision fault")).when(revisionSpy).medical(isNull(),any(),isNull());
-        var before=snapshot(); var response=request("POST",records(),"doctor",medical(102L));
+        var before=snapshot(); var response=request("POST",records(),"doctor",medical(fixture(102)));
         expect(response,500,"INTERNAL_SERVER_ERROR"); privateError(response);
         assertThat(snapshot()).isEqualTo(before); assertThat(APT.calls.get()).isEqualTo(1);
     }
     @Test void medicalPutDoesNotRevalidateImmutableExternalReferences() {
         var created=request("POST",records(),"doctor",medical(null));
         assertThat(created.statusCode()).isEqualTo(201);
-        long id=json(created).at("/data/id").asLong();
+        UUID id=UUID.fromString(json(created).at("/data/id").asText());
         DOC.rejectAuthentication=true; APT.rejectAuthentication=true;
         var body=medical(null); body.remove("doctorId"); body.remove("appointmentId"); body.put("version",0); body.put("changeReason","Synthetic review");
         var result=request("PUT",records()+"/"+id,"doctor",body);
@@ -250,12 +249,12 @@ class PatientReferenceTcpIT {
         EVENTS.add("IDENTITY"); var data=IdentityFixtures.user(); data.put("patientId",null);
         switch(token) {
             case "staff" -> { data.put("sub","opaque-staff-fixture"); data.put("authorities",List.of("ROLE_STAFF")); }
-            case "doctor" -> { data.put("sub","opaque-doctor-fixture"); data.put("doctorId",12); data.put("authorities",List.of("ROLE_DOCTOR")); }
+            case "doctor" -> { data.put("sub","opaque-doctor-fixture"); data.put("doctorId",fixture(12).toString()); data.put("authorities",List.of("ROLE_DOCTOR")); }
             default -> { return TestAuthServer.Reply.json(200,bytes(Map.of("active",false))); }
         }
         return TestAuthServer.Reply.json(200,bytes(data));
     }
-    private String records() { return "/api/v2/patients/"+own+"/medical-records"; }
+    private String records() { return "/api/v3/patients/"+own+"/medical-records"; }
     private HttpResponse<String> request(String method,String path,String token,Map<String,Object> body) {
         try {
             var builder=HttpRequest.newBuilder(URI.create("http://127.0.0.1:"+port+path)).timeout(Duration.ofSeconds(20))
@@ -288,8 +287,8 @@ class PatientReferenceTcpIT {
                 jdbc.queryForObject("select coalesce(sum(version),0) from medical_records",Long.class));
     }
     private static Map<String,Object> profile() { return Map.of("fullName","Reference synthetic","phoneNumber","0900000001"); }
-    private static Map<String,Object> medical(Long appointment) {
-        var data=new LinkedHashMap<String,Object>(Map.of("doctorId",12,"visitDate","2026-10-20T02:00:00Z",
+    private static Map<String,Object> medical(UUID appointment) {
+        var data=new LinkedHashMap<String,Object>(Map.of("doctorId",fixture(12).toString(),"visitDate","2026-10-20T02:00:00Z",
                 "symptoms","Synthetic symptoms","diagnosis","Synthetic diagnosis"));
         data.put("appointmentId",appointment); return data;
     }
@@ -300,7 +299,7 @@ class PatientReferenceTcpIT {
                     .setOverrideWorkingDirectory(root.resolve("binaries").toFile()).setCleanDataDirectory(true)
                     .setServerConfig("listen_addresses","127.0.0.1").setServerConfig("timezone","UTC")
                     .setServerConfig("log_min_error_statement","panic").start();
-            try { new ResourceDatabasePopulator(new ClassPathResource("db/schema/V001__patient_v2_empty.sql"))
+            try { new ResourceDatabasePopulator(new ClassPathResource("db/schema/uuid/V001__patient_uuid_empty.sql"))
                     .execute(pg.getPostgresDatabase()); return pg; }
             catch(Throwable e) { pg.close(); throw e; }
         } catch(Exception e) { throw new ExceptionInInitializerError(e); }

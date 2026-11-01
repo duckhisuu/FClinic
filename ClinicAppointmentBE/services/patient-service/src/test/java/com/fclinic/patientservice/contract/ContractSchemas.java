@@ -1,4 +1,5 @@
 package com.fclinic.patientservice.contract;
+import static com.fclinic.patientservice.UuidFixtures.*;
 
 import com.networknt.schema.*;
 import com.networknt.schema.dialect.Dialects;
@@ -8,7 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/** Test-only Draft2020-12 assertions; never include instance values in failure reports. */
+/** Test-only Draft2020-fixture(12) assertions; never include instance values in failure reports. */
 public final class ContractSchemas {
     private static final JsonMapper JSON=JsonMapper.builder().build();
     private static final SchemaRegistry REGISTRY=SchemaRegistry.withDialect(Dialects.getDraft202012());
@@ -16,7 +17,7 @@ public final class ContractSchemas {
     private ContractSchemas() { }
     public static void patient(JsonNode body,String name) {
         var schema=SCHEMAS.computeIfAbsent(name,key -> {
-            var document=JSON.readTree(resource("patient.openapi.json"));
+            var document=JSON.readTree(resource("patient.uuid-proposed.openapi.json"));
             var root=JSON.createObjectNode();
             root.set("$defs",document.at("/components/schemas"));
             root.put("$ref","#/$defs/"+key);
@@ -25,7 +26,7 @@ public final class ContractSchemas {
         validate(schema,body);
     }
     public static void reference(byte[] body,boolean doctor) {
-        String file=doctor?"patient-doctor-reference-v1.schema.json":"patient-appointment-medical-reference-v1.schema.json";
+        String file=doctor?"patient-doctor-reference-v2-proposed.schema.json":"patient-appointment-medical-reference-v2-proposed.schema.json";
         var schema=SCHEMAS.computeIfAbsent(file,key -> REGISTRY.getSchema(resource(key),InputFormat.JSON));
         validate(schema,JSON.readTree(body));
     }

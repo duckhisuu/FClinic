@@ -1,4 +1,4 @@
-# PROJECT_DECIDED patient-work-scope/1. Explicit deployment opt-in; no default endpoint/credential.
+# PROPOSED patient-work-scope/2 UUID; WorkScope owner approval pending. Explicit deployment opt-in; no default endpoint/credential.
 patient:
   scope:
     enabled: true

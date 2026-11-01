@@ -10,7 +10,7 @@ import static org.assertj.core.api.Assertions.*;
 class PatientProviderContractTest {
     @Test void allEightRuntimeMappingsEqualCanonicalPathsAndMethods() throws Exception {
         var json=JsonMapper.builder().build();
-        try(var in=getClass().getResourceAsStream("/contracts/patient.openapi.json")) {
+        try(var in=getClass().getResourceAsStream("/contracts/patient.uuid-proposed.openapi.json")) {
             var paths=json.readTree(in).path("paths");
             Set<String> canonical=new TreeSet<>(), actual=new TreeSet<>();
             paths.properties().forEach(path -> path.getValue().properties().forEach(op -> {
@@ -48,6 +48,17 @@ class PatientProviderContractTest {
         assertThatThrownBy(() -> ContractSchemas.patient(changed,"Patient")).isInstanceOf(AssertionError.class);
         changed.put("fullName","Synthetic");changed.put("dateOfBirth","2026-99-99");
         assertThatThrownBy(() -> ContractSchemas.patient(changed,"Patient")).isInstanceOf(AssertionError.class);
+    }
+    @Test void proposedUuidReferenceSchemasAcceptGoldenFixturesAndRejectNumericIds() throws Exception {
+        var json=JsonMapper.builder().build();
+        for(boolean doctor:new boolean[]{true,false}) {
+            String file=doctor?"patient-doctor-reference-v2.golden.json":"patient-appointment-reference-v2.golden.json";
+            byte[] golden=java.nio.file.Files.readAllBytes(java.nio.file.Path.of("docs/integration-readiness/contracts",file));
+            ContractSchemas.reference(golden,doctor);
+            var body=(tools.jackson.databind.node.ObjectNode)json.readTree(golden);
+            ((tools.jackson.databind.node.ObjectNode)body.path("data")).put("id",12);
+            assertThatThrownBy(() -> ContractSchemas.reference(json.writeValueAsBytes(body),doctor)).isInstanceOf(AssertionError.class);
+        }
     }
     private static void add(Set<String> out,String verb,String root,String[] suffix) {
         out.add(verb+" "+root+(suffix.length==0?"":suffix[0]));
