@@ -1,4 +1,5 @@
 package com.fclinic.patientservice.scope;
+import static com.fclinic.patientservice.UuidFixtures.*;
 
 import com.fclinic.patientservice.infrastructure.adapter.scope.*;
 import com.fclinic.patientservice.application.port.out.WorkScopePort;
@@ -24,7 +25,7 @@ class ScopeAdapterTest {
         assertThat(adapter.clinical(DOCTOR,PATIENT,ClinicalAction.READ)).isTrue();
         assertThat(server.adminCalls.get()).isEqualTo(2); assertThat(server.clinicalCalls.get()).isEqualTo(1);
         assertThat(server.requests.get(2).get("operation")).isEqualTo("MEDICAL_READ");
-        assertThat(nested(server.requests.get(2),"caller").get("doctorId").toString()).isEqualTo("12");
+        assertThat(nested(server.requests.get(2),"caller").get("doctorId").toString()).isEqualTo(fixture(12).toString());
         assertThat(adapter.receptionist(DOCTOR)).isFalse();
     }
     @Test void roleAloneDoesNotGrantAndSearchNullEmptyBoundedStayDistinct() {
@@ -37,9 +38,9 @@ class ScopeAdapterTest {
         assertThat(adapter.search(DOCTOR,SearchAction.CLINICAL).patientIds()).containsExactly(PATIENT);
     }
     @Test void linkedAndWalkInBothRequireVisitAuthorityAndNoPositiveCache() {
-        assertThat(adapter.validVisit(DOCTOR,PATIENT,102L,CLOCK.instant())).isTrue();
+        assertThat(adapter.validVisit(DOCTOR,PATIENT,fixture(102),CLOCK.instant())).isTrue();
         assertThat(adapter.validVisit(DOCTOR,PATIENT,null,CLOCK.instant())).isTrue();
-        assertThat(server.requests.get(0).get("appointmentId").toString()).isEqualTo("102");
+        assertThat(server.requests.get(0).get("appointmentId").toString()).isEqualTo(fixture(102).toString());
         assertThat(server.requests.get(1).get("appointmentId")).isNull();
         assertThat(nested(server.requests.get(1),"caller").get("subject")).isEqualTo(DOCTOR.subject());
         server.handler=(kind,request) -> TestAuthServer.Reply.json(200,bytes(deny(request)));

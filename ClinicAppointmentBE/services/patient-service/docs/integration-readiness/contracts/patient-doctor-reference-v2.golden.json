@@ -1,0 +1,17 @@
+{
+  "status": 200,
+  "message": "Success",
+  "data": {
+    "id": "550e8400-e29b-41d4-a716-446655440001",
+    "name": "Synthetic Doctor",
+    "specialty": "Synthetic specialty",
+    "department": "Synthetic department",
+    "qualification": null,
+    "experienceYears": null,
+    "consultationFee": null,
+    "roomNumber": null,
+    "bio": null,
+    "avatarUrl": null,
+    "active": true
+  }
+}

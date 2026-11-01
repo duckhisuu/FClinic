@@ -1,4 +1,5 @@
 package com.fclinic.patientservice.reference;
+import static com.fclinic.patientservice.UuidFixtures.*;
 
 import com.fclinic.patientservice.config.*;
 import com.fclinic.patientservice.application.port.out.*;
@@ -29,8 +30,8 @@ class ReferenceConfigurationTest {
     @Test void disabledPortsHaveExactlyOneFailClosedFallback() {
         runner.run(c -> {
             assertThat(c).hasSingleBean(DoctorClientPort.class).hasSingleBean(AppointmentClientPort.class);
-            assertThatThrownBy(() -> c.getBean(DoctorClientPort.class).find(12)).isInstanceOf(PatientError.class);
-            assertThatThrownBy(() -> c.getBean(AppointmentClientPort.class).find(102)).isInstanceOf(PatientError.class);
+            assertThatThrownBy(() -> c.getBean(DoctorClientPort.class).find(fixture(12))).isInstanceOf(PatientError.class);
+            assertThatThrownBy(() -> c.getBean(AppointmentClientPort.class).find(fixture(102))).isInstanceOf(PatientError.class);
         });
     }
     @Test void enabledDoctorSelectsExactlyOneProductionBean() {
@@ -41,7 +42,7 @@ class ReferenceConfigurationTest {
     }
     @Test void invalidEnabledSettingsFailStartupClosed() {
         runner.withPropertyValues("patient.reference.doctor.enabled=true").run(c -> assertThat(c).hasFailed());
-        for(String uri:new String[]{"http://localhost/doctors","https://localhost/doctors/","https://user@localhost/doctors","https://localhost/doctors?x=y"})
+        for(String uri:new String[]{"http://external.invalid/doctors","https://localhost/doctors/","https://user@localhost/doctors","https://localhost/doctors?x=y"})
             runner.withPropertyValues(doctor).withPropertyValues("patient.reference.doctor.collection-uri="+uri)
                     .run(c -> assertThat(c).hasFailed());
     }

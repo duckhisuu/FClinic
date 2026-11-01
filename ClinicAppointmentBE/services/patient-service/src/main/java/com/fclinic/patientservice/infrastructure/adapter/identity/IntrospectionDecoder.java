@@ -12,13 +12,13 @@ import java.time.Clock;
 import java.util.*;
 import static com.fclinic.patientservice.domain.model.PatientError.Code.*;
 
-/** Strict local wire profile patient-identity-introspection/1, NOT the draft validateCaller DTO. */
+/** Strict local wire profile patient-identity-introspection/2, NOT the draft validateCaller DTO. */
 public final class IntrospectionDecoder {
-    public static final String VERSION = "patient-identity-introspection/1";
+    public static final String VERSION = "patient-identity-introspection/2";
     private static final Set<String> FIELDS = Set.of("active", "contractVersion", "iss", "aud", "exp", "sub",
             "principalType", "userId", "patientId", "doctorId", "authorities");
     private static final Set<String> USER_ROLES = Set.of("ROLE_PATIENT", "ROLE_DOCTOR", "ROLE_STAFF", "ROLE_ADMIN");
-    private static final long MAX_ID = 9007199254740991L;
+    private static final long MAX_EPOCH_SECOND = 9007199254740991L;
     private static final JsonMapper JSON = JsonMapper.builder(JsonFactory.builder()
             .enable(StreamReadFeature.STRICT_DUPLICATE_DETECTION)
             .streamReadConstraints(StreamReadConstraints.builder().maxNestingDepth(8).maxStringLength(8192)
@@ -48,8 +48,8 @@ public final class IntrospectionDecoder {
             String subject = text(root, "sub", 255);
             String kind = text(root, "principalType", 16);
             check(kind.equals("USER") || kind.equals("SERVICE"));
-            Long userId = nullableId(root.path("userId"));
-            Long doctorId = nullableId(root.path("doctorId"));
+            UUID userId = nullableId(root.path("userId"));
+            UUID doctorId = nullableId(root.path("doctorId"));
             UUID patientId = patientId(root.path("patientId"));
             Set<String> authorities = authorities(root.path("authorities"));
             if (kind.equals("USER")) {
@@ -87,11 +87,11 @@ public final class IntrospectionDecoder {
         check(v.matches("[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}"));
         return UUID.fromString(v);
     }
-    private static Long nullableId(JsonNode n) { return n.isNull() ? null : integer(n, true); }
+    private static UUID nullableId(JsonNode n) { return patientId(n); }
     private static long integer(JsonNode n, boolean positive) {
         check(n.isIntegralNumber() && n.canConvertToLong());
         long v = n.longValue();
-        check(v >= (positive ? 1 : 0) && v <= MAX_ID);
+        check(v >= (positive ? 1 : 0) && v <= MAX_EPOCH_SECOND);
         return v;
     }
     private static String text(JsonNode root, String field, int max) { return value(root.path(field), max); }

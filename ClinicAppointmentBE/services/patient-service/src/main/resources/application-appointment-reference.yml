@@ -1,4 +1,4 @@
-# PAT-REF-APT-001 PROJECT_DECIDED; minimum protected SERVICE projection.
+# PROPOSED patient-appointment-medical-reference/2 UUID; owner approval pending; minimum protected SERVICE projection.
 patient:
   reference:
     appointment:

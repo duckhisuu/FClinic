@@ -38,7 +38,7 @@ public class PatientApplicationService {
         policy.replaceProfile(c, id);
         return writer.replace(id, version, data, c.subject());
     }
-    public MedicalRecord createRecord(TrustedCaller c, UUID patientId, long doctorId, Long appointmentId,
+    public MedicalRecord createRecord(TrustedCaller c, UUID patientId, UUID doctorId, UUID appointmentId,
                                       ClinicalData data) {
         policy.createMedical(c, patientId, doctorId, appointmentId, data.visitDate());
         parent(patientId);
@@ -46,15 +46,15 @@ public class PatientApplicationService {
         var doctor = dependency(() -> doctors.find(doctorId));
         if (doctor == null) throw new PatientError(DEPENDENCY_UNAVAILABLE);
         var d = doctor.orElseThrow(() -> new PatientError(REFERENCE_MISMATCH));
-        if (d.id() != doctorId) throw new PatientError(DEPENDENCY_UNAVAILABLE);
+        if (!doctorId.equals(d.id())) throw new PatientError(DEPENDENCY_UNAVAILABLE);
         if (!d.active()) throw new PatientError(REFERENCE_MISMATCH);
         if (appointmentId != null) {
             var appointment = dependency(() -> appointments.find(appointmentId));
             if (appointment == null) throw new PatientError(DEPENDENCY_UNAVAILABLE);
             var a = appointment.orElseThrow(() -> new PatientError(REFERENCE_MISMATCH));
-            if (a.id() != appointmentId || a.patientId() == null || a.doctorId() <= 0)
+            if (!appointmentId.equals(a.id()) || a.patientId() == null || a.doctorId() == null)
                 throw new PatientError(DEPENDENCY_UNAVAILABLE);
-            if (a.cancelled() || !a.patientId().equals(patientId) || a.doctorId() != doctorId)
+            if (a.cancelled() || !a.patientId().equals(patientId) || !doctorId.equals(a.doctorId()))
                 throw new PatientError(REFERENCE_MISMATCH);
         }
         return writer.createRecord(patientId, doctorId, appointmentId, data, c.subject());
@@ -64,13 +64,13 @@ public class PatientApplicationService {
         parent(patientId);
         return repository.records(patientId, query);
     }
-    public MedicalRecord record(TrustedCaller c, UUID patientId, long recordId) {
+    public MedicalRecord record(TrustedCaller c, UUID patientId, UUID recordId) {
         policy.readMedical(c, patientId);
         parent(patientId);
         return repository.findRecord(patientId, recordId)
                 .orElseThrow(() -> new PatientError(MEDICAL_RECORD_NOT_FOUND));
     }
-    public MedicalRecord replaceRecord(TrustedCaller c, UUID patientId, long recordId, long version,
+    public MedicalRecord replaceRecord(TrustedCaller c, UUID patientId, UUID recordId, long version,
                                        ClinicalData data, String reason) {
         policy.editMedical(c, patientId);
         return writer.replaceRecord(patientId, recordId, version, data, reason, c.subject(), c.doctorId());

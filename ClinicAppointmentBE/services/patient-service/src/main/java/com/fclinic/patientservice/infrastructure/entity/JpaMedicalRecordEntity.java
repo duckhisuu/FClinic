@@ -10,14 +10,14 @@ import java.util.UUID;
 @Entity @Table(name="medical_records")
 @Getter @Setter
 public class JpaMedicalRecordEntity {
-    @Id @GeneratedValue(strategy=GenerationType.IDENTITY)
-    private Long id;
+    @Id
+    private UUID id;
     @Column(name="patient_id", nullable=false)
     private UUID patientId;
     @Column(name="doctor_id", nullable=false)
-    private Long doctorId;
+    private UUID doctorId;
     @Column(name="appointment_id", unique=true)
-    private Long appointmentId;
+    private UUID appointmentId;
     @Column(name="visit_date", nullable=false)
     private Instant visitDate;
     @Column(nullable=false, length=2000)

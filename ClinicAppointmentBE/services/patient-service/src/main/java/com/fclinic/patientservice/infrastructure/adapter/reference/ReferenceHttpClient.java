@@ -18,8 +18,8 @@ import java.util.concurrent.Flow;
 public final class ReferenceHttpClient implements AutoCloseable {
     public static final String VERSION_HEADER="X-FClinic-Reference-Contract";
     public enum Profile {
-        DOCTOR("patient-doctor-reference/1",""),
-        APPOINTMENT("patient-appointment-medical-reference/1","/medical-reference");
+        DOCTOR("patient-doctor-reference/2",""),
+        APPOINTMENT("patient-appointment-medical-reference/2","/medical-reference");
         public final String version, suffix;
         Profile(String version,String suffix) { this.version=version; this.suffix=suffix; }
     }
@@ -37,16 +37,20 @@ public final class ReferenceHttpClient implements AutoCloseable {
             var tls=new SSLParameters(); tls.setProtocols(new String[]{"TLSv1.3","TLSv1.2"}); tls.setEndpointIdentificationAlgorithm("HTTPS");
             var builder=HttpClient.newBuilder().sslParameters(tls).connectTimeout(settings.connectTimeout())
                     .followRedirects(HttpClient.Redirect.NEVER).version(HttpClient.Version.HTTP_1_1);
+            if ("http".equalsIgnoreCase(settings.collectionUri().getScheme())) builder.proxy(new ProxySelector() {
+                public java.util.List<Proxy> select(URI uri) { return java.util.List.of(Proxy.NO_PROXY); }
+                public void connectFailed(URI uri,SocketAddress address,IOException error) { }
+            });
             if(settings.trustStore()!=null) builder.sslContext(trustContext(settings));
             client=builder.build();
         } catch(Exception e) { throw new IllegalStateException("Unable to initialize patient reference TLS client"); }
     }
-    public Response get(long id) {
+    public Response get(UUID id) {
         ReferenceJson.requireId(id);
         if(TransactionSynchronizationManager.isActualTransactionActive() || !capacity.tryAcquire()) throw ReferenceJson.unavailable();
         CompletableFuture<HttpResponse<byte[]>> future=null;
         try {
-            URI uri=URI.create(settings.collectionUri().toASCIIString()+"/"+Long.toString(id)+profile.suffix);
+            URI uri=URI.create(settings.collectionUri().toASCIIString()+"/"+id.toString()+profile.suffix);
             var request=HttpRequest.newBuilder(uri).timeout(settings.exchangeTimeout())
                     .header("Authorization",credential).header("Accept","application/json")
                     .header(VERSION_HEADER,profile.version).header("Cache-Control","no-store").GET().build();

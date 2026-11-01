@@ -1,0 +1,48 @@
+{
+  "version": 2,
+  "boundary": "B-05",
+  "vectors": [
+    {
+      "case": "VALID",
+      "resourceId": "550e8400-e29b-41d4-a716-0000000e09c1",
+      "patientId": "11111111-1111-4111-8111-111111111111",
+      "doctorId": "550e8400-e29b-41d4-a716-0000000de2b1"
+    },
+    {
+      "case": "CANCELLED",
+      "resourceId": "550e8400-e29b-41d4-a716-0000000e09c2",
+      "patientId": "11111111-1111-4111-8111-111111111111",
+      "doctorId": "550e8400-e29b-41d4-a716-0000000de2b1"
+    },
+    {
+      "case": "PATIENT_MISMATCH",
+      "resourceId": "550e8400-e29b-41d4-a716-0000000e09c3",
+      "patientId": "11111111-1111-4111-8111-111111111111",
+      "doctorId": "550e8400-e29b-41d4-a716-0000000de2b1"
+    },
+    {
+      "case": "DOCTOR_MISMATCH",
+      "resourceId": "550e8400-e29b-41d4-a716-0000000e09c4",
+      "patientId": "11111111-1111-4111-8111-111111111111",
+      "doctorId": "550e8400-e29b-41d4-a716-0000000de2b1"
+    },
+    {
+      "case": "MISSING",
+      "resourceId": "550e8400-e29b-41d4-a716-0000000e09c5",
+      "patientId": null,
+      "doctorId": null
+    },
+    {
+      "case": "INVALID_CREDENTIAL",
+      "resourceId": "550e8400-e29b-41d4-a716-0000000e09c1",
+      "patientId": null,
+      "doctorId": null
+    },
+    {
+      "case": "WRONG_VERSION_REQUEST",
+      "resourceId": "550e8400-e29b-41d4-a716-0000000e09c1",
+      "patientId": null,
+      "doctorId": null
+    }
+  ]
+}

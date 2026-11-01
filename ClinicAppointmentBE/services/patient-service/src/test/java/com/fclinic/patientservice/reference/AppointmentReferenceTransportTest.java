@@ -1,4 +1,5 @@
 package com.fclinic.patientservice.reference;
+import static com.fclinic.patientservice.UuidFixtures.*;
 
 import com.fclinic.patientservice.infrastructure.adapter.reference.*;
 import com.fclinic.patientservice.domain.model.PatientError;
@@ -15,20 +16,20 @@ class AppointmentReferenceTransportTest {
         adapter=new RemoteAppointmentClientAdapter(server.settings(Duration.ofSeconds(3))); }
     @AfterEach void stop() { adapter.close(); server.close(); }
     @Test void authenticatedMinimumProjectionUsesExactReadOnlyPath() {
-        assertThat(adapter.find(102).orElseThrow().patientId()).isEqualTo(PATIENT);
+        assertThat(adapter.find(fixture(102)).orElseThrow().patientId()).isEqualTo(PATIENT);
         assertThat(server.requests).singleElement().satisfies(r -> {
-            assertThat(r.rawPath()).isEqualTo("/internal/v1/appointments/102/medical-reference");
+            assertThat(r.rawPath()).isEqualTo("/internal/v1/appointments/550e8400-e29b-41d4-a716-000000000066/medical-reference");
             assertThat(r.method()).isEqualTo("GET"); assertThat(r.originalBearerForwarded()).isFalse();
         });
         assertThat(server.mutations.get()).isZero();
     }
     @Test void missingAndCancelledRemainSeparateFromTechnicalFailureWithoutCaching() {
-        server.handler=id -> server.json(404,missing("APPOINTMENT_NOT_FOUND")); assertThat(adapter.find(102)).isEmpty();
-        server.handler=id -> server.json(200,appointment(id,PATIENT,12,"CANCELLED"));
-        assertThat(adapter.find(102).orElseThrow().cancelled()).isTrue();
-        server.handler=id -> server.json(200,appointment(id,PATIENT,12,"CONFIRMED"));
-        assertThat(adapter.find(102).orElseThrow().cancelled()).isFalse();
-        server.handler=id -> server.json(200,appointment(id,PATIENT,12,"UNKNOWN")); unavailable();
+        server.handler=id -> server.json(404,missing("APPOINTMENT_NOT_FOUND")); assertThat(adapter.find(fixture(102))).isEmpty();
+        server.handler=id -> server.json(200,appointment(id,PATIENT,fixture(12),"CANCELLED"));
+        assertThat(adapter.find(fixture(102)).orElseThrow().cancelled()).isTrue();
+        server.handler=id -> server.json(200,appointment(id,PATIENT,fixture(12),"CONFIRMED"));
+        assertThat(adapter.find(fixture(102)).orElseThrow().cancelled()).isFalse();
+        server.handler=id -> server.json(200,appointment(id,PATIENT,fixture(12),"UNKNOWN")); unavailable();
         assertThat(server.calls.get()).isEqualTo(4);
     }
     @Test void errorsAndWrongVersionNeverBecomeMissingOrHumanAuthFailure() {
@@ -36,7 +37,7 @@ class AppointmentReferenceTransportTest {
             server.handler=id -> server.json(status,missing("APPOINTMENT_NOT_FOUND")); unavailable();
         }
         server.handler=id -> new TestReferenceServer.Reply(200,"application/json","wrong/1",
-                bytes(appointment(id,PATIENT,12,"CONFIRMED")),null); unavailable();
+                bytes(appointment(id,PATIENT,fixture(12),"CONFIRMED")),null); unavailable();
     }
     @Test void transactionGuardRejectsAppointmentLookupBeforeNetwork() {
         TransactionSynchronizationManager.setActualTransactionActive(true);
@@ -44,7 +45,7 @@ class AppointmentReferenceTransportTest {
         finally { TransactionSynchronizationManager.setActualTransactionActive(false); }
     }
     private void unavailable() {
-        assertThatThrownBy(() -> adapter.find(102)).isInstanceOfSatisfying(PatientError.class,e -> {
+        assertThatThrownBy(() -> adapter.find(fixture(102))).isInstanceOfSatisfying(PatientError.class,e -> {
             assertThat(e.code()).isEqualTo(PatientError.Code.DEPENDENCY_UNAVAILABLE); assertThat(e.getCause()).isNull();
         });
     }

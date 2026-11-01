@@ -1,4 +1,4 @@
-# PROJECT_DECIDED patient-identity-introspection/1. No provider endpoint or credential defaults.
+# PROPOSED patient-identity-introspection/2 UUID; Auth owner approval pending. No provider endpoint or credential defaults.
 patient:
   identity:
     enabled: true

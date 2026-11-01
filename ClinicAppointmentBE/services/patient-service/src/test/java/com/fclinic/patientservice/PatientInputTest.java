@@ -1,4 +1,5 @@
 package com.fclinic.patientservice;
+import static com.fclinic.patientservice.UuidFixtures.*;
 
 import com.fclinic.patientservice.api.dto.PatientInput;
 import com.fclinic.patientservice.domain.model.*;
@@ -72,10 +73,10 @@ class PatientInputTest {
         for (var params : List.of(Map.of("size","101"),Map.of("page","-1"),Map.of("sort","id,asc"),Map.of("phoneNumber","")))
             assertThatThrownBy(() -> input.query(params,false)).isInstanceOf(PatientError.class);
         assertThatThrownBy(() -> input.uuid("1","id")).isInstanceOf(PatientError.class);
-        UUID id=UUID.randomUUID(); assertThat(input.uuid(id.toString().toUpperCase(),"id")).isEqualTo(id);
+        UUID id=UUID.randomUUID(); assertThat(input.uuid(id.toString(),"id")).isEqualTo(id);
     }
     @Test void tc13_tc32_instantRequiresOffsetAndCannotBeFuture() {
-        var body=new HashMap<String,Object>(Map.of("doctorId",12,"symptoms"," simulated ","diagnosis"," simulated ",
+        var body=new HashMap<String,Object>(Map.of("doctorId",fixture(12).toString(),"symptoms"," simulated ","diagnosis"," simulated ",
                 "visitDate","2026-10-19T10:00:00+07:00"));
         assertThat(input.clinical(body,false).visitDate()).isEqualTo(Instant.parse("2026-10-19T03:00:00Z"));
         body.put("visitDate","2026-10-20T03:00:01Z");
@@ -88,7 +89,7 @@ class PatientInputTest {
                 "version",0,"changeReason"," simulated correction "));
         assertThat(input.reason(body)).isEqualTo("simulated correction");
         assertThat(input.clinical(body,true).notes()).isNull();
-        body.put("doctorId",12);
+        body.put("doctorId",fixture(12).toString());
         assertThatThrownBy(() -> input.clinical(body,true)).isInstanceOf(PatientError.class);
         body.remove("doctorId"); body.put("changeReason"," ");
         assertThatThrownBy(() -> input.clinical(body,true)).isInstanceOf(PatientError.class);

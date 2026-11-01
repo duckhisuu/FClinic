@@ -7,14 +7,14 @@ import java.util.*;
 public final class ReferenceFixtures {
     public static final JsonMapper JSON=JsonMapper.builder().build();
     public static final UUID PATIENT=ScopeFixtures.PATIENT;
-    public static Map<String,Object> doctor(long id,boolean active) {
+    public static Map<String,Object> doctor(UUID id,boolean active) {
         Map<String,Object> data=new LinkedHashMap<>();
         data.put("id",id); data.put("name","Synthetic Doctor"); data.put("specialty","Synthetic specialty");
         data.put("department","Synthetic department"); data.put("qualification",null); data.put("experienceYears",null);
         data.put("consultationFee",null); data.put("roomNumber",null); data.put("bio",null); data.put("avatarUrl",null);
         data.put("active",active); return success(data);
     }
-    public static Map<String,Object> appointment(long id,UUID patient,long doctor,String status) {
+    public static Map<String,Object> appointment(UUID id,UUID patient,UUID doctor,String status) {
         return success(new LinkedHashMap<>(Map.of("id",id,"patientId",patient.toString(),"doctorId",doctor,"status",status)));
     }
     public static Map<String,Object> success(Map<String,Object> data) { return new LinkedHashMap<>(Map.of("status",200,"message","Success","data",data)); }

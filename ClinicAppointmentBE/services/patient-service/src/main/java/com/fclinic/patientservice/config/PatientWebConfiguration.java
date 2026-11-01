@@ -9,6 +9,6 @@ public class PatientWebConfiguration implements WebMvcConfigurer {
     private final PatientAuthentication authentication;
     public PatientWebConfiguration(PatientAuthentication authentication) { this.authentication=authentication; }
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(authentication).addPathPatterns("/api/v2/**");
+        registry.addInterceptor(authentication).addPathPatterns("/api/v3/**");
     }
 }

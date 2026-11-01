@@ -1,4 +1,5 @@
 package com.fclinic.patientservice;
+import static com.fclinic.patientservice.UuidFixtures.*;
 import com.fclinic.patientservice.application.port.out.WorkScopePort;
 import com.fclinic.patientservice.application.security.*;
 import com.fclinic.patientservice.domain.model.PatientError;
@@ -12,7 +13,7 @@ class PatientPolicyTest {
     private final WorkScopePort scopes=mock(WorkScopePort.class,CALLS_REAL_METHODS);
     private final PatientPolicy policy=new PatientPolicy(scopes);
     private final UUID a=UUID.randomUUID(), b=UUID.randomUUID();
-    private TrustedCaller user(String role, UUID patient, Long doctor) {
+    private TrustedCaller user(String role, UUID patient, UUID doctor) {
         return new TrustedCaller("user:demo",TrustedCaller.PrincipalType.USER,Set.of(role),patient,doctor,null,true);
     }
     @Test void tc18_patientCanReadSelfOnlyAndCannotMutateOrSearch() {
@@ -23,15 +24,15 @@ class PatientPolicyTest {
         denied(() -> policy.replaceProfile(c,a)); denied(() -> policy.editMedical(c,a));
     }
     @Test void tc35_doctorRoleAloneGrantsNoScope() {
-        var c=user("ROLE_DOCTOR",null,12L);
+        var c=user("ROLE_DOCTOR",null,fixture(12));
         denied(() -> policy.readMedical(c,a)); denied(() -> policy.readProfile(c,a));
-        denied(() -> policy.createMedical(c,a,12,null,Instant.EPOCH)); denied(() -> policy.search(c));
+        denied(() -> policy.createMedical(c,a,fixture(12),null,Instant.EPOCH)); denied(() -> policy.search(c));
         when(scopes.clinical(c,a)).thenReturn(true);
         policy.readMedical(c,a);
-        denied(() -> policy.createMedical(c,a,12,null,Instant.EPOCH));
+        denied(() -> policy.createMedical(c,a,fixture(12),null,Instant.EPOCH));
         when(scopes.validVisit(c,a,null,Instant.EPOCH)).thenReturn(true);
-        policy.createMedical(c,a,12,null,Instant.EPOCH);
-        denied(() -> policy.createMedical(c,a,13,null,Instant.EPOCH));
+        policy.createMedical(c,a,fixture(12),null,Instant.EPOCH);
+        denied(() -> policy.createMedical(c,a,fixture(13),null,Instant.EPOCH));
     }
     @Test void tc18_tc36_staffAndAdminHaveNoClinicalOverride() {
         var staff=user("ROLE_STAFF",null,null);
@@ -50,7 +51,7 @@ class PatientPolicyTest {
         policy.readProfile(service,a); denied(() -> policy.readMedical(service,a));
     }
     @Test void searchReturnsOnlyTrustedScope() {
-        var c=user("ROLE_DOCTOR",null,12L);
+        var c=user("ROLE_DOCTOR",null,fixture(12));
         when(scopes.search(c)).thenReturn(new WorkScopePort.SearchScope(Set.of(a)));
         assertThat(policy.search(c)).containsExactly(a);
     }

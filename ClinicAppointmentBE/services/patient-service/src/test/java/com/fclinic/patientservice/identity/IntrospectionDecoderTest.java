@@ -1,4 +1,5 @@
 package com.fclinic.patientservice.identity;
+import static com.fclinic.patientservice.UuidFixtures.*;
 
 import com.fclinic.patientservice.infrastructure.adapter.identity.*;
 import com.fclinic.patientservice.application.security.TrustedCaller;
@@ -14,10 +15,10 @@ import static com.fclinic.patientservice.domain.model.PatientError.Code.*;
 class IntrospectionDecoderTest {
     final IntrospectionDecoder decoder = new IntrospectionDecoder(settings(),CLOCK);
     @Test void validUserPreservesOpaqueSubjectAndMappings() {
-        var body=user(); body.put("doctorId",12L); body.put("authorities",List.of("ROLE_DOCTOR","ROLE_PATIENT"));
+        var body=user(); body.put("doctorId",fixture(12).toString()); body.put("authorities",List.of("ROLE_DOCTOR","ROLE_PATIENT"));
         var c=decoder.decode(bytes(body));
         assertThat(c.subject()).isEqualTo("opaque-human-fixture");
-        assertThat(c.patientId()).isEqualTo(PATIENT); assertThat(c.doctorId()).isEqualTo(12);
+        assertThat(c.patientId()).isEqualTo(PATIENT); assertThat(c.doctorId()).isEqualTo(fixture(12));
         assertThat(c.serviceName()).isNull(); assertThat(c.principalType()).isEqualTo(TrustedCaller.PrincipalType.USER);
     }
     @Test void validServiceNameComesOnlyFromExactRegistryBinding() {
@@ -54,7 +55,7 @@ class IntrospectionDecoderTest {
     }
     @Test void serviceCannotCarryHumanMappingsOrRoles() {
         for (String field:List.of("userId","doctorId","patientId","authorities")) {
-            var body=service(); body.put(field,user().get(field)==null?12L:user().get(field));
+            var body=service(); body.put(field,user().get(field)==null?fixture(12):user().get(field));
             error(DEPENDENCY_UNAVAILABLE,bytes(body));
         }
     }

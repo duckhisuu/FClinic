@@ -31,7 +31,7 @@ final class ProviderProbe implements AutoCloseable {
         }
         client=builder.build();
     }
-    Response get(long id,ReferenceHttpClient.Profile profile,boolean wrongVersion) throws Exception {
+    Response get(java.util.UUID id,ReferenceHttpClient.Profile profile,boolean wrongVersion) throws Exception {
         String credentials=URLEncoder.encode(settings.clientId(),StandardCharsets.UTF_8)+":"+URLEncoder.encode(settings.clientSecret(),StandardCharsets.UTF_8);
         var uri=URI.create(settings.collectionUri().toASCIIString()+"/"+id+profile.suffix);
         var request=HttpRequest.newBuilder(uri).GET().timeout(settings.exchangeTimeout())
