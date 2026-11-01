@@ -9,8 +9,8 @@
 - Local actual Patient JAR: healthUP/anonymous401/forged-header rejection/authority503/four tables unchanged; positive clinical tests are COMPONENT/TCP WITH DOUBLES, not real E2E.
 - External Doctor/Appointment UUID provider approval/implementation: PENDING. Incoming Appointment route v2→v3 approval: PENDING.
 - Real Auth/Scope: PENDING; HTTPS-only policy unchanged; all-HTTP team demo cannot bypass these requirements.
-- Full reactor/backend CI: Notification owner compile blocker; inherited CI also lacks verify/Failsafe coverage. No full-system PASS.
-- BAO push/new Draft PR: publication evidence updated in report38/machine evidence after Git integrity gate.
+- Full reactor and initial GitHub backend CI: FAIL at Notification AppointmentNotificationEvent.java:19 missing AppointmentSnapshotDto; frontend CI PASS. Inherited CI also lacks verify/Failsafe coverage. No full-system PASS.
+- BAO PUSH: COMPLETE (fast-forward). NEW PR: [#4](https://github.com/duckhisuu/FClinic/pull/4) DRAFT CREATED;93Patient-only paths. Source implementation `38989b9c458448591ed783c2f12db3a44e40ed4e`.
 - UUID OWNER APPROVAL: PENDING. MAIN MERGE: NOT PERFORMED. PR remains Draft.
 
 Acceptance is limited to Patient. Reports36–38 and finalization evidence supersede only current delivery status; historical P-FINAL/R3 and reports29–35 are retained. Do not use old v1 actual-provider evidence for UUID /2 integration. No Notification/Doctor/Appointment/Auth/Gateway/Frontend production code is modified.
