@@ -1,5 +1,5 @@
 import React from 'react';
-import { Stethoscope, CalendarCheck, Clock, Sparkles } from 'lucide-react';
+import { Stethoscope, CalendarCheck, Clock, Layers, Sparkles } from 'lucide-react';
 
 export const Sidebar = ({ activeTab, onTabChange }) => {
   const menuItems = [
@@ -20,6 +20,12 @@ export const Sidebar = ({ activeTab, onTabChange }) => {
       label: 'Tra cứu & Quản lý lịch hẹn',
       icon: Clock,
       description: 'Kiểm tra mã FC, trạng thái & hủy lịch',
+    },
+    {
+      id: 'outbox',
+      label: 'Giám sát Outbox & Khóa Lock',
+      icon: Layers,
+      description: 'Transactional Outbox & Redisson Lock',
     },
   ];
 
@@ -46,7 +52,9 @@ export const Sidebar = ({ activeTab, onTabChange }) => {
             >
               <div
                 className={`p-2 rounded-lg transition-colors ${
-                  isActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-teal-50 group-hover:text-teal-600'
+                  isActive
+                    ? 'bg-white/20 text-white'
+                    : 'bg-slate-100 text-slate-500 group-hover:bg-teal-50 group-hover:text-teal-600'
                 }`}
               >
                 <Icon className="w-5 h-5 shrink-0" />
@@ -58,9 +66,7 @@ export const Sidebar = ({ activeTab, onTabChange }) => {
                   {item.badge && (
                     <span
                       className={`text-[10px] font-extrabold px-1.5 py-0.5 rounded-md ${
-                        isActive
-                          ? 'bg-white/25 text-white'
-                          : 'bg-emerald-100 text-emerald-800'
+                        isActive ? 'bg-white/25 text-white' : 'bg-emerald-100 text-emerald-800'
                       }`}
                     >
                       {item.badge}
@@ -95,3 +101,5 @@ export const Sidebar = ({ activeTab, onTabChange }) => {
     </aside>
   );
 };
+
+export default Sidebar;
