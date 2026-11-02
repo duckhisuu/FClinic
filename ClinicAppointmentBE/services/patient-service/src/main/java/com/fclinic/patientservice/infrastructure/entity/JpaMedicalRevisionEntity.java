@@ -10,10 +10,10 @@ import java.util.UUID;
 @Entity @Table(name="medical_record_revisions")
 @Getter @Setter
 public class JpaMedicalRevisionEntity {
-    @Id @GeneratedValue(strategy=GenerationType.IDENTITY)
-    private Long id;
+    @Id @GeneratedValue(strategy=GenerationType.UUID)
+    private UUID id;
     @Column(name="medical_record_id", nullable=false)
-    private Long medicalRecordId;
+    private UUID medicalRecordId;
     @Column(name="entity_version", nullable=false)
     private long entityVersion;
     @Column(nullable=false, length=10)

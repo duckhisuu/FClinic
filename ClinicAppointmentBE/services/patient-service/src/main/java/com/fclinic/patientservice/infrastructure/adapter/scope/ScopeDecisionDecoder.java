@@ -38,12 +38,12 @@ public final class ScopeDecisionDecoder {
             }
             JsonNode evidence=root.path("evidence");
             object(evidence,EVIDENCE);
-            text(evidence.path("assignmentId"),255);
+            com.fclinic.patientservice.domain.model.BusinessId.parse(text(evidence.path("assignmentId"),36));
             check(evidence.path("active").isBoolean());
             Instant from=instant(evidence.path("validFrom")), until=instant(evidence.path("validUntil"));
             check(from.isBefore(until));
             JsonNode visit=evidence.path("visitId");
-            if(query.operation()==ScopeQuery.Operation.VALID_VISIT) text(visit,255);
+            if(query.operation()==ScopeQuery.Operation.VALID_VISIT) com.fclinic.patientservice.domain.model.BusinessId.parse(text(visit,36));
             else check(visit.isNull());
             Set<UUID> patients=new HashSet<>();
             var ids=root.path("patientIds");

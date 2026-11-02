@@ -50,14 +50,14 @@ public class JpaPatientRepositoryAdapter implements PatientRepositoryPort {
         };
         return page("JpaPatientEntity", "p", where, params, q, field, JpaPatientEntity.class, this::patient);
     }
-    public Optional<MedicalRecord> findRecord(UUID patientId, long id) {
+    public Optional<MedicalRecord> findRecord(UUID patientId, UUID id) {
         return em.createQuery("select r from JpaMedicalRecordEntity r where r.patientId=:p and r.id=:id",
                 JpaMedicalRecordEntity.class).setParameter("p", patientId).setParameter("id", id)
                 .getResultStream().findFirst().map(this::record);
     }
     public MedicalRecord insertRecord(MedicalRecord r) {
         var e = new JpaMedicalRecordEntity();
-        e.setPatientId(r.patientId()); e.setDoctorId(r.doctorId()); e.setAppointmentId(r.appointmentId());
+        e.setId(r.id()); e.setPatientId(r.patientId()); e.setDoctorId(r.doctorId()); e.setAppointmentId(r.appointmentId());
         e.setCreatedAt(r.createdAt()); e.setCreatedBy(r.createdBy());
         apply(e, r); em.persist(e); em.flush(); return record(e);
     }

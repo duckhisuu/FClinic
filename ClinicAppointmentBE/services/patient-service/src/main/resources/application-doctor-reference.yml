@@ -1,4 +1,4 @@
-# PAT-REF-DOC-001 PROJECT_DECIDED; protected full Doctor response, explicit provider URI/credentials.
+# PROPOSED patient-doctor-reference/2 UUID; owner approval pending; protected full Doctor response, explicit provider URI/credentials.
 patient:
   reference:
     doctor:

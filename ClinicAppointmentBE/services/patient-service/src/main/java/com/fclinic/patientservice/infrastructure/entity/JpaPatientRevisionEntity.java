@@ -10,8 +10,8 @@ import java.util.UUID;
 @Entity @Table(name="patient_revisions")
 @Getter @Setter
 public class JpaPatientRevisionEntity {
-    @Id @GeneratedValue(strategy=GenerationType.IDENTITY)
-    private Long id;
+    @Id @GeneratedValue(strategy=GenerationType.UUID)
+    private UUID id;
     @Column(name="patient_id", nullable=false)
     private UUID patientId;
     @Column(name="entity_version", nullable=false)

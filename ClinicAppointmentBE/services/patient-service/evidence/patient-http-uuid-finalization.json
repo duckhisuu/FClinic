@@ -1,0 +1,2794 @@
+{
+  "task": "Patient HTTP+UUID CI finalization",
+  "verifiedAt": "2026-11-01T17:06:51.577216+00:00",
+  "baselineMain": "3f833711e282e06b71cc88f7030ce762d78ec201",
+  "baselineBao": "a097c67dbbbf399ec02eeb5b26b801946b7a6f41",
+  "branch": "codex/patient-http-uuid-finalization-20261101t164915z-ad90f",
+  "original": {
+    "head": "a6bf54e0edc6fa513e07b7e91a5ddaeefd1a58c9",
+    "branch": "main",
+    "indexSha256": "73c602f75f6ab8b81d0779964dd6f2ac8c3f680d9c9a72cfe8e6d3386ee9d184",
+    "paths": 1398,
+    "preservation": "SHA_PRECONDITIONS_AND_FINAL_RECHECK"
+  },
+  "prior87ManifestVerified": true,
+  "priorPatchSha256": "45d887e3f934001045f0ebe3573b23c638e06c4d5bedfdc9ab020696cb0b9135",
+  "historyStrategy": "Main squash tree equals bao; prepare no-commit history join, final verified commit preserves both parents without force.",
+  "windows": {
+    "buildSuccess": true,
+    "totals": {
+      "tests": 293,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "suites": [
+      {
+        "suite": "com.fclinic.patientservice.identity.PatientIdentityTcpIT",
+        "tests": 15,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "invalidAuthContractProtectsEveryMutationAndAllPersistedContent",
+          "authDeadlinePreventsAdministrativeAndClinicalWrites",
+          "verifiedSelfReadsProfileAndMedicalButNotOtherPatientSearchOrWrites",
+          "untrustedBrowserHeadersCannotUpgradeVerifiedUserToStaff",
+          "verifiedDoctorCanWriteWithTestScopeAndAuditUsesTrustedSubject",
+          "invalidExpiredAndInactiveCredentialsAre401AndCannotWrite",
+          "issuerAndAudienceMismatchAre401",
+          "staffAdminAndMissingDoctorMappingNeverAcquireClinicalWriteAccess",
+          "providerActivationChangeIsEffectiveOnNextTcpRequest",
+          "currentScopeIsStillRequiredAfterSuccessfulAuthentication",
+          "profilePutKeepsNoOpVersionAndStaleConflictWithRealIdentityTransport",
+          "backendCredentialFailureOutageAndBadPayloadAre503WithoutDisclosure",
+          "inactiveIntrospectionBlocksPreviouslyAllowedNoOpAndChangedPuts",
+          "serviceIsLimitedToPermittedProfileDetailAndNeverHumanPermissions",
+          "missingMalformedAndDuplicateBearerCannotUseForgedHeaders"
+        ],
+        "xmlSha256": "810d824d22308ee953dba8367bb8e76c36e7c90e6b53a04aaee9944346cd0590"
+      },
+      {
+        "suite": "com.fclinic.patientservice.PatientServiceIT",
+        "tests": 22,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "tc29_deactivateCommitBeforeCreateRejectsMedical",
+          "tc09_tc10_tc14_linkedAndWalkInCanonicalMedicalReads",
+          "tc17_tc18_tc35_authScopeAndForgedHeadersDoNotLeak",
+          "tc17_verifierUnavailableReturns503AndInactiveIdentityReturns401",
+          "tc31_noOpMedicalDetectsConcurrentVersionChangeAtCommit",
+          "tc06_tc31_profileFullPutNoOpStaleAndRevisionVersion",
+          "tc11_linkedCreateRaceReturns201And409WithOneRevision",
+          "tc14_parentExistsWithoutRecordsReturnsEmptyPageAndUnknownParent404",
+          "tc07_competingProfileUpdatesHaveOneWinner",
+          "tc15_tc16_tc36_parentAuthorImmutableRefsAndMedicalPut",
+          "uuidSchemaColumnsRevisionKeysAndForeignKeysAreRealPostgres",
+          "tc29_recordCommittedBeforeDeactivationRemains",
+          "tc01_tc02_sharedPhoneCreateAndCanonicalDetail",
+          "uuidApiRejectsNumericAndNonV4WithoutWrites",
+          "unicodePatientNamePersistsAndReadsBackWithoutLoss",
+          "tc19_reference422VsTechnical503AndNoWrite",
+          "tc03_tc32_apiBindingRejectsUnknownNullAndCoercedValuesWithoutWriting",
+          "tc23_revisionFailureRollsBackBothAggregatesAndVersions",
+          "tc06_optionalFieldsAreErasedByReplacement",
+          "tc08_inactiveForbidsNewMedicalButAllowsExistingReadAndEdit",
+          "tc05_searchCombinesFiltersAndRestrictsCountAndStablePage",
+          "tc33_constraintsAndRetiredV1"
+        ],
+        "xmlSha256": "a9788f58f54634d0392d6133d78099f9a7c94845cfd50b985a18af895d4eaf6d"
+      },
+      {
+        "suite": "com.fclinic.patientservice.PatientUuidJarIT",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "actualLocalJarValidatesUuidSchemaAndDeniesUnavailableAuthorityWithoutWrites"
+        ],
+        "xmlSha256": "8ce3a48f9228b68442354ee2eedf2f4801b1ee4b23ee319976785807d5bc24eb"
+      },
+      {
+        "suite": "com.fclinic.patientservice.reference.PatientReferenceTcpIT",
+        "tests": 23,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "wrongDoctorIdentityOrMalformedActiveIsTechnical503",
+          "inactiveParentRemainsFinalLocalWriteGuardAfterValidReferences",
+          "provider5xxDoesNotBecomeBusinessMissingAndNoReferenceCacheHidesOutage",
+          "revisionFailureAfterAllRealAdapterLookupsRollsBackMedicalDataAndAudit",
+          "wrongAppointmentIdAndLegacyUnmarked404Are503",
+          "linkedCreateAcceptsEachSelectedNonCancelledStatusWithoutCompletionMutation(String)[1]",
+          "linkedCreateAcceptsEachSelectedNonCancelledStatusWithoutCompletionMutation(String)[2]",
+          "linkedCreateAcceptsEachSelectedNonCancelledStatusWithoutCompletionMutation(String)[3]",
+          "concurrentLinkedCreatesYield201And409WithOneRecordRevisionAndNoOrphan",
+          "walkInStillChecksDoctorAndVisitButNeverCallsAppointment",
+          "doctorBusinessFailuresAre422AndStopBeforeAppointment(String)[1]",
+          "doctorBusinessFailuresAre422AndStopBeforeAppointment(String)[2]",
+          "wellFormedReferencePatientOrDoctorMismatchIs422(String)[1]",
+          "wellFormedReferencePatientOrDoctorMismatchIs422(String)[2]",
+          "machineCredentialDenialIs503NotHuman401AndHasNoWrite(String)[1]",
+          "machineCredentialDenialIs503NotHuman401AndHasNoWrite(String)[2]",
+          "bodyDoctorSpoofCannotInvokeReferenceProviders",
+          "clinicalScopeDenialPrecedesReferencesAndMutation(String)[1]",
+          "clinicalScopeDenialPrecedesReferencesAndMutation(String)[2]",
+          "missingOrCancelledAppointmentIs422(String)[1]",
+          "missingOrCancelledAppointmentIs422(String)[2]",
+          "medicalPutDoesNotRevalidateImmutableExternalReferences",
+          "unknownAppointmentStatusIs503NeverDefaultedToAllowed"
+        ],
+        "xmlSha256": "4a2b9310db107ae8a94deda9acf297356e2dc0609b0f47cd9d3520abe9f456d7"
+      },
+      {
+        "suite": "com.fclinic.patientservice.scope.PatientScopeTcpIT",
+        "tests": 19,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "staffRoleWithoutAssignmentAndForgedScopeHeadersCannotCreate",
+          "clinicalReadCreateUpdateRemainDistinctAndAuthorStillRequired",
+          "medicalNoOpThenRevocationKeepsDataVersionAndRevision",
+          "scopeTimeout503HasNoWriteUsingLatch",
+          "technicalCredentialFailureOutageAndMalformedPayloadAre503WithoutLeak",
+          "searchDenialEmptyAndBoundedScopePreserveCountsAndAndFilters",
+          "wrongDoctorBodyAndStaffAdminNeverAcquireClinicalRights",
+          "linkedScopeGrantCannotSubstituteForUnavailableAppointmentReference",
+          "expiredOrInactiveAssignmentIs403NotTechnicalFailure",
+          "misboundPrincipalPatientDoctorAndForgedPayloadAre503NoWrites",
+          "doctorSearchUsesClinicalAuthorityAndCannotExpandScope",
+          "revokedClinicalAssignmentAndValidVisitDenyBothLinkedAndWalkIn",
+          "administrativeObjectGrantCannotReadOrUpdateAnotherPatient",
+          "currentGrantIsRecheckedBetweenControllerAndUseCaseBeforeWriter",
+          "linkedWithReferenceDoubleKeepsDuplicateGuardAndNestedParent",
+          "serviceProfileLookupNeedsAdministrativeGrantAndNeverClinical",
+          "revocationBeforeNoOpAndMutationKeepsVersionsAndRevisions",
+          "walkInRequiresVisitEvidenceButSkipsAppointmentAndWritesAtomicRevision",
+          "f06UntypedScopeFaultIs503AndNoWrite"
+        ],
+        "xmlSha256": "c21fab660f84eed396fbe7958457350270ad4769baa05618d29f1a13b2c11dd7"
+      },
+      {
+        "suite": "com.fclinic.patientservice.config.PatientAuthenticationTest",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "inactiveVerifiedContextIs401",
+          "defaultScopeAndReferenceAdaptersFailClosed",
+          "unconfiguredVerifierNeverAcceptsAnArbitraryBearerAndReturns503",
+          "tc17_missingOrMalformedBearerAndSpoofedHeadersAre401"
+        ],
+        "xmlSha256": "902a782cc69be804ee31cd3f4fa62cb540063588f4f3585bfc2514f80b03396a"
+      },
+      {
+        "suite": "com.fclinic.patientservice.contract.PatientProviderContractTest",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "fullValidatorChecksStructuredErrorsAndPatientFormatsAndBounds",
+          "allEightRuntimeMappingsEqualCanonicalPathsAndMethods",
+          "proposedUuidReferenceSchemasAcceptGoldenFixturesAndRejectNumericIds"
+        ],
+        "xmlSha256": "d407836b35514f26d12e78437ce0c2dc2fb37ea5303b910281b5cc516720f5f0"
+      },
+      {
+        "suite": "com.fclinic.patientservice.contract.ProviderContractPreflightTest",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "absentOptInEnvironmentFailsBeforeAnyNetworkClientExists",
+          "plainHttpTargetIsRejectedWithoutEchoingSecretOrInternalLocation",
+          "unsupportedBoundaryCannotSelectAnArbitraryRemoteApi"
+        ],
+        "xmlSha256": "2119baf1f36d76781c59d44dfabed0c55834cd893fc3e8851a38d3a7cc9ac9ea"
+      },
+      {
+        "suite": "com.fclinic.patientservice.identity.IdentityConfigurationTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "strictBearerSyntaxRejectsAmbiguousHeaderValues",
+          "noConfigObjectToStringContainsSecrets",
+          "disabledConfigurationHasExactlyOneFailClosedVerifier",
+          "missingOrInsecureEnabledConfigurationFailsStartupClosed",
+          "enabledConfigurationSelectsExactlyOneProductionVerifier"
+        ],
+        "xmlSha256": "b33909bcf75b18b80822a2bce2bdb5b9bd522526185ad580e92cfc9bec47f3be"
+      },
+      {
+        "suite": "com.fclinic.patientservice.identity.IntrospectionDecoderTest",
+        "tests": 30,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "unlinkedUserIsAuthenticatedButHasNoSelfMapping",
+          "validUserPreservesOpaqueSubjectAndMappings",
+          "validServiceNameComesOnlyFromExactRegistryBinding",
+          "unknownServiceSubjectDoesNotAcquireServiceName",
+          "serviceCannotCarryHumanMappingsOrRoles",
+          "missingRequiredFieldIs503(String)[1]",
+          "missingRequiredFieldIs503(String)[2]",
+          "missingRequiredFieldIs503(String)[3]",
+          "missingRequiredFieldIs503(String)[4]",
+          "missingRequiredFieldIs503(String)[5]",
+          "missingRequiredFieldIs503(String)[6]",
+          "missingRequiredFieldIs503(String)[7]",
+          "missingRequiredFieldIs503(String)[8]",
+          "missingRequiredFieldIs503(String)[9]",
+          "missingRequiredFieldIs503(String)[10]",
+          "missingRequiredFieldIs503(String)[11]",
+          "audienceMayBeSingleString",
+          "inactiveInvalidOrRevokedCredentialsAre401",
+          "expiryAtClockBoundaryIs401",
+          "unknownOrForgedWireFieldsAre503(String)[1]",
+          "unknownOrForgedWireFieldsAre503(String)[2]",
+          "unknownOrForgedWireFieldsAre503(String)[3]",
+          "unknownOrForgedWireFieldsAre503(String)[4]",
+          "unknownOrForgedWireFieldsAre503(String)[5]",
+          "nullRequiredDataAndUnknownRoleAre503",
+          "wrongAudienceIs401",
+          "wrongIssuerIs401",
+          "doctorMappingMustBeSafePositiveInteger",
+          "malformedIdentityTypesAndAmbiguousPayloadsAre503",
+          "serviceCannotExceedLocalAuthorityCeiling"
+        ],
+        "xmlSha256": "2c9378ffa3557362f19177327dfac75af9a4341b5db3749d2aa5d803bb1ec463"
+      },
+      {
+        "suite": "com.fclinic.patientservice.identity.IntrospectionTransportTest",
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "wrongContentTypeLargeBodyAndMalformedPayloadAre503",
+          "incorrectBackendSecretIs503NotHuman401",
+          "currentActivationIsCheckedAgainWithoutPositiveCaching",
+          "untrustedTlsCertificateFailsClosed",
+          "providerCredentialErrorsRedirectAndServerErrorsAre503WithoutRetry",
+          "responseDeadlineAndConcurrencyLimitFailClosed",
+          "trustedCertificateWithWrongHostnameIsStillRejected",
+          "sendsBackendCredentialAndOpaqueTokenUsingTlsFormPost",
+          "invalidInputNeverContactsProvider"
+        ],
+        "xmlSha256": "c45dcad11b3fd0c3ccb3458d84d14da2f5df920a1decf3e4466e7a86cf979120"
+      },
+      {
+        "suite": "com.fclinic.patientservice.PatientInputTest",
+        "tests": 24,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "tc03_rejectsInvalidPhone(String)[1]",
+          "tc03_rejectsInvalidPhone(String)[2]",
+          "tc03_rejectsInvalidPhone(String)[3]",
+          "tc03_rejectsInvalidPhone(String)[4]",
+          "tc03_rejectsInvalidPhone(String)[5]",
+          "tc03_rejectsNumericTextAndMalformedEmail",
+          "tc03_tc32_rejectsInvalidOrFutureDob(String)[1]",
+          "tc03_tc32_rejectsInvalidOrFutureDob(String)[2]",
+          "tc03_tc32_rejectsInvalidOrFutureDob(String)[3]",
+          "tc03_tc32_rejectsInvalidOrFutureDob(String)[4]",
+          "tc03_tc32_rejectsInvalidOrFutureDob(String)[5]",
+          "tc05_queryAndUuidRules",
+          "tc03_unicodeWhitespaceIsBlankAndMaxLengthCountsCodePoints",
+          "tc03_rejectsUnknownAndServerOwnedFields(String)[1]",
+          "tc03_rejectsUnknownAndServerOwnedFields(String)[2]",
+          "tc03_rejectsUnknownAndServerOwnedFields(String)[3]",
+          "tc03_rejectsUnknownAndServerOwnedFields(String)[4]",
+          "tc03_rejectsUnknownAndServerOwnedFields(String)[5]",
+          "tc03_rejectsUnknownAndServerOwnedFields(String)[6]",
+          "tc13_tc32_instantRequiresOffsetAndCannotBeFuture",
+          "tc02_normalizesSharedPhoneWithoutIdentityDeduplication",
+          "tc16_tc36_medicalPutRejectsRefsAndRequiresReasonEvenForNoOp",
+          "tc32_explicitNullGenderIsDifferentFromOmitted",
+          "tc06_fullPutOmittedOptionalsAreNull"
+        ],
+        "xmlSha256": "a7270b55f2a4b047d4b5639578a95f59560b6be54b1d2caf24938e664402e374"
+      },
+      {
+        "suite": "com.fclinic.patientservice.PatientJvmExecutableTest",
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "platformNameSelectsJvmBinaryWithoutShellQuoting(String, String)[1]",
+          "platformNameSelectsJvmBinaryWithoutShellQuoting(String, String)[2]",
+          "platformNameSelectsJvmBinaryWithoutShellQuoting(String, String)[3]",
+          "platformNameSelectsJvmBinaryWithoutShellQuoting(String, String)[4]",
+          "platformNameSelectsJvmBinaryWithoutShellQuoting(String, String)[5]",
+          "currentJvmExecutableActuallyExists"
+        ],
+        "xmlSha256": "e55446a64730a60c2026134e88d064cf816db20037c44ce458ddf092d8d5d01a"
+      },
+      {
+        "suite": "com.fclinic.patientservice.PatientOrchestrationTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "tc10_walkInSkipsOnlyAppointmentAndValidatesBeforeWriter",
+          "tc35_missingScopeFailsBeforeProvidersOrWriter",
+          "tc12_missingOrInactiveDoctorIs422",
+          "tc12_linkedMismatchIs422AndDoesNotWrite",
+          "tc19_technicalDependencyFailureIs503AndNoWrite"
+        ],
+        "xmlSha256": "e3e78bc8bb256c4609d1b6e1a989a5310cfd5113c88d8c4bbae72eb5873f2ec8"
+      },
+      {
+        "suite": "com.fclinic.patientservice.PatientPolicyTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "tc35_doctorRoleAloneGrantsNoScope",
+          "tc18_patientCanReadSelfOnlyAndCannotMutateOrSearch",
+          "searchReturnsOnlyTrustedScope",
+          "tc18_serviceNeedsExplicitAppointmentLookupGrant",
+          "tc18_tc36_staffAndAdminHaveNoClinicalOverride"
+        ],
+        "xmlSha256": "7886bb8dd4be99dc72f226fef7571fc573ad6690960433b34ba6f75ec7cf8967"
+      },
+      {
+        "suite": "com.fclinic.patientservice.reference.AppointmentReferenceDecoderTest",
+        "tests": 13,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "unknownOrWrongTypeStatusIsNeverNonCancelled",
+          "publicFullPayloadAndUnknownDuplicateOrMalformedJsonAre503",
+          "patientAndDoctorMismatchRemainFactsForApplication422Comparison",
+          "uuidAndLongTypesRangesAndResourceIdAreStrict",
+          "fullVocabularyIsValidatedBeforeCancelledBoolean(String)[1]",
+          "fullVocabularyIsValidatedBeforeCancelledBoolean(String)[2]",
+          "fullVocabularyIsValidatedBeforeCancelledBoolean(String)[3]",
+          "fullVocabularyIsValidatedBeforeCancelledBoolean(String)[4]",
+          "requiredFieldsCannotBeMissingOrNull(String)[1]",
+          "requiredFieldsCannotBeMissingOrNull(String)[2]",
+          "requiredFieldsCannotBeMissingOrNull(String)[3]",
+          "requiredFieldsCannotBeMissingOrNull(String)[4]",
+          "onlyExactSelected404ReturnsEmpty"
+        ],
+        "xmlSha256": "265bfa7eea0b1a38c2d926953cc51df7af259680741ef2938d5a7c73b044b9e2"
+      },
+      {
+        "suite": "com.fclinic.patientservice.reference.AppointmentReferenceTransportTest",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "missingAndCancelledRemainSeparateFromTechnicalFailureWithoutCaching",
+          "transactionGuardRejectsAppointmentLookupBeforeNetwork",
+          "errorsAndWrongVersionNeverBecomeMissingOrHumanAuthFailure",
+          "authenticatedMinimumProjectionUsesExactReadOnlyPath"
+        ],
+        "xmlSha256": "e53e1945c0c0dbec6eac095e3485e94837963c8604386222fcf40b3d03ad914f"
+      },
+      {
+        "suite": "com.fclinic.patientservice.reference.DoctorReferenceDecoderTest",
+        "tests": 16,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "requiredNullOrWrongFieldTypesNeverDefaultActiveOrId",
+          "activeInactiveAndLegitimateMissingAreDistinct",
+          "everyFullDoctorFieldMustBePresent(String)[1]",
+          "everyFullDoctorFieldMustBePresent(String)[2]",
+          "everyFullDoctorFieldMustBePresent(String)[3]",
+          "everyFullDoctorFieldMustBePresent(String)[4]",
+          "everyFullDoctorFieldMustBePresent(String)[5]",
+          "everyFullDoctorFieldMustBePresent(String)[6]",
+          "everyFullDoctorFieldMustBePresent(String)[7]",
+          "everyFullDoctorFieldMustBePresent(String)[8]",
+          "everyFullDoctorFieldMustBePresent(String)[9]",
+          "everyFullDoctorFieldMustBePresent(String)[10]",
+          "everyFullDoctorFieldMustBePresent(String)[11]",
+          "onlySelected404IsBusinessMissing",
+          "wrongWrapperUnknownDuplicateTruncatedAndTrailingJsonAre503",
+          "safeIntegerBoundsAndReturnedResourceIdentityAreStrict"
+        ],
+        "xmlSha256": "3d781390ecab4c854f1e4ebc48cb95c05bfcfccb54d2c216734b72a418707cbb"
+      },
+      {
+        "suite": "com.fclinic.patientservice.reference.DoctorReferenceTransportTest",
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "backendCredentialRejectionIs503NotHuman401",
+          "deadlineAndCapacityUseLatchAndNeverReturnFalseReference",
+          "providerErrorsAndRealRedirectAre503WithoutRetryOrFollowingLocation",
+          "missingWrongVersionContentTypeOversizeAndInvalidJsonAre503",
+          "missingRequiresVersionedDomain404AndNoPositiveCache",
+          "authenticatedGetUsesOnlySafeDecimalIdAndExactPath",
+          "lookupRejectsLocalTransactionBeforeAnyNetworkCall",
+          "untrustedTlsAndWrongHostnameAre503"
+        ],
+        "xmlSha256": "2a1e475d1d7c0122d8470284819a55b46e27c9ce011811e7ca814a2c365bee15"
+      },
+      {
+        "suite": "com.fclinic.patientservice.reference.LocalHttpUuidTest",
+        "tests": 26,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "unsafeTargetsRejectedBeforeNetwork(String)[1]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[2]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[3]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[4]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[5]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[6]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[7]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[8]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[9]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[10]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[11]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[12]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[13]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[14]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[15]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[16]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[17]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[18]",
+          "realHttpTcpBothUuidContractsAuthVersionAndStrictFailures",
+          "canonicalUuidOnlyAndCountersStillNumeric",
+          "explicitLoopbackHttpOrVerifiedHttpsConfigurationAccepted(String)[1]",
+          "explicitLoopbackHttpOrVerifiedHttpsConfigurationAccepted(String)[2]",
+          "explicitLoopbackHttpOrVerifiedHttpsConfigurationAccepted(String)[3]",
+          "explicitLoopbackHttpOrVerifiedHttpsConfigurationAccepted(String)[4]",
+          "explicitLoopbackHttpOrVerifiedHttpsConfigurationAccepted(String)[5]",
+          "malformedUriAndMissingCredentialsCannotInitializeTransport"
+        ],
+        "xmlSha256": "f7be8e37118b11d2b29aa99c962d0a2fbaf60b57ff409d3c788ab4ade82e9ff9"
+      },
+      {
+        "suite": "com.fclinic.patientservice.reference.ReferenceConfigurationTest",
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "enabledDoctorSelectsExactlyOneProductionBean",
+          "bothPortsSelectExactlyOneIndependentProductionBean",
+          "appointmentEnabledWithoutSettingsFailsClosed",
+          "disabledPortsHaveExactlyOneFailClosedFallback",
+          "credentialsCannotReuseIdentityOrEitherScopeAuthority",
+          "invalidEnabledSettingsFailStartupClosed",
+          "settingsNeverPrintCredentialsOrInternalUri"
+        ],
+        "xmlSha256": "c84b0a8dab06a4ff4ced372990b0e99d2d1257736040a9bc3d62a409f71550ce"
+      },
+      {
+        "suite": "com.fclinic.patientservice.scope.ScopeAdapterTest",
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "linkedAndWalkInBothRequireVisitAuthorityAndNoPositiveCache",
+          "validTrustChainWithWrongHostnameIsRejected",
+          "noScopeNetworkLookupInsideLocalTransaction",
+          "credentialFailureAndUntrustedTlsAre503",
+          "roleAloneDoesNotGrantAndSearchNullEmptyBoundedStayDistinct",
+          "deadlineAndCapacityBoundedWithLatchNotSleep",
+          "allProviderHttpErrorsAre503NotFalseAndNoApplicationRetry",
+          "separateAuthoritiesReceiveOperationBoundCallerAndResources",
+          "malformedOversizedAndWrongContentTypeAre503"
+        ],
+        "xmlSha256": "9c4f3135e0f6c37c282896a22a3dbe8841726c6bc2b015b475f9fdc6a7911868"
+      },
+      {
+        "suite": "com.fclinic.patientservice.scope.ScopeConfigurationTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "disabledHasOneDenyFallback",
+          "settingsStringsNeverExposeCredentialOrUrl",
+          "enabledSelectsExactlyOneProductionBean",
+          "missingOrInsecureSettingsFailStartupClosed",
+          "credentialsMustBeSeparateFromIdentityAndEachOther"
+        ],
+        "xmlSha256": "b7184dd9e9299cbea9c597a77863b3f4301c6f7f7c440bb3e33573cd9c81d19a"
+      },
+      {
+        "suite": "com.fclinic.patientservice.scope.ScopeDecisionDecoderTest",
+        "tests": 27,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "staleEvaluationAndReplayAre503",
+          "replyMustMatchExactRequestIncludingPrincipalAndResource(String)[1]",
+          "replyMustMatchExactRequestIncludingPrincipalAndResource(String)[2]",
+          "replyMustMatchExactRequestIncludingPrincipalAndResource(String)[3]",
+          "replyMustMatchExactRequestIncludingPrincipalAndResource(String)[4]",
+          "replyMustMatchExactRequestIncludingPrincipalAndResource(String)[5]",
+          "replyMustMatchExactRequestIncludingPrincipalAndResource(String)[6]",
+          "replyMustMatchExactRequestIncludingPrincipalAndResource(String)[7]",
+          "replyMustMatchExactRequestIncludingPrincipalAndResource(String)[8]",
+          "invalidOrUnboundedSearchDoesNotTruncateOrGrantAll",
+          "revokedFutureOrExpiredAssignmentsAreBusinessDenial(String)[1]",
+          "revokedFutureOrExpiredAssignmentsAreBusinessDenial(String)[2]",
+          "revokedFutureOrExpiredAssignmentsAreBusinessDenial(String)[3]",
+          "doctorOrSubjectBindingCannotBeSubstituted",
+          "missingUnknownNullOrWrongTypesFail503",
+          "validOperationBoundGrants(String)[1]",
+          "validOperationBoundGrants(String)[2]",
+          "validOperationBoundGrants(String)[3]",
+          "validOperationBoundGrants(String)[4]",
+          "validOperationBoundGrants(String)[5]",
+          "validOperationBoundGrants(String)[6]",
+          "validOperationBoundGrants(String)[7]",
+          "validOperationBoundGrants(String)[8]",
+          "validOperationBoundGrants(String)[9]",
+          "walkInStillRequiresAuthoritativeVisitEvidence",
+          "ambiguousJsonAndDenialPayloadCannotSmuggleGrant",
+          "denyEmptyAndBoundedSearchAreDifferent"
+        ],
+        "xmlSha256": "5504c7789a6b7309500dda9f8f9811cce77468a2fd4179e16d110e48a49e805e"
+      },
+      {
+        "suite": "com.fclinic.patientservice.scope.ScopePolicyTest",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "clinicalCreateReadAndUpdateNeedDifferentDecisions",
+          "f06UnexpectedScopeExceptionBecomes503Not500AndDenialStays403",
+          "administrativeActionDoesNotGrantOtherOperations",
+          "nullAndEmptySearchKeep403VersusAuthorizedEmpty"
+        ],
+        "xmlSha256": "1e6b9c3e8601bf9d0597f8ac8e29d37e72e38680daab3b849cbe7c7c7e4f3c5c"
+      }
+    ],
+    "logSha256": "9d59b945192bb71af69bc1c8eb059bfa96784e441ae3635ba37fe05a6c2d69a8",
+    "retained287": 287,
+    "missingCases": [],
+    "newCases": [
+      [
+        "com.fclinic.patientservice.PatientJvmExecutableTest",
+        "currentJvmExecutableActuallyExists"
+      ],
+      [
+        "com.fclinic.patientservice.PatientJvmExecutableTest",
+        "platformNameSelectsJvmBinaryWithoutShellQuoting(String, String)[1]"
+      ],
+      [
+        "com.fclinic.patientservice.PatientJvmExecutableTest",
+        "platformNameSelectsJvmBinaryWithoutShellQuoting(String, String)[2]"
+      ],
+      [
+        "com.fclinic.patientservice.PatientJvmExecutableTest",
+        "platformNameSelectsJvmBinaryWithoutShellQuoting(String, String)[3]"
+      ],
+      [
+        "com.fclinic.patientservice.PatientJvmExecutableTest",
+        "platformNameSelectsJvmBinaryWithoutShellQuoting(String, String)[4]"
+      ],
+      [
+        "com.fclinic.patientservice.PatientJvmExecutableTest",
+        "platformNameSelectsJvmBinaryWithoutShellQuoting(String, String)[5]"
+      ]
+    ]
+  },
+  "linux": {
+    "buildSuccess": true,
+    "totals": {
+      "tests": 293,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "runtime": {
+      "jdkVersion": "21.0.13+9.0.LTS",
+      "jdkSource": "https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.13%2B9/OpenJDK21U-jdk_x64_linux_hotspot_21.0.13_9.tar.gz",
+      "jdkSha256": "d7f5d5cf865a2902b70ff549b97586a7d3f234e016f041ab447ea740c7d66d1c",
+      "sourceTarSha256": "d69080fbe3b57ad266b168937dd5d178cbedb97df4bf36db71715c6f98aeba9a",
+      "linuxRoot": "/home/fclinic-patient-final-cc827",
+      "runAs": "nobody",
+      "distribution": "WSL Ubuntu",
+      "systemInstall": false,
+      "exitCode": 0,
+      "reportsArchivedBeforeExit": true
+    },
+    "suites": [
+      {
+        "suite": "com.fclinic.patientservice.config.PatientAuthenticationTest",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "inactiveVerifiedContextIs401",
+          "defaultScopeAndReferenceAdaptersFailClosed",
+          "unconfiguredVerifierNeverAcceptsAnArbitraryBearerAndReturns503",
+          "tc17_missingOrMalformedBearerAndSpoofedHeadersAre401"
+        ],
+        "xmlSha256": "6afb73f42d3b0407dfba20654f7a935c0b74ab89c0d12cc9d905977cd4999ee1"
+      },
+      {
+        "suite": "com.fclinic.patientservice.contract.PatientProviderContractTest",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "fullValidatorChecksStructuredErrorsAndPatientFormatsAndBounds",
+          "allEightRuntimeMappingsEqualCanonicalPathsAndMethods",
+          "proposedUuidReferenceSchemasAcceptGoldenFixturesAndRejectNumericIds"
+        ],
+        "xmlSha256": "be99f6160a36caac177824695cbb740e40bfed028084bc3b3db5520acb80cb5a"
+      },
+      {
+        "suite": "com.fclinic.patientservice.contract.ProviderContractPreflightTest",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "absentOptInEnvironmentFailsBeforeAnyNetworkClientExists",
+          "plainHttpTargetIsRejectedWithoutEchoingSecretOrInternalLocation",
+          "unsupportedBoundaryCannotSelectAnArbitraryRemoteApi"
+        ],
+        "xmlSha256": "a6ed103c5abb7917b90e2ec4bf468d22a16f204f5e807da883678d9e923897e9"
+      },
+      {
+        "suite": "com.fclinic.patientservice.identity.IdentityConfigurationTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "strictBearerSyntaxRejectsAmbiguousHeaderValues",
+          "noConfigObjectToStringContainsSecrets",
+          "disabledConfigurationHasExactlyOneFailClosedVerifier",
+          "missingOrInsecureEnabledConfigurationFailsStartupClosed",
+          "enabledConfigurationSelectsExactlyOneProductionVerifier"
+        ],
+        "xmlSha256": "d20cb0755c2a70dc5a9baf8c9380e069a9b88d3e6313a40767e2106910429b54"
+      },
+      {
+        "suite": "com.fclinic.patientservice.identity.IntrospectionDecoderTest",
+        "tests": 30,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "unlinkedUserIsAuthenticatedButHasNoSelfMapping",
+          "validUserPreservesOpaqueSubjectAndMappings",
+          "validServiceNameComesOnlyFromExactRegistryBinding",
+          "unknownServiceSubjectDoesNotAcquireServiceName",
+          "serviceCannotCarryHumanMappingsOrRoles",
+          "missingRequiredFieldIs503(String)[1]",
+          "missingRequiredFieldIs503(String)[2]",
+          "missingRequiredFieldIs503(String)[3]",
+          "missingRequiredFieldIs503(String)[4]",
+          "missingRequiredFieldIs503(String)[5]",
+          "missingRequiredFieldIs503(String)[6]",
+          "missingRequiredFieldIs503(String)[7]",
+          "missingRequiredFieldIs503(String)[8]",
+          "missingRequiredFieldIs503(String)[9]",
+          "missingRequiredFieldIs503(String)[10]",
+          "missingRequiredFieldIs503(String)[11]",
+          "audienceMayBeSingleString",
+          "inactiveInvalidOrRevokedCredentialsAre401",
+          "expiryAtClockBoundaryIs401",
+          "unknownOrForgedWireFieldsAre503(String)[1]",
+          "unknownOrForgedWireFieldsAre503(String)[2]",
+          "unknownOrForgedWireFieldsAre503(String)[3]",
+          "unknownOrForgedWireFieldsAre503(String)[4]",
+          "unknownOrForgedWireFieldsAre503(String)[5]",
+          "nullRequiredDataAndUnknownRoleAre503",
+          "wrongAudienceIs401",
+          "wrongIssuerIs401",
+          "doctorMappingMustBeSafePositiveInteger",
+          "malformedIdentityTypesAndAmbiguousPayloadsAre503",
+          "serviceCannotExceedLocalAuthorityCeiling"
+        ],
+        "xmlSha256": "22eed81f166f4a5788e9ec44a7e97771776db1eb648217152a3aa257a536c812"
+      },
+      {
+        "suite": "com.fclinic.patientservice.identity.IntrospectionTransportTest",
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "wrongContentTypeLargeBodyAndMalformedPayloadAre503",
+          "incorrectBackendSecretIs503NotHuman401",
+          "currentActivationIsCheckedAgainWithoutPositiveCaching",
+          "untrustedTlsCertificateFailsClosed",
+          "providerCredentialErrorsRedirectAndServerErrorsAre503WithoutRetry",
+          "responseDeadlineAndConcurrencyLimitFailClosed",
+          "trustedCertificateWithWrongHostnameIsStillRejected",
+          "sendsBackendCredentialAndOpaqueTokenUsingTlsFormPost",
+          "invalidInputNeverContactsProvider"
+        ],
+        "xmlSha256": "803060e91b543c9bd94b8c2498bcf093e00537b4af629740b9e1a9a14d80e81f"
+      },
+      {
+        "suite": "com.fclinic.patientservice.identity.PatientIdentityTcpIT",
+        "tests": 15,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "invalidAuthContractProtectsEveryMutationAndAllPersistedContent",
+          "authDeadlinePreventsAdministrativeAndClinicalWrites",
+          "verifiedSelfReadsProfileAndMedicalButNotOtherPatientSearchOrWrites",
+          "untrustedBrowserHeadersCannotUpgradeVerifiedUserToStaff",
+          "verifiedDoctorCanWriteWithTestScopeAndAuditUsesTrustedSubject",
+          "invalidExpiredAndInactiveCredentialsAre401AndCannotWrite",
+          "issuerAndAudienceMismatchAre401",
+          "staffAdminAndMissingDoctorMappingNeverAcquireClinicalWriteAccess",
+          "providerActivationChangeIsEffectiveOnNextTcpRequest",
+          "currentScopeIsStillRequiredAfterSuccessfulAuthentication",
+          "profilePutKeepsNoOpVersionAndStaleConflictWithRealIdentityTransport",
+          "backendCredentialFailureOutageAndBadPayloadAre503WithoutDisclosure",
+          "inactiveIntrospectionBlocksPreviouslyAllowedNoOpAndChangedPuts",
+          "serviceIsLimitedToPermittedProfileDetailAndNeverHumanPermissions",
+          "missingMalformedAndDuplicateBearerCannotUseForgedHeaders"
+        ],
+        "xmlSha256": "c644e49c9c3c3062ff06946083b7a32922fa1f73426c7f099d350e36bd4d4bec"
+      },
+      {
+        "suite": "com.fclinic.patientservice.PatientInputTest",
+        "tests": 24,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "tc03_rejectsInvalidPhone(String)[1]",
+          "tc03_rejectsInvalidPhone(String)[2]",
+          "tc03_rejectsInvalidPhone(String)[3]",
+          "tc03_rejectsInvalidPhone(String)[4]",
+          "tc03_rejectsInvalidPhone(String)[5]",
+          "tc03_rejectsNumericTextAndMalformedEmail",
+          "tc03_tc32_rejectsInvalidOrFutureDob(String)[1]",
+          "tc03_tc32_rejectsInvalidOrFutureDob(String)[2]",
+          "tc03_tc32_rejectsInvalidOrFutureDob(String)[3]",
+          "tc03_tc32_rejectsInvalidOrFutureDob(String)[4]",
+          "tc03_tc32_rejectsInvalidOrFutureDob(String)[5]",
+          "tc05_queryAndUuidRules",
+          "tc03_unicodeWhitespaceIsBlankAndMaxLengthCountsCodePoints",
+          "tc03_rejectsUnknownAndServerOwnedFields(String)[1]",
+          "tc03_rejectsUnknownAndServerOwnedFields(String)[2]",
+          "tc03_rejectsUnknownAndServerOwnedFields(String)[3]",
+          "tc03_rejectsUnknownAndServerOwnedFields(String)[4]",
+          "tc03_rejectsUnknownAndServerOwnedFields(String)[5]",
+          "tc03_rejectsUnknownAndServerOwnedFields(String)[6]",
+          "tc13_tc32_instantRequiresOffsetAndCannotBeFuture",
+          "tc02_normalizesSharedPhoneWithoutIdentityDeduplication",
+          "tc16_tc36_medicalPutRejectsRefsAndRequiresReasonEvenForNoOp",
+          "tc32_explicitNullGenderIsDifferentFromOmitted",
+          "tc06_fullPutOmittedOptionalsAreNull"
+        ],
+        "xmlSha256": "fde23c584fd38f7f28cd1d2b17bdd87735c093d7176b35f95cb2846df41bb37e"
+      },
+      {
+        "suite": "com.fclinic.patientservice.PatientJvmExecutableTest",
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "platformNameSelectsJvmBinaryWithoutShellQuoting(String, String)[1]",
+          "platformNameSelectsJvmBinaryWithoutShellQuoting(String, String)[2]",
+          "platformNameSelectsJvmBinaryWithoutShellQuoting(String, String)[3]",
+          "platformNameSelectsJvmBinaryWithoutShellQuoting(String, String)[4]",
+          "platformNameSelectsJvmBinaryWithoutShellQuoting(String, String)[5]",
+          "currentJvmExecutableActuallyExists"
+        ],
+        "xmlSha256": "9b965391875a872c9aa9c61a27298ed0510321d9a3fbc1e9bc42d77eda8cc5aa"
+      },
+      {
+        "suite": "com.fclinic.patientservice.PatientOrchestrationTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "tc10_walkInSkipsOnlyAppointmentAndValidatesBeforeWriter",
+          "tc35_missingScopeFailsBeforeProvidersOrWriter",
+          "tc12_missingOrInactiveDoctorIs422",
+          "tc12_linkedMismatchIs422AndDoesNotWrite",
+          "tc19_technicalDependencyFailureIs503AndNoWrite"
+        ],
+        "xmlSha256": "e1be870acb9c2e86a3bd0e51ab7258c852b9789f7c261380bff7afcd36b104e2"
+      },
+      {
+        "suite": "com.fclinic.patientservice.PatientPolicyTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "tc35_doctorRoleAloneGrantsNoScope",
+          "tc18_patientCanReadSelfOnlyAndCannotMutateOrSearch",
+          "searchReturnsOnlyTrustedScope",
+          "tc18_serviceNeedsExplicitAppointmentLookupGrant",
+          "tc18_tc36_staffAndAdminHaveNoClinicalOverride"
+        ],
+        "xmlSha256": "d225e393e1cb5abe61870adf9dc890b0d9597802fbe220fe4be26dde81b6b68f"
+      },
+      {
+        "suite": "com.fclinic.patientservice.PatientServiceIT",
+        "tests": 22,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "tc29_deactivateCommitBeforeCreateRejectsMedical",
+          "tc09_tc10_tc14_linkedAndWalkInCanonicalMedicalReads",
+          "tc17_tc18_tc35_authScopeAndForgedHeadersDoNotLeak",
+          "tc17_verifierUnavailableReturns503AndInactiveIdentityReturns401",
+          "tc31_noOpMedicalDetectsConcurrentVersionChangeAtCommit",
+          "tc06_tc31_profileFullPutNoOpStaleAndRevisionVersion",
+          "tc11_linkedCreateRaceReturns201And409WithOneRevision",
+          "tc14_parentExistsWithoutRecordsReturnsEmptyPageAndUnknownParent404",
+          "tc07_competingProfileUpdatesHaveOneWinner",
+          "tc15_tc16_tc36_parentAuthorImmutableRefsAndMedicalPut",
+          "uuidSchemaColumnsRevisionKeysAndForeignKeysAreRealPostgres",
+          "tc29_recordCommittedBeforeDeactivationRemains",
+          "tc01_tc02_sharedPhoneCreateAndCanonicalDetail",
+          "uuidApiRejectsNumericAndNonV4WithoutWrites",
+          "unicodePatientNamePersistsAndReadsBackWithoutLoss",
+          "tc19_reference422VsTechnical503AndNoWrite",
+          "tc03_tc32_apiBindingRejectsUnknownNullAndCoercedValuesWithoutWriting",
+          "tc23_revisionFailureRollsBackBothAggregatesAndVersions",
+          "tc06_optionalFieldsAreErasedByReplacement",
+          "tc08_inactiveForbidsNewMedicalButAllowsExistingReadAndEdit",
+          "tc05_searchCombinesFiltersAndRestrictsCountAndStablePage",
+          "tc33_constraintsAndRetiredV1"
+        ],
+        "xmlSha256": "c6c7f0a2fda77e1433b32937bc22d225592cbf197f0f37e7183b1ca8848101c4"
+      },
+      {
+        "suite": "com.fclinic.patientservice.PatientUuidJarIT",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "actualLocalJarValidatesUuidSchemaAndDeniesUnavailableAuthorityWithoutWrites"
+        ],
+        "xmlSha256": "391634f0e7cb8a210a60f056a9c2efdad78d7600abdf8a963a49ae6aa004dad2"
+      },
+      {
+        "suite": "com.fclinic.patientservice.reference.AppointmentReferenceDecoderTest",
+        "tests": 13,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "unknownOrWrongTypeStatusIsNeverNonCancelled",
+          "publicFullPayloadAndUnknownDuplicateOrMalformedJsonAre503",
+          "patientAndDoctorMismatchRemainFactsForApplication422Comparison",
+          "uuidAndLongTypesRangesAndResourceIdAreStrict",
+          "fullVocabularyIsValidatedBeforeCancelledBoolean(String)[1]",
+          "fullVocabularyIsValidatedBeforeCancelledBoolean(String)[2]",
+          "fullVocabularyIsValidatedBeforeCancelledBoolean(String)[3]",
+          "fullVocabularyIsValidatedBeforeCancelledBoolean(String)[4]",
+          "requiredFieldsCannotBeMissingOrNull(String)[1]",
+          "requiredFieldsCannotBeMissingOrNull(String)[2]",
+          "requiredFieldsCannotBeMissingOrNull(String)[3]",
+          "requiredFieldsCannotBeMissingOrNull(String)[4]",
+          "onlyExactSelected404ReturnsEmpty"
+        ],
+        "xmlSha256": "9ff93bbdc5edd6c89d12997824e48b69d3a26bf18e89f2cae9a0dafedaf38884"
+      },
+      {
+        "suite": "com.fclinic.patientservice.reference.AppointmentReferenceTransportTest",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "missingAndCancelledRemainSeparateFromTechnicalFailureWithoutCaching",
+          "transactionGuardRejectsAppointmentLookupBeforeNetwork",
+          "errorsAndWrongVersionNeverBecomeMissingOrHumanAuthFailure",
+          "authenticatedMinimumProjectionUsesExactReadOnlyPath"
+        ],
+        "xmlSha256": "eb524785dc969c143c1f3ecb37d5d2bfa70ba7f86df78bb822288e89e7dbf0af"
+      },
+      {
+        "suite": "com.fclinic.patientservice.reference.DoctorReferenceDecoderTest",
+        "tests": 16,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "requiredNullOrWrongFieldTypesNeverDefaultActiveOrId",
+          "activeInactiveAndLegitimateMissingAreDistinct",
+          "everyFullDoctorFieldMustBePresent(String)[1]",
+          "everyFullDoctorFieldMustBePresent(String)[2]",
+          "everyFullDoctorFieldMustBePresent(String)[3]",
+          "everyFullDoctorFieldMustBePresent(String)[4]",
+          "everyFullDoctorFieldMustBePresent(String)[5]",
+          "everyFullDoctorFieldMustBePresent(String)[6]",
+          "everyFullDoctorFieldMustBePresent(String)[7]",
+          "everyFullDoctorFieldMustBePresent(String)[8]",
+          "everyFullDoctorFieldMustBePresent(String)[9]",
+          "everyFullDoctorFieldMustBePresent(String)[10]",
+          "everyFullDoctorFieldMustBePresent(String)[11]",
+          "onlySelected404IsBusinessMissing",
+          "wrongWrapperUnknownDuplicateTruncatedAndTrailingJsonAre503",
+          "safeIntegerBoundsAndReturnedResourceIdentityAreStrict"
+        ],
+        "xmlSha256": "7034e2d76ef5fcb11b6a5ba7c6197795d7d9a4a185700b2d899d5c65201b7716"
+      },
+      {
+        "suite": "com.fclinic.patientservice.reference.DoctorReferenceTransportTest",
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "backendCredentialRejectionIs503NotHuman401",
+          "deadlineAndCapacityUseLatchAndNeverReturnFalseReference",
+          "providerErrorsAndRealRedirectAre503WithoutRetryOrFollowingLocation",
+          "missingWrongVersionContentTypeOversizeAndInvalidJsonAre503",
+          "missingRequiresVersionedDomain404AndNoPositiveCache",
+          "authenticatedGetUsesOnlySafeDecimalIdAndExactPath",
+          "lookupRejectsLocalTransactionBeforeAnyNetworkCall",
+          "untrustedTlsAndWrongHostnameAre503"
+        ],
+        "xmlSha256": "059d957cce69899f5132049c601f65f49eff9067d657366cdc553173cf895e90"
+      },
+      {
+        "suite": "com.fclinic.patientservice.reference.LocalHttpUuidTest",
+        "tests": 26,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "unsafeTargetsRejectedBeforeNetwork(String)[1]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[2]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[3]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[4]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[5]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[6]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[7]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[8]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[9]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[10]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[11]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[12]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[13]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[14]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[15]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[16]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[17]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[18]",
+          "realHttpTcpBothUuidContractsAuthVersionAndStrictFailures",
+          "canonicalUuidOnlyAndCountersStillNumeric",
+          "explicitLoopbackHttpOrVerifiedHttpsConfigurationAccepted(String)[1]",
+          "explicitLoopbackHttpOrVerifiedHttpsConfigurationAccepted(String)[2]",
+          "explicitLoopbackHttpOrVerifiedHttpsConfigurationAccepted(String)[3]",
+          "explicitLoopbackHttpOrVerifiedHttpsConfigurationAccepted(String)[4]",
+          "explicitLoopbackHttpOrVerifiedHttpsConfigurationAccepted(String)[5]",
+          "malformedUriAndMissingCredentialsCannotInitializeTransport"
+        ],
+        "xmlSha256": "173e04de3496b80d7539357f31a5ef653232c80ca12449947ec3087b6c74aaeb"
+      },
+      {
+        "suite": "com.fclinic.patientservice.reference.PatientReferenceTcpIT",
+        "tests": 23,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "wrongDoctorIdentityOrMalformedActiveIsTechnical503",
+          "inactiveParentRemainsFinalLocalWriteGuardAfterValidReferences",
+          "provider5xxDoesNotBecomeBusinessMissingAndNoReferenceCacheHidesOutage",
+          "revisionFailureAfterAllRealAdapterLookupsRollsBackMedicalDataAndAudit",
+          "wrongAppointmentIdAndLegacyUnmarked404Are503",
+          "linkedCreateAcceptsEachSelectedNonCancelledStatusWithoutCompletionMutation(String)[1]",
+          "linkedCreateAcceptsEachSelectedNonCancelledStatusWithoutCompletionMutation(String)[2]",
+          "linkedCreateAcceptsEachSelectedNonCancelledStatusWithoutCompletionMutation(String)[3]",
+          "concurrentLinkedCreatesYield201And409WithOneRecordRevisionAndNoOrphan",
+          "walkInStillChecksDoctorAndVisitButNeverCallsAppointment",
+          "doctorBusinessFailuresAre422AndStopBeforeAppointment(String)[1]",
+          "doctorBusinessFailuresAre422AndStopBeforeAppointment(String)[2]",
+          "wellFormedReferencePatientOrDoctorMismatchIs422(String)[1]",
+          "wellFormedReferencePatientOrDoctorMismatchIs422(String)[2]",
+          "machineCredentialDenialIs503NotHuman401AndHasNoWrite(String)[1]",
+          "machineCredentialDenialIs503NotHuman401AndHasNoWrite(String)[2]",
+          "bodyDoctorSpoofCannotInvokeReferenceProviders",
+          "clinicalScopeDenialPrecedesReferencesAndMutation(String)[1]",
+          "clinicalScopeDenialPrecedesReferencesAndMutation(String)[2]",
+          "missingOrCancelledAppointmentIs422(String)[1]",
+          "missingOrCancelledAppointmentIs422(String)[2]",
+          "medicalPutDoesNotRevalidateImmutableExternalReferences",
+          "unknownAppointmentStatusIs503NeverDefaultedToAllowed"
+        ],
+        "xmlSha256": "cc14c7fe50a14f3897b461cd762e68bcec5e5143ec09cd4887888ae7ed3ebd35"
+      },
+      {
+        "suite": "com.fclinic.patientservice.reference.ReferenceConfigurationTest",
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "enabledDoctorSelectsExactlyOneProductionBean",
+          "bothPortsSelectExactlyOneIndependentProductionBean",
+          "appointmentEnabledWithoutSettingsFailsClosed",
+          "disabledPortsHaveExactlyOneFailClosedFallback",
+          "credentialsCannotReuseIdentityOrEitherScopeAuthority",
+          "invalidEnabledSettingsFailStartupClosed",
+          "settingsNeverPrintCredentialsOrInternalUri"
+        ],
+        "xmlSha256": "cbf5b34a3a86b8b98da51fc5bd838b133410c8976283eb44b02057c1b12106dc"
+      },
+      {
+        "suite": "com.fclinic.patientservice.scope.PatientScopeTcpIT",
+        "tests": 19,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "staffRoleWithoutAssignmentAndForgedScopeHeadersCannotCreate",
+          "clinicalReadCreateUpdateRemainDistinctAndAuthorStillRequired",
+          "medicalNoOpThenRevocationKeepsDataVersionAndRevision",
+          "scopeTimeout503HasNoWriteUsingLatch",
+          "technicalCredentialFailureOutageAndMalformedPayloadAre503WithoutLeak",
+          "searchDenialEmptyAndBoundedScopePreserveCountsAndAndFilters",
+          "wrongDoctorBodyAndStaffAdminNeverAcquireClinicalRights",
+          "linkedScopeGrantCannotSubstituteForUnavailableAppointmentReference",
+          "expiredOrInactiveAssignmentIs403NotTechnicalFailure",
+          "misboundPrincipalPatientDoctorAndForgedPayloadAre503NoWrites",
+          "doctorSearchUsesClinicalAuthorityAndCannotExpandScope",
+          "revokedClinicalAssignmentAndValidVisitDenyBothLinkedAndWalkIn",
+          "administrativeObjectGrantCannotReadOrUpdateAnotherPatient",
+          "currentGrantIsRecheckedBetweenControllerAndUseCaseBeforeWriter",
+          "linkedWithReferenceDoubleKeepsDuplicateGuardAndNestedParent",
+          "serviceProfileLookupNeedsAdministrativeGrantAndNeverClinical",
+          "revocationBeforeNoOpAndMutationKeepsVersionsAndRevisions",
+          "walkInRequiresVisitEvidenceButSkipsAppointmentAndWritesAtomicRevision",
+          "f06UntypedScopeFaultIs503AndNoWrite"
+        ],
+        "xmlSha256": "4d96f095c61240bc5c811c3458a681fdf17984e3f1566c2c914da508a1d5c056"
+      },
+      {
+        "suite": "com.fclinic.patientservice.scope.ScopeAdapterTest",
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "linkedAndWalkInBothRequireVisitAuthorityAndNoPositiveCache",
+          "validTrustChainWithWrongHostnameIsRejected",
+          "noScopeNetworkLookupInsideLocalTransaction",
+          "credentialFailureAndUntrustedTlsAre503",
+          "roleAloneDoesNotGrantAndSearchNullEmptyBoundedStayDistinct",
+          "deadlineAndCapacityBoundedWithLatchNotSleep",
+          "allProviderHttpErrorsAre503NotFalseAndNoApplicationRetry",
+          "separateAuthoritiesReceiveOperationBoundCallerAndResources",
+          "malformedOversizedAndWrongContentTypeAre503"
+        ],
+        "xmlSha256": "178c280372e63b29e443fae9e165d0c2a1813c2ef3e3d901ffc4ab219eef5a53"
+      },
+      {
+        "suite": "com.fclinic.patientservice.scope.ScopeConfigurationTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "disabledHasOneDenyFallback",
+          "settingsStringsNeverExposeCredentialOrUrl",
+          "enabledSelectsExactlyOneProductionBean",
+          "missingOrInsecureSettingsFailStartupClosed",
+          "credentialsMustBeSeparateFromIdentityAndEachOther"
+        ],
+        "xmlSha256": "f1b57c0d215e5ddc2050f01fe5b8de87557597883a62f46f5dec4c5904125f18"
+      },
+      {
+        "suite": "com.fclinic.patientservice.scope.ScopeDecisionDecoderTest",
+        "tests": 27,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "staleEvaluationAndReplayAre503",
+          "replyMustMatchExactRequestIncludingPrincipalAndResource(String)[1]",
+          "replyMustMatchExactRequestIncludingPrincipalAndResource(String)[2]",
+          "replyMustMatchExactRequestIncludingPrincipalAndResource(String)[3]",
+          "replyMustMatchExactRequestIncludingPrincipalAndResource(String)[4]",
+          "replyMustMatchExactRequestIncludingPrincipalAndResource(String)[5]",
+          "replyMustMatchExactRequestIncludingPrincipalAndResource(String)[6]",
+          "replyMustMatchExactRequestIncludingPrincipalAndResource(String)[7]",
+          "replyMustMatchExactRequestIncludingPrincipalAndResource(String)[8]",
+          "invalidOrUnboundedSearchDoesNotTruncateOrGrantAll",
+          "revokedFutureOrExpiredAssignmentsAreBusinessDenial(String)[1]",
+          "revokedFutureOrExpiredAssignmentsAreBusinessDenial(String)[2]",
+          "revokedFutureOrExpiredAssignmentsAreBusinessDenial(String)[3]",
+          "doctorOrSubjectBindingCannotBeSubstituted",
+          "missingUnknownNullOrWrongTypesFail503",
+          "validOperationBoundGrants(String)[1]",
+          "validOperationBoundGrants(String)[2]",
+          "validOperationBoundGrants(String)[3]",
+          "validOperationBoundGrants(String)[4]",
+          "validOperationBoundGrants(String)[5]",
+          "validOperationBoundGrants(String)[6]",
+          "validOperationBoundGrants(String)[7]",
+          "validOperationBoundGrants(String)[8]",
+          "validOperationBoundGrants(String)[9]",
+          "walkInStillRequiresAuthoritativeVisitEvidence",
+          "ambiguousJsonAndDenialPayloadCannotSmuggleGrant",
+          "denyEmptyAndBoundedSearchAreDifferent"
+        ],
+        "xmlSha256": "b176198d89e8dc123c18d007ba5d36fa1faa8ab2536f3a2bfdd71bd9acfb3b46"
+      },
+      {
+        "suite": "com.fclinic.patientservice.scope.ScopePolicyTest",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "clinicalCreateReadAndUpdateNeedDifferentDecisions",
+          "f06UnexpectedScopeExceptionBecomes503Not500AndDenialStays403",
+          "administrativeActionDoesNotGrantOtherOperations",
+          "nullAndEmptySearchKeep403VersusAuthorizedEmpty"
+        ],
+        "xmlSha256": "496c02f6b0fef47c10806d4ef1ebfd02932dfee8387340c6709573b303eacfef"
+      }
+    ],
+    "sameCasesAsWindows": true,
+    "logSha256": "08e3fb84e14f4bcd59c3f46e142309347cde4e7341aead8e6c29847f979a5d94"
+  },
+  "fullReactor": {
+    "status": "FAIL_NOTIFICATION_COMPILE",
+    "path": "notification-service/application/dto/event/AppointmentNotificationEvent.java",
+    "line": 19,
+    "symbol": "AppointmentSnapshotDto",
+    "owner": "Notification",
+    "sourceModified": false
+  },
+  "runtime": {
+    "actualPatientJar": "VERIFIED_WINDOWS",
+    "uuidPostgresql16_10": "VERIFIED_FRESH_ISOLATED",
+    "httpReference": "VERIFIED_WITH_TEST_OWNED_PROVIDERS",
+    "realDoctorAppointmentUuid": "OWNER_PENDING",
+    "realAuthScope": "PENDING",
+    "clinicalPositive": "COMPONENT_TCP_WITH_DOUBLES",
+    "sharedDatabaseUsed": false
+  },
+  "contracts": "PROPOSED_NO_GROUP_APPROVAL",
+  "api": "/api/v3/patients",
+  "authScopeHttpDemo": "INCOMPATIBLE_WITH_CURRENT_HTTPS_POLICY; future local-only proposal documentation only",
+  "ciCoverage": "inherited compile+test does not cover Failsafe verify",
+  "implementationCommit": "38989b9c458448591ed783c2f12db3a44e40ed4e",
+  "push": {
+    "head": "38989b9c458448591ed783c2f12db3a44e40ed4e",
+    "main": "3f833711e282e06b71cc88f7030ce762d78ec201",
+    "baoBefore": "a097c67dbbbf399ec02eeb5b26b801946b7a6f41",
+    "baoAfter": "38989b9c458448591ed783c2f12db3a44e40ed4e",
+    "fastForward": true,
+    "force": false,
+    "status": "COMPLETE"
+  },
+  "newPr": {
+    "number": 4,
+    "url": "https://github.com/duckhisuu/FClinic/pull/4",
+    "state": "open",
+    "draft": true,
+    "merged": false,
+    "title": "feat(patient): HTTP local demo and full UUID migration",
+    "head": "38989b9c458448591ed783c2f12db3a44e40ed4e",
+    "base": "3f833711e282e06b71cc88f7030ce762d78ec201",
+    "transport": "GitHub REST with existing repository Git credential; connector create unavailable403"
+  },
+  "mainMerge": "NOT_PERFORMED",
+  "privateLogsExcluded": true,
+  "testedImplementationTree": "1d61368e9a653fe49a39ff92fef44f696e59e373",
+  "implementationParents": [
+    "3f833711e282e06b71cc88f7030ce762d78ec201",
+    "a097c67dbbbf399ec02eeb5b26b801946b7a6f41"
+  ],
+  "exactCommitVerification": {
+    "buildSuccess": true,
+    "totals": {
+      "tests": 293,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "suites": [
+      {
+        "suite": "com.fclinic.patientservice.identity.PatientIdentityTcpIT",
+        "tests": 15,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "invalidAuthContractProtectsEveryMutationAndAllPersistedContent",
+          "authDeadlinePreventsAdministrativeAndClinicalWrites",
+          "verifiedSelfReadsProfileAndMedicalButNotOtherPatientSearchOrWrites",
+          "untrustedBrowserHeadersCannotUpgradeVerifiedUserToStaff",
+          "verifiedDoctorCanWriteWithTestScopeAndAuditUsesTrustedSubject",
+          "invalidExpiredAndInactiveCredentialsAre401AndCannotWrite",
+          "issuerAndAudienceMismatchAre401",
+          "staffAdminAndMissingDoctorMappingNeverAcquireClinicalWriteAccess",
+          "providerActivationChangeIsEffectiveOnNextTcpRequest",
+          "currentScopeIsStillRequiredAfterSuccessfulAuthentication",
+          "profilePutKeepsNoOpVersionAndStaleConflictWithRealIdentityTransport",
+          "backendCredentialFailureOutageAndBadPayloadAre503WithoutDisclosure",
+          "inactiveIntrospectionBlocksPreviouslyAllowedNoOpAndChangedPuts",
+          "serviceIsLimitedToPermittedProfileDetailAndNeverHumanPermissions",
+          "missingMalformedAndDuplicateBearerCannotUseForgedHeaders"
+        ],
+        "xmlSha256": "1eff7b19ea8c6aa927d7c60f52fe0977067443d571936b693c347138773e0b28"
+      },
+      {
+        "suite": "com.fclinic.patientservice.PatientServiceIT",
+        "tests": 22,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "tc29_deactivateCommitBeforeCreateRejectsMedical",
+          "tc09_tc10_tc14_linkedAndWalkInCanonicalMedicalReads",
+          "tc17_tc18_tc35_authScopeAndForgedHeadersDoNotLeak",
+          "tc17_verifierUnavailableReturns503AndInactiveIdentityReturns401",
+          "tc31_noOpMedicalDetectsConcurrentVersionChangeAtCommit",
+          "tc06_tc31_profileFullPutNoOpStaleAndRevisionVersion",
+          "tc11_linkedCreateRaceReturns201And409WithOneRevision",
+          "tc14_parentExistsWithoutRecordsReturnsEmptyPageAndUnknownParent404",
+          "tc07_competingProfileUpdatesHaveOneWinner",
+          "tc15_tc16_tc36_parentAuthorImmutableRefsAndMedicalPut",
+          "uuidSchemaColumnsRevisionKeysAndForeignKeysAreRealPostgres",
+          "tc29_recordCommittedBeforeDeactivationRemains",
+          "tc01_tc02_sharedPhoneCreateAndCanonicalDetail",
+          "uuidApiRejectsNumericAndNonV4WithoutWrites",
+          "unicodePatientNamePersistsAndReadsBackWithoutLoss",
+          "tc19_reference422VsTechnical503AndNoWrite",
+          "tc03_tc32_apiBindingRejectsUnknownNullAndCoercedValuesWithoutWriting",
+          "tc23_revisionFailureRollsBackBothAggregatesAndVersions",
+          "tc06_optionalFieldsAreErasedByReplacement",
+          "tc08_inactiveForbidsNewMedicalButAllowsExistingReadAndEdit",
+          "tc05_searchCombinesFiltersAndRestrictsCountAndStablePage",
+          "tc33_constraintsAndRetiredV1"
+        ],
+        "xmlSha256": "2e7fb34517580ff949aa9a7084cd6f007f64a1dd10505bc1402b0e25c817944b"
+      },
+      {
+        "suite": "com.fclinic.patientservice.PatientUuidJarIT",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "actualLocalJarValidatesUuidSchemaAndDeniesUnavailableAuthorityWithoutWrites"
+        ],
+        "xmlSha256": "13736c43153ff14b7e9b19c5c7a6c05656d76cd954aa9fb81c3a1cbf789e804e"
+      },
+      {
+        "suite": "com.fclinic.patientservice.reference.PatientReferenceTcpIT",
+        "tests": 23,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "wrongDoctorIdentityOrMalformedActiveIsTechnical503",
+          "inactiveParentRemainsFinalLocalWriteGuardAfterValidReferences",
+          "provider5xxDoesNotBecomeBusinessMissingAndNoReferenceCacheHidesOutage",
+          "revisionFailureAfterAllRealAdapterLookupsRollsBackMedicalDataAndAudit",
+          "wrongAppointmentIdAndLegacyUnmarked404Are503",
+          "linkedCreateAcceptsEachSelectedNonCancelledStatusWithoutCompletionMutation(String)[1]",
+          "linkedCreateAcceptsEachSelectedNonCancelledStatusWithoutCompletionMutation(String)[2]",
+          "linkedCreateAcceptsEachSelectedNonCancelledStatusWithoutCompletionMutation(String)[3]",
+          "concurrentLinkedCreatesYield201And409WithOneRecordRevisionAndNoOrphan",
+          "walkInStillChecksDoctorAndVisitButNeverCallsAppointment",
+          "doctorBusinessFailuresAre422AndStopBeforeAppointment(String)[1]",
+          "doctorBusinessFailuresAre422AndStopBeforeAppointment(String)[2]",
+          "wellFormedReferencePatientOrDoctorMismatchIs422(String)[1]",
+          "wellFormedReferencePatientOrDoctorMismatchIs422(String)[2]",
+          "machineCredentialDenialIs503NotHuman401AndHasNoWrite(String)[1]",
+          "machineCredentialDenialIs503NotHuman401AndHasNoWrite(String)[2]",
+          "bodyDoctorSpoofCannotInvokeReferenceProviders",
+          "clinicalScopeDenialPrecedesReferencesAndMutation(String)[1]",
+          "clinicalScopeDenialPrecedesReferencesAndMutation(String)[2]",
+          "missingOrCancelledAppointmentIs422(String)[1]",
+          "missingOrCancelledAppointmentIs422(String)[2]",
+          "medicalPutDoesNotRevalidateImmutableExternalReferences",
+          "unknownAppointmentStatusIs503NeverDefaultedToAllowed"
+        ],
+        "xmlSha256": "f8600256c082137806d72929ca410cf218621ca24ee06e8cc316f068ca5dfd38"
+      },
+      {
+        "suite": "com.fclinic.patientservice.scope.PatientScopeTcpIT",
+        "tests": 19,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "staffRoleWithoutAssignmentAndForgedScopeHeadersCannotCreate",
+          "clinicalReadCreateUpdateRemainDistinctAndAuthorStillRequired",
+          "medicalNoOpThenRevocationKeepsDataVersionAndRevision",
+          "scopeTimeout503HasNoWriteUsingLatch",
+          "technicalCredentialFailureOutageAndMalformedPayloadAre503WithoutLeak",
+          "searchDenialEmptyAndBoundedScopePreserveCountsAndAndFilters",
+          "wrongDoctorBodyAndStaffAdminNeverAcquireClinicalRights",
+          "linkedScopeGrantCannotSubstituteForUnavailableAppointmentReference",
+          "expiredOrInactiveAssignmentIs403NotTechnicalFailure",
+          "misboundPrincipalPatientDoctorAndForgedPayloadAre503NoWrites",
+          "doctorSearchUsesClinicalAuthorityAndCannotExpandScope",
+          "revokedClinicalAssignmentAndValidVisitDenyBothLinkedAndWalkIn",
+          "administrativeObjectGrantCannotReadOrUpdateAnotherPatient",
+          "currentGrantIsRecheckedBetweenControllerAndUseCaseBeforeWriter",
+          "linkedWithReferenceDoubleKeepsDuplicateGuardAndNestedParent",
+          "serviceProfileLookupNeedsAdministrativeGrantAndNeverClinical",
+          "revocationBeforeNoOpAndMutationKeepsVersionsAndRevisions",
+          "walkInRequiresVisitEvidenceButSkipsAppointmentAndWritesAtomicRevision",
+          "f06UntypedScopeFaultIs503AndNoWrite"
+        ],
+        "xmlSha256": "d254b3a4ebe925e9771c021a2bd7a1dc634534a1fa8eb7eb183291d4d670bf70"
+      },
+      {
+        "suite": "com.fclinic.patientservice.config.PatientAuthenticationTest",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "inactiveVerifiedContextIs401",
+          "defaultScopeAndReferenceAdaptersFailClosed",
+          "unconfiguredVerifierNeverAcceptsAnArbitraryBearerAndReturns503",
+          "tc17_missingOrMalformedBearerAndSpoofedHeadersAre401"
+        ],
+        "xmlSha256": "13357fbf269141833cc3bcb75427e2e0e3b6c11510898c2ae46ef1c572db5c5d"
+      },
+      {
+        "suite": "com.fclinic.patientservice.contract.PatientProviderContractTest",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "fullValidatorChecksStructuredErrorsAndPatientFormatsAndBounds",
+          "allEightRuntimeMappingsEqualCanonicalPathsAndMethods",
+          "proposedUuidReferenceSchemasAcceptGoldenFixturesAndRejectNumericIds"
+        ],
+        "xmlSha256": "ce888c246d761199890a43f8d566cc43f6afcbe043d56369720cbab0ba5902e1"
+      },
+      {
+        "suite": "com.fclinic.patientservice.contract.ProviderContractPreflightTest",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "absentOptInEnvironmentFailsBeforeAnyNetworkClientExists",
+          "plainHttpTargetIsRejectedWithoutEchoingSecretOrInternalLocation",
+          "unsupportedBoundaryCannotSelectAnArbitraryRemoteApi"
+        ],
+        "xmlSha256": "2e7b5df637ffab5f587021c2e2aedb4f74cfdc85a9caebf9af65eacdd5862ca3"
+      },
+      {
+        "suite": "com.fclinic.patientservice.identity.IdentityConfigurationTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "strictBearerSyntaxRejectsAmbiguousHeaderValues",
+          "noConfigObjectToStringContainsSecrets",
+          "disabledConfigurationHasExactlyOneFailClosedVerifier",
+          "missingOrInsecureEnabledConfigurationFailsStartupClosed",
+          "enabledConfigurationSelectsExactlyOneProductionVerifier"
+        ],
+        "xmlSha256": "64aaabcbe58ec7e8791dd4258722ea010c447542d47a519e75cfa06b88302426"
+      },
+      {
+        "suite": "com.fclinic.patientservice.identity.IntrospectionDecoderTest",
+        "tests": 30,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "unlinkedUserIsAuthenticatedButHasNoSelfMapping",
+          "validUserPreservesOpaqueSubjectAndMappings",
+          "validServiceNameComesOnlyFromExactRegistryBinding",
+          "unknownServiceSubjectDoesNotAcquireServiceName",
+          "serviceCannotCarryHumanMappingsOrRoles",
+          "missingRequiredFieldIs503(String)[1]",
+          "missingRequiredFieldIs503(String)[2]",
+          "missingRequiredFieldIs503(String)[3]",
+          "missingRequiredFieldIs503(String)[4]",
+          "missingRequiredFieldIs503(String)[5]",
+          "missingRequiredFieldIs503(String)[6]",
+          "missingRequiredFieldIs503(String)[7]",
+          "missingRequiredFieldIs503(String)[8]",
+          "missingRequiredFieldIs503(String)[9]",
+          "missingRequiredFieldIs503(String)[10]",
+          "missingRequiredFieldIs503(String)[11]",
+          "audienceMayBeSingleString",
+          "inactiveInvalidOrRevokedCredentialsAre401",
+          "expiryAtClockBoundaryIs401",
+          "unknownOrForgedWireFieldsAre503(String)[1]",
+          "unknownOrForgedWireFieldsAre503(String)[2]",
+          "unknownOrForgedWireFieldsAre503(String)[3]",
+          "unknownOrForgedWireFieldsAre503(String)[4]",
+          "unknownOrForgedWireFieldsAre503(String)[5]",
+          "nullRequiredDataAndUnknownRoleAre503",
+          "wrongAudienceIs401",
+          "wrongIssuerIs401",
+          "doctorMappingMustBeSafePositiveInteger",
+          "malformedIdentityTypesAndAmbiguousPayloadsAre503",
+          "serviceCannotExceedLocalAuthorityCeiling"
+        ],
+        "xmlSha256": "5905aebb66fa309d278c3628c9972f84348b3bb2779a873ec18fb3d8086285ee"
+      },
+      {
+        "suite": "com.fclinic.patientservice.identity.IntrospectionTransportTest",
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "wrongContentTypeLargeBodyAndMalformedPayloadAre503",
+          "incorrectBackendSecretIs503NotHuman401",
+          "currentActivationIsCheckedAgainWithoutPositiveCaching",
+          "untrustedTlsCertificateFailsClosed",
+          "providerCredentialErrorsRedirectAndServerErrorsAre503WithoutRetry",
+          "responseDeadlineAndConcurrencyLimitFailClosed",
+          "trustedCertificateWithWrongHostnameIsStillRejected",
+          "sendsBackendCredentialAndOpaqueTokenUsingTlsFormPost",
+          "invalidInputNeverContactsProvider"
+        ],
+        "xmlSha256": "9632738205370f2938a0059cf9ff2ff6c4b5139da4ed110ef8816c0570b0b1ea"
+      },
+      {
+        "suite": "com.fclinic.patientservice.PatientInputTest",
+        "tests": 24,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "tc03_rejectsInvalidPhone(String)[1]",
+          "tc03_rejectsInvalidPhone(String)[2]",
+          "tc03_rejectsInvalidPhone(String)[3]",
+          "tc03_rejectsInvalidPhone(String)[4]",
+          "tc03_rejectsInvalidPhone(String)[5]",
+          "tc03_rejectsNumericTextAndMalformedEmail",
+          "tc03_tc32_rejectsInvalidOrFutureDob(String)[1]",
+          "tc03_tc32_rejectsInvalidOrFutureDob(String)[2]",
+          "tc03_tc32_rejectsInvalidOrFutureDob(String)[3]",
+          "tc03_tc32_rejectsInvalidOrFutureDob(String)[4]",
+          "tc03_tc32_rejectsInvalidOrFutureDob(String)[5]",
+          "tc05_queryAndUuidRules",
+          "tc03_unicodeWhitespaceIsBlankAndMaxLengthCountsCodePoints",
+          "tc03_rejectsUnknownAndServerOwnedFields(String)[1]",
+          "tc03_rejectsUnknownAndServerOwnedFields(String)[2]",
+          "tc03_rejectsUnknownAndServerOwnedFields(String)[3]",
+          "tc03_rejectsUnknownAndServerOwnedFields(String)[4]",
+          "tc03_rejectsUnknownAndServerOwnedFields(String)[5]",
+          "tc03_rejectsUnknownAndServerOwnedFields(String)[6]",
+          "tc13_tc32_instantRequiresOffsetAndCannotBeFuture",
+          "tc02_normalizesSharedPhoneWithoutIdentityDeduplication",
+          "tc16_tc36_medicalPutRejectsRefsAndRequiresReasonEvenForNoOp",
+          "tc32_explicitNullGenderIsDifferentFromOmitted",
+          "tc06_fullPutOmittedOptionalsAreNull"
+        ],
+        "xmlSha256": "94a6667eb2cc8d7a9c13f35e1b8dd2e449dce218a88ea867e4a4afe796ce493e"
+      },
+      {
+        "suite": "com.fclinic.patientservice.PatientJvmExecutableTest",
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "platformNameSelectsJvmBinaryWithoutShellQuoting(String, String)[1]",
+          "platformNameSelectsJvmBinaryWithoutShellQuoting(String, String)[2]",
+          "platformNameSelectsJvmBinaryWithoutShellQuoting(String, String)[3]",
+          "platformNameSelectsJvmBinaryWithoutShellQuoting(String, String)[4]",
+          "platformNameSelectsJvmBinaryWithoutShellQuoting(String, String)[5]",
+          "currentJvmExecutableActuallyExists"
+        ],
+        "xmlSha256": "32ab923888026b414fd31580825a0d3c1f3b98ae160ef632aa9778e2e8cd21d0"
+      },
+      {
+        "suite": "com.fclinic.patientservice.PatientOrchestrationTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "tc10_walkInSkipsOnlyAppointmentAndValidatesBeforeWriter",
+          "tc35_missingScopeFailsBeforeProvidersOrWriter",
+          "tc12_missingOrInactiveDoctorIs422",
+          "tc12_linkedMismatchIs422AndDoesNotWrite",
+          "tc19_technicalDependencyFailureIs503AndNoWrite"
+        ],
+        "xmlSha256": "fa9553b3d1a7dc54b5b548f095d1bece18a1c19dd3218c8598cbcf7acf47c533"
+      },
+      {
+        "suite": "com.fclinic.patientservice.PatientPolicyTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "tc35_doctorRoleAloneGrantsNoScope",
+          "tc18_patientCanReadSelfOnlyAndCannotMutateOrSearch",
+          "searchReturnsOnlyTrustedScope",
+          "tc18_serviceNeedsExplicitAppointmentLookupGrant",
+          "tc18_tc36_staffAndAdminHaveNoClinicalOverride"
+        ],
+        "xmlSha256": "f5de13d364c8b149d54e939f90100c16acb859c73f25889a73135488ea3863bd"
+      },
+      {
+        "suite": "com.fclinic.patientservice.reference.AppointmentReferenceDecoderTest",
+        "tests": 13,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "unknownOrWrongTypeStatusIsNeverNonCancelled",
+          "publicFullPayloadAndUnknownDuplicateOrMalformedJsonAre503",
+          "patientAndDoctorMismatchRemainFactsForApplication422Comparison",
+          "uuidAndLongTypesRangesAndResourceIdAreStrict",
+          "fullVocabularyIsValidatedBeforeCancelledBoolean(String)[1]",
+          "fullVocabularyIsValidatedBeforeCancelledBoolean(String)[2]",
+          "fullVocabularyIsValidatedBeforeCancelledBoolean(String)[3]",
+          "fullVocabularyIsValidatedBeforeCancelledBoolean(String)[4]",
+          "requiredFieldsCannotBeMissingOrNull(String)[1]",
+          "requiredFieldsCannotBeMissingOrNull(String)[2]",
+          "requiredFieldsCannotBeMissingOrNull(String)[3]",
+          "requiredFieldsCannotBeMissingOrNull(String)[4]",
+          "onlyExactSelected404ReturnsEmpty"
+        ],
+        "xmlSha256": "a8af33a05db3f67ea54e41588ad2d5dc7cc11d52188af0ef4238685c866f7bc7"
+      },
+      {
+        "suite": "com.fclinic.patientservice.reference.AppointmentReferenceTransportTest",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "missingAndCancelledRemainSeparateFromTechnicalFailureWithoutCaching",
+          "transactionGuardRejectsAppointmentLookupBeforeNetwork",
+          "errorsAndWrongVersionNeverBecomeMissingOrHumanAuthFailure",
+          "authenticatedMinimumProjectionUsesExactReadOnlyPath"
+        ],
+        "xmlSha256": "faa8f1c53f6374becc60d6b8f5ea14602c12bdd7bee2fdce83632ca6df6c5ae6"
+      },
+      {
+        "suite": "com.fclinic.patientservice.reference.DoctorReferenceDecoderTest",
+        "tests": 16,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "requiredNullOrWrongFieldTypesNeverDefaultActiveOrId",
+          "activeInactiveAndLegitimateMissingAreDistinct",
+          "everyFullDoctorFieldMustBePresent(String)[1]",
+          "everyFullDoctorFieldMustBePresent(String)[2]",
+          "everyFullDoctorFieldMustBePresent(String)[3]",
+          "everyFullDoctorFieldMustBePresent(String)[4]",
+          "everyFullDoctorFieldMustBePresent(String)[5]",
+          "everyFullDoctorFieldMustBePresent(String)[6]",
+          "everyFullDoctorFieldMustBePresent(String)[7]",
+          "everyFullDoctorFieldMustBePresent(String)[8]",
+          "everyFullDoctorFieldMustBePresent(String)[9]",
+          "everyFullDoctorFieldMustBePresent(String)[10]",
+          "everyFullDoctorFieldMustBePresent(String)[11]",
+          "onlySelected404IsBusinessMissing",
+          "wrongWrapperUnknownDuplicateTruncatedAndTrailingJsonAre503",
+          "safeIntegerBoundsAndReturnedResourceIdentityAreStrict"
+        ],
+        "xmlSha256": "859c4f203cda950f9148fbe5e940b32ffa9492a161311dd38374bba7c25ddbc2"
+      },
+      {
+        "suite": "com.fclinic.patientservice.reference.DoctorReferenceTransportTest",
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "backendCredentialRejectionIs503NotHuman401",
+          "deadlineAndCapacityUseLatchAndNeverReturnFalseReference",
+          "providerErrorsAndRealRedirectAre503WithoutRetryOrFollowingLocation",
+          "missingWrongVersionContentTypeOversizeAndInvalidJsonAre503",
+          "missingRequiresVersionedDomain404AndNoPositiveCache",
+          "authenticatedGetUsesOnlySafeDecimalIdAndExactPath",
+          "lookupRejectsLocalTransactionBeforeAnyNetworkCall",
+          "untrustedTlsAndWrongHostnameAre503"
+        ],
+        "xmlSha256": "608b43946ddd761a88a9a17c1f5f358f9a1c89964124f20945ec7775eb9bef90"
+      },
+      {
+        "suite": "com.fclinic.patientservice.reference.LocalHttpUuidTest",
+        "tests": 26,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "unsafeTargetsRejectedBeforeNetwork(String)[1]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[2]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[3]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[4]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[5]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[6]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[7]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[8]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[9]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[10]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[11]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[12]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[13]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[14]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[15]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[16]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[17]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[18]",
+          "realHttpTcpBothUuidContractsAuthVersionAndStrictFailures",
+          "canonicalUuidOnlyAndCountersStillNumeric",
+          "explicitLoopbackHttpOrVerifiedHttpsConfigurationAccepted(String)[1]",
+          "explicitLoopbackHttpOrVerifiedHttpsConfigurationAccepted(String)[2]",
+          "explicitLoopbackHttpOrVerifiedHttpsConfigurationAccepted(String)[3]",
+          "explicitLoopbackHttpOrVerifiedHttpsConfigurationAccepted(String)[4]",
+          "explicitLoopbackHttpOrVerifiedHttpsConfigurationAccepted(String)[5]",
+          "malformedUriAndMissingCredentialsCannotInitializeTransport"
+        ],
+        "xmlSha256": "4e72087e99201791913f9038cfa6c0c26fcb1f18b78d403b8404a45ab7a9b49e"
+      },
+      {
+        "suite": "com.fclinic.patientservice.reference.ReferenceConfigurationTest",
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "enabledDoctorSelectsExactlyOneProductionBean",
+          "bothPortsSelectExactlyOneIndependentProductionBean",
+          "appointmentEnabledWithoutSettingsFailsClosed",
+          "disabledPortsHaveExactlyOneFailClosedFallback",
+          "credentialsCannotReuseIdentityOrEitherScopeAuthority",
+          "invalidEnabledSettingsFailStartupClosed",
+          "settingsNeverPrintCredentialsOrInternalUri"
+        ],
+        "xmlSha256": "81567320fd9001a6c1c413938391ecc960e0bf42a349a6733cf848ee77c60fc3"
+      },
+      {
+        "suite": "com.fclinic.patientservice.scope.ScopeAdapterTest",
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "linkedAndWalkInBothRequireVisitAuthorityAndNoPositiveCache",
+          "validTrustChainWithWrongHostnameIsRejected",
+          "noScopeNetworkLookupInsideLocalTransaction",
+          "credentialFailureAndUntrustedTlsAre503",
+          "roleAloneDoesNotGrantAndSearchNullEmptyBoundedStayDistinct",
+          "deadlineAndCapacityBoundedWithLatchNotSleep",
+          "allProviderHttpErrorsAre503NotFalseAndNoApplicationRetry",
+          "separateAuthoritiesReceiveOperationBoundCallerAndResources",
+          "malformedOversizedAndWrongContentTypeAre503"
+        ],
+        "xmlSha256": "93e92f1fb9739c4d6944a224262d139e78bceacefeb4c100e3157ff14dfdd13f"
+      },
+      {
+        "suite": "com.fclinic.patientservice.scope.ScopeConfigurationTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "disabledHasOneDenyFallback",
+          "settingsStringsNeverExposeCredentialOrUrl",
+          "enabledSelectsExactlyOneProductionBean",
+          "missingOrInsecureSettingsFailStartupClosed",
+          "credentialsMustBeSeparateFromIdentityAndEachOther"
+        ],
+        "xmlSha256": "2116ba0f78f43468724241dce613c87abf489b7fb971d1564cf1275b1b037dc7"
+      },
+      {
+        "suite": "com.fclinic.patientservice.scope.ScopeDecisionDecoderTest",
+        "tests": 27,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "staleEvaluationAndReplayAre503",
+          "replyMustMatchExactRequestIncludingPrincipalAndResource(String)[1]",
+          "replyMustMatchExactRequestIncludingPrincipalAndResource(String)[2]",
+          "replyMustMatchExactRequestIncludingPrincipalAndResource(String)[3]",
+          "replyMustMatchExactRequestIncludingPrincipalAndResource(String)[4]",
+          "replyMustMatchExactRequestIncludingPrincipalAndResource(String)[5]",
+          "replyMustMatchExactRequestIncludingPrincipalAndResource(String)[6]",
+          "replyMustMatchExactRequestIncludingPrincipalAndResource(String)[7]",
+          "replyMustMatchExactRequestIncludingPrincipalAndResource(String)[8]",
+          "invalidOrUnboundedSearchDoesNotTruncateOrGrantAll",
+          "revokedFutureOrExpiredAssignmentsAreBusinessDenial(String)[1]",
+          "revokedFutureOrExpiredAssignmentsAreBusinessDenial(String)[2]",
+          "revokedFutureOrExpiredAssignmentsAreBusinessDenial(String)[3]",
+          "doctorOrSubjectBindingCannotBeSubstituted",
+          "missingUnknownNullOrWrongTypesFail503",
+          "validOperationBoundGrants(String)[1]",
+          "validOperationBoundGrants(String)[2]",
+          "validOperationBoundGrants(String)[3]",
+          "validOperationBoundGrants(String)[4]",
+          "validOperationBoundGrants(String)[5]",
+          "validOperationBoundGrants(String)[6]",
+          "validOperationBoundGrants(String)[7]",
+          "validOperationBoundGrants(String)[8]",
+          "validOperationBoundGrants(String)[9]",
+          "walkInStillRequiresAuthoritativeVisitEvidence",
+          "ambiguousJsonAndDenialPayloadCannotSmuggleGrant",
+          "denyEmptyAndBoundedSearchAreDifferent"
+        ],
+        "xmlSha256": "f2a20060212d38acf0c7369494c2ede75b4e86331d959505b9f8b9ffdd2c31e2"
+      },
+      {
+        "suite": "com.fclinic.patientservice.scope.ScopePolicyTest",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "clinicalCreateReadAndUpdateNeedDifferentDecisions",
+          "f06UnexpectedScopeExceptionBecomes503Not500AndDenialStays403",
+          "administrativeActionDoesNotGrantOtherOperations",
+          "nullAndEmptySearchKeep403VersusAuthorizedEmpty"
+        ],
+        "xmlSha256": "edca50e085985a7833eb285f0207738bfb1ba9699a854d63aea6e191fbd00731"
+      }
+    ],
+    "logSha256": "551077cd05e54ac1db8783319be8b3d7c8d7e8410ff871cea9605df2b322724d",
+    "retained287": 287,
+    "missingCases": [],
+    "newCases": [
+      [
+        "com.fclinic.patientservice.PatientJvmExecutableTest",
+        "currentJvmExecutableActuallyExists"
+      ],
+      [
+        "com.fclinic.patientservice.PatientJvmExecutableTest",
+        "platformNameSelectsJvmBinaryWithoutShellQuoting(String, String)[1]"
+      ],
+      [
+        "com.fclinic.patientservice.PatientJvmExecutableTest",
+        "platformNameSelectsJvmBinaryWithoutShellQuoting(String, String)[2]"
+      ],
+      [
+        "com.fclinic.patientservice.PatientJvmExecutableTest",
+        "platformNameSelectsJvmBinaryWithoutShellQuoting(String, String)[3]"
+      ],
+      [
+        "com.fclinic.patientservice.PatientJvmExecutableTest",
+        "platformNameSelectsJvmBinaryWithoutShellQuoting(String, String)[4]"
+      ],
+      [
+        "com.fclinic.patientservice.PatientJvmExecutableTest",
+        "platformNameSelectsJvmBinaryWithoutShellQuoting(String, String)[5]"
+      ]
+    ]
+  },
+  "initialGitHubCi": {
+    "runId": 41330087384,
+    "sourceHead": "38989b9c458448591ed783c2f12db3a44e40ed4e",
+    "backend": {
+      "id": 124918146656,
+      "head_sha": "38989b9c458448591ed783c2f12db3a44e40ed4e",
+      "name": "Backend Build & Test (Java 21)",
+      "status": "completed",
+      "conclusion": "failure"
+    },
+    "logTruncated": true,
+    "confirmedFailure": "Notification AppointmentNotificationEvent.java:19 cannot find AppointmentSnapshotDto",
+    "frontend": "SUCCESS",
+    "url": "https://github.com/duckhisuu/FClinic/actions/runs/41330087384"
+  },
+  "metadataCommitPolicy": "Only reports38/39 and this JSON; current bao/PR head resolves publication commit SHA; runtime/fixtures unchanged from exact tested implementation.",
+  "fullVerify": {
+    "buildSuccess": false,
+    "totals": {
+      "tests": 293,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "suites": [
+      {
+        "suite": "com.fclinic.patientservice.identity.PatientIdentityTcpIT",
+        "tests": 15,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "invalidAuthContractProtectsEveryMutationAndAllPersistedContent",
+          "authDeadlinePreventsAdministrativeAndClinicalWrites",
+          "verifiedSelfReadsProfileAndMedicalButNotOtherPatientSearchOrWrites",
+          "untrustedBrowserHeadersCannotUpgradeVerifiedUserToStaff",
+          "verifiedDoctorCanWriteWithTestScopeAndAuditUsesTrustedSubject",
+          "invalidExpiredAndInactiveCredentialsAre401AndCannotWrite",
+          "issuerAndAudienceMismatchAre401",
+          "staffAdminAndMissingDoctorMappingNeverAcquireClinicalWriteAccess",
+          "providerActivationChangeIsEffectiveOnNextTcpRequest",
+          "currentScopeIsStillRequiredAfterSuccessfulAuthentication",
+          "profilePutKeepsNoOpVersionAndStaleConflictWithRealIdentityTransport",
+          "backendCredentialFailureOutageAndBadPayloadAre503WithoutDisclosure",
+          "inactiveIntrospectionBlocksPreviouslyAllowedNoOpAndChangedPuts",
+          "serviceIsLimitedToPermittedProfileDetailAndNeverHumanPermissions",
+          "missingMalformedAndDuplicateBearerCannotUseForgedHeaders"
+        ],
+        "xmlSha256": "0a2df635de7d9126b47b2e757352df9f73e4f269ffc843ca9debf01ee4897fed"
+      },
+      {
+        "suite": "com.fclinic.patientservice.PatientServiceIT",
+        "tests": 22,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "tc29_deactivateCommitBeforeCreateRejectsMedical",
+          "tc09_tc10_tc14_linkedAndWalkInCanonicalMedicalReads",
+          "tc17_tc18_tc35_authScopeAndForgedHeadersDoNotLeak",
+          "tc17_verifierUnavailableReturns503AndInactiveIdentityReturns401",
+          "tc31_noOpMedicalDetectsConcurrentVersionChangeAtCommit",
+          "tc06_tc31_profileFullPutNoOpStaleAndRevisionVersion",
+          "tc11_linkedCreateRaceReturns201And409WithOneRevision",
+          "tc14_parentExistsWithoutRecordsReturnsEmptyPageAndUnknownParent404",
+          "tc07_competingProfileUpdatesHaveOneWinner",
+          "tc15_tc16_tc36_parentAuthorImmutableRefsAndMedicalPut",
+          "uuidSchemaColumnsRevisionKeysAndForeignKeysAreRealPostgres",
+          "tc29_recordCommittedBeforeDeactivationRemains",
+          "tc01_tc02_sharedPhoneCreateAndCanonicalDetail",
+          "uuidApiRejectsNumericAndNonV4WithoutWrites",
+          "unicodePatientNamePersistsAndReadsBackWithoutLoss",
+          "tc19_reference422VsTechnical503AndNoWrite",
+          "tc03_tc32_apiBindingRejectsUnknownNullAndCoercedValuesWithoutWriting",
+          "tc23_revisionFailureRollsBackBothAggregatesAndVersions",
+          "tc06_optionalFieldsAreErasedByReplacement",
+          "tc08_inactiveForbidsNewMedicalButAllowsExistingReadAndEdit",
+          "tc05_searchCombinesFiltersAndRestrictsCountAndStablePage",
+          "tc33_constraintsAndRetiredV1"
+        ],
+        "xmlSha256": "9a3c23327568d24dbf98f9da14bc668504d5b212c93a2e774affd4800b0ea76b"
+      },
+      {
+        "suite": "com.fclinic.patientservice.PatientUuidJarIT",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "actualLocalJarValidatesUuidSchemaAndDeniesUnavailableAuthorityWithoutWrites"
+        ],
+        "xmlSha256": "db5cfbf0d9450f6b5323984590ca5f4a67543196f9b9c23e06288be5bc014e38"
+      },
+      {
+        "suite": "com.fclinic.patientservice.reference.PatientReferenceTcpIT",
+        "tests": 23,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "wrongDoctorIdentityOrMalformedActiveIsTechnical503",
+          "inactiveParentRemainsFinalLocalWriteGuardAfterValidReferences",
+          "provider5xxDoesNotBecomeBusinessMissingAndNoReferenceCacheHidesOutage",
+          "revisionFailureAfterAllRealAdapterLookupsRollsBackMedicalDataAndAudit",
+          "wrongAppointmentIdAndLegacyUnmarked404Are503",
+          "linkedCreateAcceptsEachSelectedNonCancelledStatusWithoutCompletionMutation(String)[1]",
+          "linkedCreateAcceptsEachSelectedNonCancelledStatusWithoutCompletionMutation(String)[2]",
+          "linkedCreateAcceptsEachSelectedNonCancelledStatusWithoutCompletionMutation(String)[3]",
+          "concurrentLinkedCreatesYield201And409WithOneRecordRevisionAndNoOrphan",
+          "walkInStillChecksDoctorAndVisitButNeverCallsAppointment",
+          "doctorBusinessFailuresAre422AndStopBeforeAppointment(String)[1]",
+          "doctorBusinessFailuresAre422AndStopBeforeAppointment(String)[2]",
+          "wellFormedReferencePatientOrDoctorMismatchIs422(String)[1]",
+          "wellFormedReferencePatientOrDoctorMismatchIs422(String)[2]",
+          "machineCredentialDenialIs503NotHuman401AndHasNoWrite(String)[1]",
+          "machineCredentialDenialIs503NotHuman401AndHasNoWrite(String)[2]",
+          "bodyDoctorSpoofCannotInvokeReferenceProviders",
+          "clinicalScopeDenialPrecedesReferencesAndMutation(String)[1]",
+          "clinicalScopeDenialPrecedesReferencesAndMutation(String)[2]",
+          "missingOrCancelledAppointmentIs422(String)[1]",
+          "missingOrCancelledAppointmentIs422(String)[2]",
+          "medicalPutDoesNotRevalidateImmutableExternalReferences",
+          "unknownAppointmentStatusIs503NeverDefaultedToAllowed"
+        ],
+        "xmlSha256": "bc3f145b9dd826616688ee4581c6385dcce3642267f48c8b04e0bbfc81163949"
+      },
+      {
+        "suite": "com.fclinic.patientservice.scope.PatientScopeTcpIT",
+        "tests": 19,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "staffRoleWithoutAssignmentAndForgedScopeHeadersCannotCreate",
+          "clinicalReadCreateUpdateRemainDistinctAndAuthorStillRequired",
+          "medicalNoOpThenRevocationKeepsDataVersionAndRevision",
+          "scopeTimeout503HasNoWriteUsingLatch",
+          "technicalCredentialFailureOutageAndMalformedPayloadAre503WithoutLeak",
+          "searchDenialEmptyAndBoundedScopePreserveCountsAndAndFilters",
+          "wrongDoctorBodyAndStaffAdminNeverAcquireClinicalRights",
+          "linkedScopeGrantCannotSubstituteForUnavailableAppointmentReference",
+          "expiredOrInactiveAssignmentIs403NotTechnicalFailure",
+          "misboundPrincipalPatientDoctorAndForgedPayloadAre503NoWrites",
+          "doctorSearchUsesClinicalAuthorityAndCannotExpandScope",
+          "revokedClinicalAssignmentAndValidVisitDenyBothLinkedAndWalkIn",
+          "administrativeObjectGrantCannotReadOrUpdateAnotherPatient",
+          "currentGrantIsRecheckedBetweenControllerAndUseCaseBeforeWriter",
+          "linkedWithReferenceDoubleKeepsDuplicateGuardAndNestedParent",
+          "serviceProfileLookupNeedsAdministrativeGrantAndNeverClinical",
+          "revocationBeforeNoOpAndMutationKeepsVersionsAndRevisions",
+          "walkInRequiresVisitEvidenceButSkipsAppointmentAndWritesAtomicRevision",
+          "f06UntypedScopeFaultIs503AndNoWrite"
+        ],
+        "xmlSha256": "793815942ebe31973de915f06d8c7bc9c2d4663234714394b593a4d22de03b5f"
+      },
+      {
+        "suite": "com.fclinic.patientservice.config.PatientAuthenticationTest",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "inactiveVerifiedContextIs401",
+          "defaultScopeAndReferenceAdaptersFailClosed",
+          "unconfiguredVerifierNeverAcceptsAnArbitraryBearerAndReturns503",
+          "tc17_missingOrMalformedBearerAndSpoofedHeadersAre401"
+        ],
+        "xmlSha256": "b34f13286f64921b65ac9a78338ab7825dcc521e0e255b60f7ef6d1cac81cd05"
+      },
+      {
+        "suite": "com.fclinic.patientservice.contract.PatientProviderContractTest",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "fullValidatorChecksStructuredErrorsAndPatientFormatsAndBounds",
+          "allEightRuntimeMappingsEqualCanonicalPathsAndMethods",
+          "proposedUuidReferenceSchemasAcceptGoldenFixturesAndRejectNumericIds"
+        ],
+        "xmlSha256": "cfb1b70dbea0332a178f978af3f09fadafc2df6d00170a5c1f84f30c4f72e012"
+      },
+      {
+        "suite": "com.fclinic.patientservice.contract.ProviderContractPreflightTest",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "absentOptInEnvironmentFailsBeforeAnyNetworkClientExists",
+          "plainHttpTargetIsRejectedWithoutEchoingSecretOrInternalLocation",
+          "unsupportedBoundaryCannotSelectAnArbitraryRemoteApi"
+        ],
+        "xmlSha256": "c9f026bf20d78cf057aa26a9ae4ad03bfaf4b81f401a6b8337c8851ed433073d"
+      },
+      {
+        "suite": "com.fclinic.patientservice.identity.IdentityConfigurationTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "strictBearerSyntaxRejectsAmbiguousHeaderValues",
+          "noConfigObjectToStringContainsSecrets",
+          "disabledConfigurationHasExactlyOneFailClosedVerifier",
+          "missingOrInsecureEnabledConfigurationFailsStartupClosed",
+          "enabledConfigurationSelectsExactlyOneProductionVerifier"
+        ],
+        "xmlSha256": "3d9449c9a927324305222255d9ccd7a03d55b32dfbaa5977557d093c5b4e2df4"
+      },
+      {
+        "suite": "com.fclinic.patientservice.identity.IntrospectionDecoderTest",
+        "tests": 30,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "unlinkedUserIsAuthenticatedButHasNoSelfMapping",
+          "validUserPreservesOpaqueSubjectAndMappings",
+          "validServiceNameComesOnlyFromExactRegistryBinding",
+          "unknownServiceSubjectDoesNotAcquireServiceName",
+          "serviceCannotCarryHumanMappingsOrRoles",
+          "missingRequiredFieldIs503(String)[1]",
+          "missingRequiredFieldIs503(String)[2]",
+          "missingRequiredFieldIs503(String)[3]",
+          "missingRequiredFieldIs503(String)[4]",
+          "missingRequiredFieldIs503(String)[5]",
+          "missingRequiredFieldIs503(String)[6]",
+          "missingRequiredFieldIs503(String)[7]",
+          "missingRequiredFieldIs503(String)[8]",
+          "missingRequiredFieldIs503(String)[9]",
+          "missingRequiredFieldIs503(String)[10]",
+          "missingRequiredFieldIs503(String)[11]",
+          "audienceMayBeSingleString",
+          "inactiveInvalidOrRevokedCredentialsAre401",
+          "expiryAtClockBoundaryIs401",
+          "unknownOrForgedWireFieldsAre503(String)[1]",
+          "unknownOrForgedWireFieldsAre503(String)[2]",
+          "unknownOrForgedWireFieldsAre503(String)[3]",
+          "unknownOrForgedWireFieldsAre503(String)[4]",
+          "unknownOrForgedWireFieldsAre503(String)[5]",
+          "nullRequiredDataAndUnknownRoleAre503",
+          "wrongAudienceIs401",
+          "wrongIssuerIs401",
+          "doctorMappingMustBeSafePositiveInteger",
+          "malformedIdentityTypesAndAmbiguousPayloadsAre503",
+          "serviceCannotExceedLocalAuthorityCeiling"
+        ],
+        "xmlSha256": "27dcfb35a30ba27d54e7d4a6053224eff403e81357604371adbe14bae3b595ca"
+      },
+      {
+        "suite": "com.fclinic.patientservice.identity.IntrospectionTransportTest",
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "wrongContentTypeLargeBodyAndMalformedPayloadAre503",
+          "incorrectBackendSecretIs503NotHuman401",
+          "currentActivationIsCheckedAgainWithoutPositiveCaching",
+          "untrustedTlsCertificateFailsClosed",
+          "providerCredentialErrorsRedirectAndServerErrorsAre503WithoutRetry",
+          "responseDeadlineAndConcurrencyLimitFailClosed",
+          "trustedCertificateWithWrongHostnameIsStillRejected",
+          "sendsBackendCredentialAndOpaqueTokenUsingTlsFormPost",
+          "invalidInputNeverContactsProvider"
+        ],
+        "xmlSha256": "286b86ee831526c5516cb88fd5d77066a62b4bd0ba3a4351b8fccc8ffc35c2c0"
+      },
+      {
+        "suite": "com.fclinic.patientservice.PatientInputTest",
+        "tests": 24,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "tc03_rejectsInvalidPhone(String)[1]",
+          "tc03_rejectsInvalidPhone(String)[2]",
+          "tc03_rejectsInvalidPhone(String)[3]",
+          "tc03_rejectsInvalidPhone(String)[4]",
+          "tc03_rejectsInvalidPhone(String)[5]",
+          "tc03_rejectsNumericTextAndMalformedEmail",
+          "tc03_tc32_rejectsInvalidOrFutureDob(String)[1]",
+          "tc03_tc32_rejectsInvalidOrFutureDob(String)[2]",
+          "tc03_tc32_rejectsInvalidOrFutureDob(String)[3]",
+          "tc03_tc32_rejectsInvalidOrFutureDob(String)[4]",
+          "tc03_tc32_rejectsInvalidOrFutureDob(String)[5]",
+          "tc05_queryAndUuidRules",
+          "tc03_unicodeWhitespaceIsBlankAndMaxLengthCountsCodePoints",
+          "tc03_rejectsUnknownAndServerOwnedFields(String)[1]",
+          "tc03_rejectsUnknownAndServerOwnedFields(String)[2]",
+          "tc03_rejectsUnknownAndServerOwnedFields(String)[3]",
+          "tc03_rejectsUnknownAndServerOwnedFields(String)[4]",
+          "tc03_rejectsUnknownAndServerOwnedFields(String)[5]",
+          "tc03_rejectsUnknownAndServerOwnedFields(String)[6]",
+          "tc13_tc32_instantRequiresOffsetAndCannotBeFuture",
+          "tc02_normalizesSharedPhoneWithoutIdentityDeduplication",
+          "tc16_tc36_medicalPutRejectsRefsAndRequiresReasonEvenForNoOp",
+          "tc32_explicitNullGenderIsDifferentFromOmitted",
+          "tc06_fullPutOmittedOptionalsAreNull"
+        ],
+        "xmlSha256": "e5ed308e6325b344677bb110f6997e219ec97feb3bdd2c50d7bb2d864f4564ca"
+      },
+      {
+        "suite": "com.fclinic.patientservice.PatientJvmExecutableTest",
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "platformNameSelectsJvmBinaryWithoutShellQuoting(String, String)[1]",
+          "platformNameSelectsJvmBinaryWithoutShellQuoting(String, String)[2]",
+          "platformNameSelectsJvmBinaryWithoutShellQuoting(String, String)[3]",
+          "platformNameSelectsJvmBinaryWithoutShellQuoting(String, String)[4]",
+          "platformNameSelectsJvmBinaryWithoutShellQuoting(String, String)[5]",
+          "currentJvmExecutableActuallyExists"
+        ],
+        "xmlSha256": "a6d325b36fb0eee6a70f50e7f4533fc1b51aa4f2032b61f1626fd72c66910225"
+      },
+      {
+        "suite": "com.fclinic.patientservice.PatientOrchestrationTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "tc10_walkInSkipsOnlyAppointmentAndValidatesBeforeWriter",
+          "tc35_missingScopeFailsBeforeProvidersOrWriter",
+          "tc12_missingOrInactiveDoctorIs422",
+          "tc12_linkedMismatchIs422AndDoesNotWrite",
+          "tc19_technicalDependencyFailureIs503AndNoWrite"
+        ],
+        "xmlSha256": "4e7fc21dc1cdba505e8c4f725ccb5cdf763982d98dd80bcb1bfd6fe367ca3772"
+      },
+      {
+        "suite": "com.fclinic.patientservice.PatientPolicyTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "tc35_doctorRoleAloneGrantsNoScope",
+          "tc18_patientCanReadSelfOnlyAndCannotMutateOrSearch",
+          "searchReturnsOnlyTrustedScope",
+          "tc18_serviceNeedsExplicitAppointmentLookupGrant",
+          "tc18_tc36_staffAndAdminHaveNoClinicalOverride"
+        ],
+        "xmlSha256": "936cf45855939d333716f9c3d3ba500cbd01ea0f8bb3923e8540de4d54e50a57"
+      },
+      {
+        "suite": "com.fclinic.patientservice.reference.AppointmentReferenceDecoderTest",
+        "tests": 13,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "unknownOrWrongTypeStatusIsNeverNonCancelled",
+          "publicFullPayloadAndUnknownDuplicateOrMalformedJsonAre503",
+          "patientAndDoctorMismatchRemainFactsForApplication422Comparison",
+          "uuidAndLongTypesRangesAndResourceIdAreStrict",
+          "fullVocabularyIsValidatedBeforeCancelledBoolean(String)[1]",
+          "fullVocabularyIsValidatedBeforeCancelledBoolean(String)[2]",
+          "fullVocabularyIsValidatedBeforeCancelledBoolean(String)[3]",
+          "fullVocabularyIsValidatedBeforeCancelledBoolean(String)[4]",
+          "requiredFieldsCannotBeMissingOrNull(String)[1]",
+          "requiredFieldsCannotBeMissingOrNull(String)[2]",
+          "requiredFieldsCannotBeMissingOrNull(String)[3]",
+          "requiredFieldsCannotBeMissingOrNull(String)[4]",
+          "onlyExactSelected404ReturnsEmpty"
+        ],
+        "xmlSha256": "39cd617690ab43d244dd3292ad57d1d65ab4964c3e80b801523158a8e3590ec5"
+      },
+      {
+        "suite": "com.fclinic.patientservice.reference.AppointmentReferenceTransportTest",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "missingAndCancelledRemainSeparateFromTechnicalFailureWithoutCaching",
+          "transactionGuardRejectsAppointmentLookupBeforeNetwork",
+          "errorsAndWrongVersionNeverBecomeMissingOrHumanAuthFailure",
+          "authenticatedMinimumProjectionUsesExactReadOnlyPath"
+        ],
+        "xmlSha256": "951f5293bd9008cb1e81c94296b7f853c71eecbe21eb3d0169e9c0328f57452d"
+      },
+      {
+        "suite": "com.fclinic.patientservice.reference.DoctorReferenceDecoderTest",
+        "tests": 16,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "requiredNullOrWrongFieldTypesNeverDefaultActiveOrId",
+          "activeInactiveAndLegitimateMissingAreDistinct",
+          "everyFullDoctorFieldMustBePresent(String)[1]",
+          "everyFullDoctorFieldMustBePresent(String)[2]",
+          "everyFullDoctorFieldMustBePresent(String)[3]",
+          "everyFullDoctorFieldMustBePresent(String)[4]",
+          "everyFullDoctorFieldMustBePresent(String)[5]",
+          "everyFullDoctorFieldMustBePresent(String)[6]",
+          "everyFullDoctorFieldMustBePresent(String)[7]",
+          "everyFullDoctorFieldMustBePresent(String)[8]",
+          "everyFullDoctorFieldMustBePresent(String)[9]",
+          "everyFullDoctorFieldMustBePresent(String)[10]",
+          "everyFullDoctorFieldMustBePresent(String)[11]",
+          "onlySelected404IsBusinessMissing",
+          "wrongWrapperUnknownDuplicateTruncatedAndTrailingJsonAre503",
+          "safeIntegerBoundsAndReturnedResourceIdentityAreStrict"
+        ],
+        "xmlSha256": "66d8a4a9a886a1fe5684ad1c997bf58925feb70fd51aeb145885fc9aa2dd22f2"
+      },
+      {
+        "suite": "com.fclinic.patientservice.reference.DoctorReferenceTransportTest",
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "backendCredentialRejectionIs503NotHuman401",
+          "deadlineAndCapacityUseLatchAndNeverReturnFalseReference",
+          "providerErrorsAndRealRedirectAre503WithoutRetryOrFollowingLocation",
+          "missingWrongVersionContentTypeOversizeAndInvalidJsonAre503",
+          "missingRequiresVersionedDomain404AndNoPositiveCache",
+          "authenticatedGetUsesOnlySafeDecimalIdAndExactPath",
+          "lookupRejectsLocalTransactionBeforeAnyNetworkCall",
+          "untrustedTlsAndWrongHostnameAre503"
+        ],
+        "xmlSha256": "316ff87252a710e5f94600bd4b057c73fda8911cef3c4c0a15d192798ce09580"
+      },
+      {
+        "suite": "com.fclinic.patientservice.reference.LocalHttpUuidTest",
+        "tests": 26,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "unsafeTargetsRejectedBeforeNetwork(String)[1]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[2]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[3]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[4]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[5]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[6]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[7]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[8]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[9]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[10]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[11]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[12]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[13]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[14]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[15]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[16]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[17]",
+          "unsafeTargetsRejectedBeforeNetwork(String)[18]",
+          "realHttpTcpBothUuidContractsAuthVersionAndStrictFailures",
+          "canonicalUuidOnlyAndCountersStillNumeric",
+          "explicitLoopbackHttpOrVerifiedHttpsConfigurationAccepted(String)[1]",
+          "explicitLoopbackHttpOrVerifiedHttpsConfigurationAccepted(String)[2]",
+          "explicitLoopbackHttpOrVerifiedHttpsConfigurationAccepted(String)[3]",
+          "explicitLoopbackHttpOrVerifiedHttpsConfigurationAccepted(String)[4]",
+          "explicitLoopbackHttpOrVerifiedHttpsConfigurationAccepted(String)[5]",
+          "malformedUriAndMissingCredentialsCannotInitializeTransport"
+        ],
+        "xmlSha256": "25b697ed64fa8f9b69b21f369ddcd1b2890bd34124724324b368be4777885c57"
+      },
+      {
+        "suite": "com.fclinic.patientservice.reference.ReferenceConfigurationTest",
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "enabledDoctorSelectsExactlyOneProductionBean",
+          "bothPortsSelectExactlyOneIndependentProductionBean",
+          "appointmentEnabledWithoutSettingsFailsClosed",
+          "disabledPortsHaveExactlyOneFailClosedFallback",
+          "credentialsCannotReuseIdentityOrEitherScopeAuthority",
+          "invalidEnabledSettingsFailStartupClosed",
+          "settingsNeverPrintCredentialsOrInternalUri"
+        ],
+        "xmlSha256": "8ec708ada991c6a0a7cc5217155d978039911852caa0071e77542f60e23ac777"
+      },
+      {
+        "suite": "com.fclinic.patientservice.scope.ScopeAdapterTest",
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "linkedAndWalkInBothRequireVisitAuthorityAndNoPositiveCache",
+          "validTrustChainWithWrongHostnameIsRejected",
+          "noScopeNetworkLookupInsideLocalTransaction",
+          "credentialFailureAndUntrustedTlsAre503",
+          "roleAloneDoesNotGrantAndSearchNullEmptyBoundedStayDistinct",
+          "deadlineAndCapacityBoundedWithLatchNotSleep",
+          "allProviderHttpErrorsAre503NotFalseAndNoApplicationRetry",
+          "separateAuthoritiesReceiveOperationBoundCallerAndResources",
+          "malformedOversizedAndWrongContentTypeAre503"
+        ],
+        "xmlSha256": "e095d96874ec1f566e9dbaf2c0382f5e42866a58353b1e7cbda9396154900c67"
+      },
+      {
+        "suite": "com.fclinic.patientservice.scope.ScopeConfigurationTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "disabledHasOneDenyFallback",
+          "settingsStringsNeverExposeCredentialOrUrl",
+          "enabledSelectsExactlyOneProductionBean",
+          "missingOrInsecureSettingsFailStartupClosed",
+          "credentialsMustBeSeparateFromIdentityAndEachOther"
+        ],
+        "xmlSha256": "40f84a4aa63c87f3423f969ea898a858f225c49c4024f65e8e8b0663fd44f8b4"
+      },
+      {
+        "suite": "com.fclinic.patientservice.scope.ScopeDecisionDecoderTest",
+        "tests": 27,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "staleEvaluationAndReplayAre503",
+          "replyMustMatchExactRequestIncludingPrincipalAndResource(String)[1]",
+          "replyMustMatchExactRequestIncludingPrincipalAndResource(String)[2]",
+          "replyMustMatchExactRequestIncludingPrincipalAndResource(String)[3]",
+          "replyMustMatchExactRequestIncludingPrincipalAndResource(String)[4]",
+          "replyMustMatchExactRequestIncludingPrincipalAndResource(String)[5]",
+          "replyMustMatchExactRequestIncludingPrincipalAndResource(String)[6]",
+          "replyMustMatchExactRequestIncludingPrincipalAndResource(String)[7]",
+          "replyMustMatchExactRequestIncludingPrincipalAndResource(String)[8]",
+          "invalidOrUnboundedSearchDoesNotTruncateOrGrantAll",
+          "revokedFutureOrExpiredAssignmentsAreBusinessDenial(String)[1]",
+          "revokedFutureOrExpiredAssignmentsAreBusinessDenial(String)[2]",
+          "revokedFutureOrExpiredAssignmentsAreBusinessDenial(String)[3]",
+          "doctorOrSubjectBindingCannotBeSubstituted",
+          "missingUnknownNullOrWrongTypesFail503",
+          "validOperationBoundGrants(String)[1]",
+          "validOperationBoundGrants(String)[2]",
+          "validOperationBoundGrants(String)[3]",
+          "validOperationBoundGrants(String)[4]",
+          "validOperationBoundGrants(String)[5]",
+          "validOperationBoundGrants(String)[6]",
+          "validOperationBoundGrants(String)[7]",
+          "validOperationBoundGrants(String)[8]",
+          "validOperationBoundGrants(String)[9]",
+          "walkInStillRequiresAuthoritativeVisitEvidence",
+          "ambiguousJsonAndDenialPayloadCannotSmuggleGrant",
+          "denyEmptyAndBoundedSearchAreDifferent"
+        ],
+        "xmlSha256": "497603d52ecd30f09880560b00af74a5b258cf94c7595e81043bfae6a540d975"
+      },
+      {
+        "suite": "com.fclinic.patientservice.scope.ScopePolicyTest",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cases": [
+          "clinicalCreateReadAndUpdateNeedDifferentDecisions",
+          "f06UnexpectedScopeExceptionBecomes503Not500AndDenialStays403",
+          "administrativeActionDoesNotGrantOtherOperations",
+          "nullAndEmptySearchKeep403VersusAuthorizedEmpty"
+        ],
+        "xmlSha256": "cce20782e141ca7e287632e643e616d2039874ada17de7500441ec29efc63cb4"
+      }
+    ],
+    "logSha256": "4a43a3f7ec18e80cb52dfc1fce151ebfc1bd008ef58ef72c8a5c817897c0b9d8",
+    "retained287": 287,
+    "missingCases": [],
+    "newCases": [
+      [
+        "com.fclinic.patientservice.PatientJvmExecutableTest",
+        "currentJvmExecutableActuallyExists"
+      ],
+      [
+        "com.fclinic.patientservice.PatientJvmExecutableTest",
+        "platformNameSelectsJvmBinaryWithoutShellQuoting(String, String)[1]"
+      ],
+      [
+        "com.fclinic.patientservice.PatientJvmExecutableTest",
+        "platformNameSelectsJvmBinaryWithoutShellQuoting(String, String)[2]"
+      ],
+      [
+        "com.fclinic.patientservice.PatientJvmExecutableTest",
+        "platformNameSelectsJvmBinaryWithoutShellQuoting(String, String)[3]"
+      ],
+      [
+        "com.fclinic.patientservice.PatientJvmExecutableTest",
+        "platformNameSelectsJvmBinaryWithoutShellQuoting(String, String)[4]"
+      ],
+      [
+        "com.fclinic.patientservice.PatientJvmExecutableTest",
+        "platformNameSelectsJvmBinaryWithoutShellQuoting(String, String)[5]"
+      ]
+    ]
+  },
+  "mainAfterImplementationPush": "3f833711e282e06b71cc88f7030ce762d78ec201",
+  "originalIndexUnchanged": true,
+  "appointmentCloneUnchanged": true,
+  "publicSourceManifest": [
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/docs/integration-readiness/contracts/patient-appointment-medical-reference-v2-proposed.schema.json",
+      "beforeBlobSha256": null,
+      "testedBlobSha256": "bda0a7f822d75bee5385ccf5562aee57bebc77ecdd590778206f5226b280f31d"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/docs/integration-readiness/contracts/patient-appointment-reference-v2.golden.json",
+      "beforeBlobSha256": null,
+      "testedBlobSha256": "c7bafb1078522c9948642c5b5297d934c53cb66493c2949339aae71a528ed78f"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/docs/integration-readiness/contracts/patient-doctor-reference-v2-proposed.schema.json",
+      "beforeBlobSha256": null,
+      "testedBlobSha256": "fa30904acc95059ba45533bf2832d3a9bf5ead252c93a1c133617e34090c2a6f"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/docs/integration-readiness/contracts/patient-doctor-reference-v2.golden.json",
+      "beforeBlobSha256": null,
+      "testedBlobSha256": "5696d3892c54b996d60fdbd56bbadce69cee7b9bad5484d9d28b84dac2d4a334"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/docs/integration-readiness/contracts/patient-identity-introspection-v2-proposed.schema.json",
+      "beforeBlobSha256": null,
+      "testedBlobSha256": "096a1e837164fc28574a5686311a47b493294014e0427f3adce35bcab53d4a9d"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/docs/integration-readiness/contracts/patient-work-scope-v2-proposed.schema.json",
+      "beforeBlobSha256": null,
+      "testedBlobSha256": "8c1038a49ee07ddb63d1e7327420e13d37fcec42dd0243eca347a54397efb1aa"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/docs/integration-readiness/contracts/patient.uuid-proposed.openapi.json",
+      "beforeBlobSha256": null,
+      "testedBlobSha256": "001e81e3403c02b37682bc783a745b44e29308aa97daddc7d5525d7682ec28ee"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/docs/integration-readiness/contracts/real-appointment-vectors-v2-proposed.example.json",
+      "beforeBlobSha256": null,
+      "testedBlobSha256": "d28044d5f6ad4a03440949a9e2f0e0e2c53d75133e1a7addb14d72771a4c200a"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/docs/integration-readiness/contracts/real-doctor-vectors-v2-proposed.example.json",
+      "beforeBlobSha256": null,
+      "testedBlobSha256": "b265ee217e627cce384d8f5c295808233ed6551e699e3ca3631f3886f0b5661b"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/api/controller/PatientController.java",
+      "beforeBlobSha256": "2ddc691d4d2b0cecd1207537e8bd7c027d6f2357be11e12e363d5e8cc66a8568",
+      "testedBlobSha256": "c9eb5f2c21e640a72e62f9b52508854c996028d8b1d10e96f82dfa467e300092"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/api/dto/MedicalRecordResponse.java",
+      "beforeBlobSha256": "4464db425b6e98656e90f5e1c7cb05c1661bd687220ea5a9206774905492efdd",
+      "testedBlobSha256": "a12603c45606c06c6642a19d00e8198c157d9d6010cd0236440215e07a9352f1"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/api/dto/PatientInput.java",
+      "beforeBlobSha256": "7a2c38affa9494668c0423c623c599efad66030d9e718897b3ddac7932896f74",
+      "testedBlobSha256": "3496ad5ef7e17924f1dbc6b83269ab54059e32fc13d791af0f726bf908e6a573"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/application/port/out/AppointmentClientPort.java",
+      "beforeBlobSha256": "2c560ab0aba9887e1a3925eda0536f95f05342b293611dd4b2aa6206d61c6cc1",
+      "testedBlobSha256": "e023672a18f5e11f433535ddd458b7816bf0493a39a58814c7034f67dbfb22f0"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/application/port/out/DoctorClientPort.java",
+      "beforeBlobSha256": "7ebd19416aa823b089182f0014f37737508681834400f01c8ccd876cccd92c6b",
+      "testedBlobSha256": "ec376c4a1e33ee726c856f6ba3c18079e4dffe7e7de90fd4f24c9a97df2082f5"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/application/port/out/PatientRepositoryPort.java",
+      "beforeBlobSha256": "727535f78a01eb8a453356c3be7bc0a81f31768e905ed356db04f6d2dbed0804",
+      "testedBlobSha256": "3831b4c4fa41e4d6f4b3ec4c862f5abcbbd58e6d6b3629a6726b3f4dc1faa565"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/application/port/out/WorkScopePort.java",
+      "beforeBlobSha256": "18cf9841e8822ae8fe4b16fb9df6e865941a2e6dd0c925c6af47a079ca9e8dd0",
+      "testedBlobSha256": "b7aba2457619cf3276108aa0edeab04f75e54ae7eb6cbb8345c1e51bb932354c"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/application/security/PatientPolicy.java",
+      "beforeBlobSha256": "8ede644fe54c7660d676f203e173267ddbbac00784c2daa723427004c1dd82a5",
+      "testedBlobSha256": "4096152d80dae4b081ec440fe820d990683486208c5442dea35efa432fef173c"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/application/security/TrustedCaller.java",
+      "beforeBlobSha256": "7c4ba7c242e88702291706d1e7252c8b1a5c80bbd08b5f9daa40864e884c9400",
+      "testedBlobSha256": "8dfb428ca8180709af52d53aa6b7b735f95ef1aea51557e5c5de322d847976b5"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/application/usecase/PatientApplicationService.java",
+      "beforeBlobSha256": "d33af9e8c06717e133f769f54769e345d4525d5a2a8e81bc22874edb753b4bf0",
+      "testedBlobSha256": "581156e0c7188705ec2d9d3ae46fb41bbe299d0201ea03515f2cb4211ee12e5f"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/application/usecase/PatientWriter.java",
+      "beforeBlobSha256": "72b060dab91ec38618fdeb9333acd4417ee62bf19e72356279156359c842a93d",
+      "testedBlobSha256": "8077158ef9db8a69afd048723ea6223b69e3dafa88cc6114ba7afadee50a0a5b"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/config/PatientConfiguration.java",
+      "beforeBlobSha256": "9ffeb80d076c3c670a8595bafd2d37d28c9fc29efd1ea374df031d9395657055",
+      "testedBlobSha256": "e7ade11fda01dd34aabc19e7ff0bfa510c6ad64d247b1db053181a3b87854a24"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/config/PatientWebConfiguration.java",
+      "beforeBlobSha256": "338f6900b219762f3eacad98df33a8caf7bf277e0a01b7ad116cb4398960ada7",
+      "testedBlobSha256": "045da68dbd3de5be34bc0be037d1fe06f3f79bd1c2e14e26b278d1e0d3b4e62b"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/domain/aggregate/MedicalRecord.java",
+      "beforeBlobSha256": "4acf3550ecf42f07486cad4c402ecf9604a1cdd9a9522d10273f2790179a3313",
+      "testedBlobSha256": "91989750e45e6b0e081f862c6bd24766bc10a785917fb788ef16402e289c187c"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/domain/model/BusinessId.java",
+      "beforeBlobSha256": null,
+      "testedBlobSha256": "f691f29c8cdb3f29983f40c537131beb1c7b72a76535f8668909dbc4533f1dfa"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/domain/model/SearchQuery.java",
+      "beforeBlobSha256": "2adbbcaeb239bc82589120b1b2d4c9179ee8a609d0ca8fe748c47415e77a99e5",
+      "testedBlobSha256": "b7d8bfcffde53cb495c6d72d5b7a334c8e95957c539a9ca914270676d3e29192"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/JpaPatientRepositoryAdapter.java",
+      "beforeBlobSha256": "26942d7c51b279510116a83b5f9119a3a1055e2dd8b915adcd58f342019cdadc",
+      "testedBlobSha256": "3fd2224e28e2b7aea33e64673480419912e42abe518fa9fe8d21d8f23cf54135"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/identity/IntrospectionDecoder.java",
+      "beforeBlobSha256": "00c14b8acf51587b65836946b008ab67ae9751eeff3e66b99321cb7ca83f32fb",
+      "testedBlobSha256": "c4d5d4425a48ca9d3fc3384eccc60ffa5b83f32d7c193899670112ab5affccbc"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/reference/AppointmentReferenceDecoder.java",
+      "beforeBlobSha256": "5f764a3a453343e7e29542e92f79b78172479781b37d0d12d3b8b817e1671266",
+      "testedBlobSha256": "e2ca61fc97441854f02acdd5062576127c95250d906630a793c65af3d527b7a3"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/reference/DoctorReferenceDecoder.java",
+      "beforeBlobSha256": "cd09715b4638e4a7c6ce2e566722cf5a28a169eca6d39d70a6a0fcbe1c0866fe",
+      "testedBlobSha256": "789e6961a7a500870afe705e6be78ea634147ae7615cb3159fdd556a6f70bac4"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/reference/ReferenceHttpClient.java",
+      "beforeBlobSha256": "f4cc335ce4cc263e56ee1a95aff495de7c24be89ecd9f1c7a3240cf0ec4cf1e3",
+      "testedBlobSha256": "3fade386d523b52887f863d94cd8d4e7fd1cdb1d5f96df9e5ac9145093ff0bad"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/reference/ReferenceJson.java",
+      "beforeBlobSha256": "497e5cf1d668bcf50376c6385671d2f45dc58f44bf59efa8fcbd9347a2e5a03f",
+      "testedBlobSha256": "9a38598e5f3597ff81f88c1dfef2fcff032614bd95abfba33c17b349025fd550"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/reference/ReferenceSettings.java",
+      "beforeBlobSha256": "e18be0413a7f81ed35bd135887c603f1ae4d5ed330504dd766cb5890b9459f5f",
+      "testedBlobSha256": "ca4795afdfefe20e4f6e9f8c1aaa993a31aaac1ca169ee63450d83f6440f8fd4"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/reference/RemoteAppointmentClientAdapter.java",
+      "beforeBlobSha256": "5a23194be3cc1dee0b1f5dbc7c93c04edf8c6ba527e883a0cc2621e180902652",
+      "testedBlobSha256": "aeb0272e6fe0917f697ce6adc1d452d47228f21dd549f5389de5506cff774678"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/reference/RemoteDoctorClientAdapter.java",
+      "beforeBlobSha256": "e79913ed1b330f2bc0e32af8c239735d441704d84057843afa0e53808d32024d",
+      "testedBlobSha256": "b3b76ab210dbf38160fffda4dfab3ca7a9c6b888a473503f661964bf283c39e2"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/scope/RemoteWorkScopeAdapter.java",
+      "beforeBlobSha256": "82f58d290210a7c76f54bbf4f66bfd45548aae97acb27a70a437d2ade0de73b0",
+      "testedBlobSha256": "9fb28237076fae14746ee37d1dca7587b4a8de2b4922936693ef3678e58c6f48"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/scope/ScopeDecisionDecoder.java",
+      "beforeBlobSha256": "9d514f8cd4202c867a86159a7d992162038435142a093be1d77aad41d8bed321",
+      "testedBlobSha256": "f6399c327b374790b0cf1105dfec292eae251b081336901731e9d587966302ac"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/adapter/scope/ScopeQuery.java",
+      "beforeBlobSha256": "058879a171c0ee578856883c57d42072b24ecd0f671e8d092d29dfaebbee5132",
+      "testedBlobSha256": "b10f550b06579777bb586f3fa907ba9a34fef3a433a8b2b0605c692c1183ab52"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/entity/JpaMedicalRecordEntity.java",
+      "beforeBlobSha256": "d965f05b281e08d4ff7b516bb3ecca8710b3937e097695a48aaa85fa50fde365",
+      "testedBlobSha256": "a793f95213838e34df137835b12e24c864dd8010dbd6d775ee94ae2422b9d62f"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/entity/JpaMedicalRevisionEntity.java",
+      "beforeBlobSha256": "ffe008e698be571255d2b1ef7561454c513094d684b8ebe707247fe2e9f5a432",
+      "testedBlobSha256": "392f63f719c1403a2fa580e2dded8c021cc442a383bf928f02a4366df1eacf2e"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/entity/JpaPatientEntity.java",
+      "beforeBlobSha256": "43bc1e105962cb91a3ddf071e4bd99eefeac0854e5171ee7b794b04b31637770",
+      "testedBlobSha256": "7e93afccaf3e62c35f3123d170edb7b0b4253c7ee14e09b4bfccd700cdeecc36"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/infrastructure/entity/JpaPatientRevisionEntity.java",
+      "beforeBlobSha256": "862f09374670bc466528be4b498c9dafc52679bf30b518a3b6ebb44113f21137",
+      "testedBlobSha256": "b07aa971d7ac049663dc670cb66dcba0d10172b174881cb8f4dc15df069a1f2b"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/resources/application-appointment-reference.yml",
+      "beforeBlobSha256": "00bfd4e1447733aec7ea11da33a0c3967e5872424ee62bb7701a06207878bfd8",
+      "testedBlobSha256": "2d675866054dcf311d045f5e8cdcbd405377f192beea2709a2c856686d8fc016"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/resources/application-doctor-reference.yml",
+      "beforeBlobSha256": "51600beca17ae98c22ef5d7e3cd29b58c60a0a9a6a6ef23b3178fdb0e8157aeb",
+      "testedBlobSha256": "1023fdacc3bcbd9e86efb0d0be0cc31148dd6b72288a3455c6040f7c97f8e208"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/resources/application-identity-introspection.yml",
+      "beforeBlobSha256": "961ba7971af57f7af3393bc9650034e16cbe55cdafa1cbbb0ac4d5260a2e5d79",
+      "testedBlobSha256": "da1b44e9a9884fd240421ef66ec62f0c38088f508cbcd5003edf47f85934cca9"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/resources/application-local.yml",
+      "beforeBlobSha256": null,
+      "testedBlobSha256": "92a2cbf26f13cd5668fd27346da438810254f8e05ef3464ca915a7516a3a184c"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/resources/application-scope-authority.yml",
+      "beforeBlobSha256": "9a9107b3a07412aa8ebafe7fd30eda00487f4cab8639b5777385cbf86d4a03d2",
+      "testedBlobSha256": "04fc5062797e7a5d9f3733219cb39b3f2200c5a3742240b7c11d848692868423"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/resources/application.yml",
+      "beforeBlobSha256": "f86c195e69da58c3cee4b1f551e2a838b5e42299c53dc98d4e6608ed16b277b1",
+      "testedBlobSha256": "27757cf6ca2f81b96d893db5263ee95b9eae40d9eeb6272e3f27d9c30a06fa1d"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/resources/db/schema/uuid/V001__patient_uuid_empty.sql",
+      "beforeBlobSha256": null,
+      "testedBlobSha256": "430ae47dfc20c857d0ea6524e79e671d32c8ca7c882e2ab64fd68372fbac12ea"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/PatientInputTest.java",
+      "beforeBlobSha256": "edc0f0f896a7caac15450d2bde6259d68f2c728996b1dc70aa3581e6b0a619f2",
+      "testedBlobSha256": "20bfc427f2e510f3f6e823d4e73eec81cd9f47675136e6149ae4c52f71c6d105"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/PatientJvmExecutableTest.java",
+      "beforeBlobSha256": null,
+      "testedBlobSha256": "c5e62a6d29e36f27fe2df0bac440d79df45059cff286bce011aad6d6f8b6c90e"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/PatientOrchestrationTest.java",
+      "beforeBlobSha256": "e740c7edd797c1cee4c695c973f368e038c2a68828e665ac8da4566642d8aead",
+      "testedBlobSha256": "ad648911a04c54f1dcf5b6d5f4a4ce6712c1342e3f30258247576e12c9c9eaa2"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/PatientPolicyTest.java",
+      "beforeBlobSha256": "6bc6331004da7a034b6c18234459a1bf6f99c0487acb29d4735540ad1eb315f9",
+      "testedBlobSha256": "26afae62eab687ad605a930c4324f74a8fbf64fab76f2890929c1255e94a6a55"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/PatientServiceIT.java",
+      "beforeBlobSha256": "0869437c2caf13ab2c1e4baba51140470eaea9bc2c236fa2e07fdd9d6ee899cd",
+      "testedBlobSha256": "cffb8e24f1df9fe5e5417d4d5b6cc93ea9a451253a8e3160e65188fb6d104786"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/PatientUuidJarIT.java",
+      "beforeBlobSha256": null,
+      "testedBlobSha256": "c9a59f1c709997754d29b20fe38be9911d3dba5f2cbab045f019d1f02d879f79"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/UuidFixtures.java",
+      "beforeBlobSha256": null,
+      "testedBlobSha256": "d51fd4a1a92025aa6bb490e683ea81de19c8aff4e58895860b743536246b1017"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/config/PatientAuthenticationTest.java",
+      "beforeBlobSha256": "c11c8358c6f1b0a6f674486a27954d4306d28a5d85ec18d112d56cd2e5fea9d5",
+      "testedBlobSha256": "c7693ee0fe41d6e14a57d6ef71fbdb9f9ef487470229660f5dda6a0a6eb48042"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/contract/ContractSchemas.java",
+      "beforeBlobSha256": "98d5fc58ee8381a64e5336e2a4ef8c7c79b7fee45d3fb1b8977e5c9eb6a6525a",
+      "testedBlobSha256": "2f9b2707bc1ec4be90bbf33ae002ee8e24cef77b68b2f534fb3e209fda662ff5"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/contract/PatientProviderContractTest.java",
+      "beforeBlobSha256": "7ca54263921f3b82290c242403271ff4ede41fc30d41694052de1cff9f1ecd42",
+      "testedBlobSha256": "bcf5f700cd5223409fae1c3520296337c4bf832a1a2a54746ee7c3336bd47529"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/contract/ProviderContractPlan.java",
+      "beforeBlobSha256": "41da207020aebf6a5e718e5c5bb96974de98608a4cd22874f23799c255076983",
+      "testedBlobSha256": "8e702d3241ab4dde20d9c97e0a6cf52c1f402a2919d119e84fd6d42eac3c749b"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/contract/ProviderProbe.java",
+      "beforeBlobSha256": "2de2ae1c1a30ec5752b025bc6fc347e1d70b35bf8e2949fa050e1b563dbe8ab7",
+      "testedBlobSha256": "cdedafae669906187d6b391c21164488b83a6a12305bb570c8bbe37a516354e9"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/contract/RealProviderContractCheck.java",
+      "beforeBlobSha256": "e3fa1604864e7c2de78ab1dd2c8bc55a06e09d6cb6f8573f5df6e4da3256c0be",
+      "testedBlobSha256": "4abc56e77cc6a23a87348b5fbe921460dec7f375cce18fc8cb6d78433ad6748c"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/identity/IdentityFixtures.java",
+      "beforeBlobSha256": "3fe13319c8eee9aed55fcb7e66b5caed21df370a11fc879f4725a92728a54208",
+      "testedBlobSha256": "04ea43e72ba772e51b6123e6958d4cde6e9a3eaa4a8e9d56d6966149bd3d1645"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/identity/IntrospectionDecoderTest.java",
+      "beforeBlobSha256": "c2e8699e1b5305e19ade177ccea72da1b87a9820eb110a26ab07fd057f40d99d",
+      "testedBlobSha256": "a9c447b718655c11cc0305be3ba4c3301d2f3b7a8c4d6cd8abdd3c88419e565a"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/identity/PatientIdentityTcpIT.java",
+      "beforeBlobSha256": "57c275a670e385ffffc09fe8d25d928e0283a9cbd54ce5d146b028a63d008df6",
+      "testedBlobSha256": "6659206ca0f7b158bcbf60233a730aff191a3fd519fad69db17483845b3e3791"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/reference/AppointmentReferenceDecoderTest.java",
+      "beforeBlobSha256": "d6574c55616fb069e3255bb4097dc6d8a3f5eb45d18b4cd69c2e6f7008cd37bf",
+      "testedBlobSha256": "eb41f0f55a41a72fe551c12c0aee5017982e2db8bea16ba5aec097992027e01b"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/reference/AppointmentReferenceTransportTest.java",
+      "beforeBlobSha256": "105c940b2a357680edb80a0d86e005a3ceacab94cdfc1e0597b5c578ca89528b",
+      "testedBlobSha256": "901ef94a8cbb14668ada88f253e259fb546dca5b5ef411c7828a35856187ff4f"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/reference/DoctorReferenceDecoderTest.java",
+      "beforeBlobSha256": "d6179d9fe1b1ac99fe20cfe68f80c59e912d6082b5280f134eaf85e03bf07d8f",
+      "testedBlobSha256": "5fa9d7bbf848d9a319ae801bb17010dfe44e40b82099475701c69ae256658375"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/reference/DoctorReferenceTransportTest.java",
+      "beforeBlobSha256": "216db3ab091749e13beb2d319a08ee46ebf1dda336eb4c8518572afa564f5815",
+      "testedBlobSha256": "d16b96231180bc33f70a744d1db576a14ae0245654d3ded62fadd151e551c5c1"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/reference/LocalHttpUuidTest.java",
+      "beforeBlobSha256": null,
+      "testedBlobSha256": "ad8a5a610085f90f9395c74ba3c74f12b84cdb0438024aed01958a6464cd8a67"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/reference/PatientReferenceTcpIT.java",
+      "beforeBlobSha256": "bf9cada6c0bbdb9f4712f466932e7dae9396236aba2a3fca1b03b3218c046006",
+      "testedBlobSha256": "1a29a3815c9fbf063c39f25055c4e73c5f68f6ef4e9a916f3673da20d7457ba9"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/reference/ReferenceConfigurationTest.java",
+      "beforeBlobSha256": "974d571f9037571b3bfc97963a0e251b0131594f42d3051fcc1b953b5d154a3c",
+      "testedBlobSha256": "33d26b1ed04f4b5808515d00a64cc99ed3df89a8c9b11c7f96033fe93b682486"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/reference/ReferenceFixtures.java",
+      "beforeBlobSha256": "c6f30a09982feeef03322b6532db344af4b9fdd4fb4716f72409614d8c764dc7",
+      "testedBlobSha256": "163a3674e124bc3a97432f95f5637d02f8469e8f947b8f7653e656484d6d8827"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/reference/TestReferenceServer.java",
+      "beforeBlobSha256": "5a272196bf2bf9c9b8ea42daa420f97c37963685d1b78f9556c17de47bd6faf7",
+      "testedBlobSha256": "345eb7d56452b1e77f50937f61df49009ede5b039f2470820794d2c4ab18ff5b"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/scope/PatientScopeTcpIT.java",
+      "beforeBlobSha256": "bc1105e06837f17af754ed9b46eb42fc069629066cbc3c72a1ef8983f6425821",
+      "testedBlobSha256": "d4bbcccf4c6b739c17a44212a14a2cd481e6f8dfb4b97ef0f7cb89a34a561b03"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/scope/ScopeAdapterTest.java",
+      "beforeBlobSha256": "b14a0a658a23950bc3e55c24766e8cbc633764bb524e21abf143d98e63e74184",
+      "testedBlobSha256": "e3282eb239fbdb8248aa271929a14b868585fb4353070110d800e24b7f50fbcb"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/scope/ScopeFixtures.java",
+      "beforeBlobSha256": "66e21128ee654a3130b8970974805b8769a1ed25cb4bd74d0d589cf184af64f0",
+      "testedBlobSha256": "09abc811e3d76cd0866119490bfad8d764c83b25a48cbdffe8a97793b56b932e"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/scope/ScopePolicyTest.java",
+      "beforeBlobSha256": "63daa09b1c46c7c049d3105bec9f15c2020771ef65f3238e8045ca5244f60257",
+      "testedBlobSha256": "ce9177f6c79c85db9bd97aba4edcb6b3fdfae8d99d3fa55e53cc2ecca6a96309"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/resources/contracts/patient.uuid-proposed.openapi.json",
+      "beforeBlobSha256": null,
+      "testedBlobSha256": "001e81e3403c02b37682bc783a745b44e29308aa97daddc7d5525d7682ec28ee"
+    }
+  ]
+}

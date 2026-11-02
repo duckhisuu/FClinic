@@ -1,4 +1,5 @@
 package com.fclinic.patientservice.identity;
+import static com.fclinic.patientservice.UuidFixtures.*;
 
 import com.fclinic.patientservice.infrastructure.adapter.identity.*;
 import tools.jackson.databind.json.JsonMapper;
@@ -18,7 +19,7 @@ public final class IdentityFixtures {
         data.put("active",true); data.put("contractVersion",IntrospectionDecoder.VERSION);
         data.put("iss","https://identity.example.test"); data.put("aud",List.of("patient-service"));
         data.put("exp",CLOCK.instant().plusSeconds(600).getEpochSecond());
-        data.put("sub","opaque-human-fixture"); data.put("principalType","USER"); data.put("userId",401L);
+        data.put("sub","opaque-human-fixture"); data.put("principalType","USER"); data.put("userId",fixture(401).toString());
         data.put("patientId",PATIENT.toString()); data.put("doctorId",null);
         data.put("authorities",List.of("ROLE_PATIENT"));
         return data;

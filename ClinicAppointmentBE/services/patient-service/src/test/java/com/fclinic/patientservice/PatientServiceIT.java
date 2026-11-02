@@ -1,4 +1,5 @@
 package com.fclinic.patientservice;
+import static com.fclinic.patientservice.UuidFixtures.*;
 
 import com.fclinic.patientservice.application.port.out.*;
 import com.fclinic.patientservice.application.security.TrustedCaller;
@@ -42,7 +43,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DirtiesContext(classMode=DirtiesContext.ClassMode.AFTER_CLASS)
 class PatientServiceIT {
     static final ObjectMapper JSON=JsonMapper.builder().findAndAddModules().build();
-    static final JsonNode REGISTRY=read("fixtures/registry.json"), OAS=read("contracts/patient.openapi.json");
+    static final JsonNode REGISTRY=read("fixtures/registry.json"), OAS=read("contracts/patient.uuid-proposed.openapi.json");
     static final Clock CLOCK=Clock.fixed(Instant.parse(REGISTRY.path("clock").asText()),ZoneOffset.UTC);
     static final EmbeddedPostgres PG=startPostgres();
     @DynamicPropertySource static void database(DynamicPropertyRegistry r) {
@@ -64,8 +65,8 @@ class PatientServiceIT {
     JpaRevisionAdapter revisionSpy;
     final Set<UUID> allowed=ConcurrentHashMap.newKeySet();
     final TrustedCaller staff=caller("user:demo-staff","ROLE_STAFF",null,null);
-    final TrustedCaller doctor=caller("user:demo-doctor","ROLE_DOCTOR",null,12L);
-    final TrustedCaller otherDoctor=caller("user:other-doctor","ROLE_DOCTOR",null,13L);
+    final TrustedCaller doctor=caller("user:demo-doctor","ROLE_DOCTOR",null,fixture(12));
+    final TrustedCaller otherDoctor=caller("user:other-doctor","ROLE_DOCTOR",null,fixture(13));
     final AtomicReference<TrustedCaller> patientCaller=new AtomicReference<>();
 
     @BeforeEach void setup() {
@@ -83,17 +84,47 @@ class PatientServiceIT {
         when(scopes.clinical(any(),any())).thenReturn(true);
         when(scopes.validVisit(any(),any(),any(),any())).thenReturn(true);
         when(scopes.search(any())).thenAnswer(inv -> new WorkScopePort.SearchScope(Set.copyOf(allowed)));
-        when(doctors.find(anyLong())).thenAnswer(inv -> {
+        when(doctors.find(any(UUID.class))).thenAnswer(inv -> {
             assertThat(TransactionSynchronizationManager.isActualTransactionActive()).isFalse();
             return Optional.of(new DoctorClientPort.DoctorReference(inv.getArgument(0),true));
         });
     }
     @AfterAll static void stop() throws Exception { PG.close(); }
+    @Test void uuidSchemaColumnsRevisionKeysAndForeignKeysAreRealPostgres() {
+        UUID patient=create("UUID synthetic");
+        var medical=service.createRecord(doctor,patient,fixture(12),null,clinical());
+        assertThat(medical.id().version()).isEqualTo(4); assertThat(medical.id().variant()).isEqualTo(2);
+        assertThat(repository.findRecord(patient,medical.id()).orElseThrow()).isEqualTo(medical);
+        var types=jdbc.queryForList("select data_type from information_schema.columns where table_schema='public' and column_name in ('id','patient_id','doctor_id','appointment_id','medical_record_id')");
+        assertThat(types).hasSize(9).allSatisfy(row -> assertThat(row.get("data_type")).isEqualTo("uuid"));
+        for(String table:List.of("patient_revisions","medical_record_revisions")) {
+            UUID revision=jdbc.queryForObject("select id from "+table,UUID.class);
+            assertThat(revision.version()).isEqualTo(4);assertThat(revision.variant()).isEqualTo(2);
+        }
+        assertThat(jdbc.queryForObject("select medical_record_id from medical_record_revisions",UUID.class)).isEqualTo(medical.id());
+        assertThatThrownBy(() -> jdbc.update("update medical_record_revisions set medical_record_id=?",UUID.randomUUID()))
+                .isInstanceOf(org.springframework.dao.DataIntegrityViolationException.class);
+        assertThatThrownBy(() -> jdbc.update("update medical_records set doctor_id=?",UUID.fromString("550e8400-e29b-11d4-a716-446655440000")))
+                .isInstanceOf(org.springframework.dao.DataIntegrityViolationException.class);
+        assertThat(repository.findRecord(patient,medical.id()).orElseThrow().doctorId()).isEqualTo(fixture(12));
+    }
+    @Test void uuidApiRejectsNumericAndNonV4WithoutWrites() throws Exception {
+        UUID patient=create("UUID synthetic");
+        for(Object invalid:List.of(12,"12","550e8400-e29b-11d4-a716-446655440000",fixture(12).toString().toUpperCase())) {
+            var body=medicalBody(null);body.put("doctorId",invalid);
+            mvc.perform(post("/api/v3/patients/"+patient+"/medical-records").header("Authorization","Bearer component-doctor")
+                    .contentType("application/json").content(JSON.writeValueAsString(body))).andExpect(status().isBadRequest());
+        }
+        mvc.perform(get("/api/v3/patients/"+patient+"/medical-records/12").header("Authorization","Bearer component-doctor"))
+                .andExpect(status().isBadRequest());
+        assertThat(count("medical_records")).isZero();assertThat(count("medical_record_revisions")).isZero();
+        verifyNoInteractions(doctors,appointments);
+    }
     @Test void tc01_tc02_sharedPhoneCreateAndCanonicalDetail() throws Exception {
         UUID a=createHttp("Demo A"), b=createHttp("Demo B");
         assertThat(a).isNotEqualTo(b); assertThat(a.version()).isEqualTo(4);
         assertThat(count("patients")).isEqualTo(2); assertThat(count("patient_revisions")).isEqualTo(2);
-        var r=mvc.perform(get("/api/v2/patients/"+a).header("Authorization","Bearer component-staff"))
+        var r=mvc.perform(get("/api/v3/patients/"+a).header("Authorization","Bearer component-staff"))
                 .andExpect(status().isOk()).andReturn();
         schema(r,"PatientResponse");
         assertThat(json(r).at("/data/patientCode").asText()).isEqualTo("PAT-"+a);
@@ -103,7 +134,7 @@ class PatientServiceIT {
     @Test void tc05_searchCombinesFiltersAndRestrictsCountAndStablePage() throws Exception {
         for(int i=0;i<12;i++) create("Same Name");
         UUID excluded=create("Same Name"); allowed.remove(excluded);
-        var request=get("/api/v2/patients").param("keyword","same").param("phoneNumber","0900000001")
+        var request=get("/api/v3/patients").param("keyword","same").param("phoneNumber","0900000001")
                 .param("size","5").param("page","1").header("Authorization","Bearer component-staff");
         var a=mvc.perform(request).andExpect(status().isOk()).andReturn(); schema(a,"PatientPageResponse");
         assertThat(json(a).at("/data/totalElements").asInt()).isEqualTo(12);
@@ -111,9 +142,9 @@ class PatientServiceIT {
         var b=mvc.perform(request).andReturn();
         assertThat(json(a).at("/data/content")).isEqualTo(json(b).at("/data/content"));
         for(var n:json(a).at("/data/content")) assertThat(n.path("id").asText()).isNotEqualTo(excluded.toString());
-        mvc.perform(get("/api/v2/patients").param("keyword","absent").param("phoneNumber","0900000001")
+        mvc.perform(get("/api/v3/patients").param("keyword","absent").param("phoneNumber","0900000001")
                 .header("Authorization","Bearer component-staff")).andExpect(jsonPath("$.data.totalElements").value(0));
-        mvc.perform(get("/api/v2/patients").param("size","101").header("Authorization","Bearer component-staff")).andExpect(status().isBadRequest());
+        mvc.perform(get("/api/v3/patients").param("size","101").header("Authorization","Bearer component-staff")).andExpect(status().isBadRequest());
     }
     @Test void tc06_tc31_profileFullPutNoOpStaleAndRevisionVersion() throws Exception {
         UUID id=createHttp("Demo");
@@ -141,28 +172,28 @@ class PatientServiceIT {
     }
     @Test void tc09_tc10_tc14_linkedAndWalkInCanonicalMedicalReads() throws Exception {
         UUID id=create("Demo");
-        when(appointments.find(102)).thenAnswer(inv -> {
+        when(appointments.find(fixture(102))).thenAnswer(inv -> {
             assertThat(TransactionSynchronizationManager.isActualTransactionActive()).isFalse();
-            return Optional.of(new AppointmentClientPort.AppointmentReference(102,id,12,false));
+            return Optional.of(new AppointmentClientPort.AppointmentReference(fixture(102),id,fixture(12),false));
         });
-        long record=createMedicalHttp(id,102L); createMedicalHttp(id,null); createMedicalHttp(id,null);
-        var list=mvc.perform(get("/api/v2/patients/"+id+"/medical-records").param("appointmentId","102")
+        UUID record=createMedicalHttp(id,fixture(102)); createMedicalHttp(id,null); createMedicalHttp(id,null);
+        var list=mvc.perform(get("/api/v3/patients/"+id+"/medical-records").param("appointmentId",fixture(102).toString())
                 .header("Authorization","Bearer component-doctor")).andExpect(status().isOk()).andReturn();
         schema(list,"MedicalRecordPageResponse"); assertThat(json(list).at("/data/totalElements").asLong()).isEqualTo(1);
-        var detail=mvc.perform(get("/api/v2/patients/"+id+"/medical-records/"+record)
+        var detail=mvc.perform(get("/api/v3/patients/"+id+"/medical-records/"+record)
                 .header("Authorization","Bearer component-doctor")).andExpect(status().isOk()).andReturn();
-        schema(detail,"MedicalRecordResponse"); verify(appointments,times(1)).find(102);
+        schema(detail,"MedicalRecordResponse"); verify(appointments,times(1)).find(fixture(102));
         assertThat(count("medical_record_revisions")).isEqualTo(3);
     }
     @Test void tc15_tc16_tc36_parentAuthorImmutableRefsAndMedicalPut() throws Exception {
-        UUID a=create("Demo A"),b=create("Demo B"); long record=createMedicalHttp(a,null);
-        String path="/api/v2/patients/"+a+"/medical-records/"+record;
-        mvc.perform(get("/api/v2/patients/"+b+"/medical-records/"+record).header("Authorization","Bearer component-doctor"))
+        UUID a=create("Demo A"),b=create("Demo B"); UUID record=createMedicalHttp(a,null);
+        String path="/api/v3/patients/"+a+"/medical-records/"+record;
+        mvc.perform(get("/api/v3/patients/"+b+"/medical-records/"+record).header("Authorization","Bearer component-doctor"))
                 .andExpect(status().isNotFound()).andExpect(jsonPath("$.code").value("MEDICAL_RECORD_NOT_FOUND"));
         var body=medicalBody(null); body.remove("doctorId"); body.remove("appointmentId");
         body.put("version",0); body.put("changeReason","Simulated correction");
         putMedical(path,body,"component-other-doctor",403);
-        body.put("doctorId",12); putMedical(path,body,"component-doctor",400); body.remove("doctorId");
+        body.put("doctorId",fixture(12).toString()); putMedical(path,body,"component-doctor",400); body.remove("doctorId");
         assertThat(json(putMedical(path,body,"component-doctor",200)).at("/data/version").asLong()).isZero();
         body.put("diagnosis","Updated simulated diagnosis");
         assertThat(json(putMedical(path,body,"component-doctor",200)).at("/data/version").asLong()).isEqualTo(1);
@@ -171,32 +202,32 @@ class PatientServiceIT {
         verifyNoInteractions(appointments);
     }
     @Test void tc08_inactiveForbidsNewMedicalButAllowsExistingReadAndEdit() {
-        UUID id=create("Demo"); var old=service.createRecord(doctor,id,12,null,clinical());
+        UUID id=create("Demo"); var old=service.createRecord(doctor,id,fixture(12),null,clinical());
         service.replace(staff,id,0,inactive());
-        assertCode(PatientError.Code.PATIENT_INACTIVE,() -> service.createRecord(doctor,id,12,null,clinical()));
+        assertCode(PatientError.Code.PATIENT_INACTIVE,() -> service.createRecord(doctor,id,fixture(12),null,clinical()));
         assertThat(service.record(doctor,id,old.id()).id()).isEqualTo(old.id());
         assertThat(service.replaceRecord(doctor,id,old.id(),0,clinical(),"Simulated review").version()).isZero();
     }
     @Test void tc17_tc18_tc35_authScopeAndForgedHeadersDoNotLeak() throws Exception {
         UUID id=create("Demo");
-        mvc.perform(get("/api/v2/patients/"+id).header("X-Role","ROLE_STAFF").header("X-User-Id","401"))
+        mvc.perform(get("/api/v3/patients/"+id).header("X-Role","ROLE_STAFF").header("X-User-Id","401"))
                 .andExpect(status().isUnauthorized()).andExpect(jsonPath("$.code").value("UNAUTHENTICATED"));
-        mvc.perform(get("/api/v2/patients/"+id).header("Authorization","Bearer invalid")).andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/v3/patients/"+id).header("Authorization","Bearer invalid")).andExpect(status().isUnauthorized());
         patientCaller.set(caller("user:demo-patient","ROLE_PATIENT",id,null));
-        mvc.perform(get("/api/v2/patients/"+id).header("Authorization","Bearer component-patient")).andExpect(status().isOk());
-        mvc.perform(get("/api/v2/patients").header("Authorization","Bearer component-patient")).andExpect(status().isForbidden());
-        mvc.perform(get("/api/v2/patients/"+UUID.randomUUID()).header("Authorization","Bearer component-patient")).andExpect(status().isForbidden());
-        mvc.perform(get("/api/v2/patients/"+id+"/medical-records").header("Authorization","Bearer component-staff")).andExpect(status().isForbidden());
+        mvc.perform(get("/api/v3/patients/"+id).header("Authorization","Bearer component-patient")).andExpect(status().isOk());
+        mvc.perform(get("/api/v3/patients").header("Authorization","Bearer component-patient")).andExpect(status().isForbidden());
+        mvc.perform(get("/api/v3/patients/"+UUID.randomUUID()).header("Authorization","Bearer component-patient")).andExpect(status().isForbidden());
+        mvc.perform(get("/api/v3/patients/"+id+"/medical-records").header("Authorization","Bearer component-staff")).andExpect(status().isForbidden());
         when(scopes.clinical(doctor,id)).thenReturn(false);
-        mvc.perform(post("/api/v2/patients/"+id+"/medical-records").header("Authorization","Bearer component-doctor")
+        mvc.perform(post("/api/v3/patients/"+id+"/medical-records").header("Authorization","Bearer component-doctor")
                 .contentType("application/json").content(JSON.writeValueAsString(medicalBody(null)))).andExpect(status().isForbidden());
         assertThat(count("medical_records")).isZero();
     }
     @Test void tc19_reference422VsTechnical503AndNoWrite() throws Exception {
-        UUID id=create("Demo"); when(doctors.find(12)).thenReturn(Optional.empty());
+        UUID id=create("Demo"); when(doctors.find(fixture(12))).thenReturn(Optional.empty());
         var r=postMedical(id,null,422); schema(r,"Error");
         assertThat(json(r).path("code").asText()).isEqualTo("REFERENCE_MISMATCH");
-        when(doctors.find(12)).thenThrow(new IllegalStateException("private details"));
+        when(doctors.find(fixture(12))).thenThrow(new IllegalStateException("private details"));
         assertThat(json(postMedical(id,null,503)).path("code").asText()).isEqualTo("DEPENDENCY_UNAVAILABLE");
         assertThat(count("medical_records")).isZero();
     }
@@ -210,9 +241,9 @@ class PatientServiceIT {
         assertThat(repository.find(id).orElseThrow().version()).isZero();
         assertThat(repository.find(id).orElseThrow().fullName()).isEqualTo("Demo");
         doThrow(new IllegalStateException("fault")).when(revisionSpy).medical(isNull(),any(),isNull());
-        assertThatThrownBy(() -> service.createRecord(doctor,id,12,null,clinical())).isInstanceOf(org.springframework.dao.DataAccessException.class).hasRootCauseMessage("fault");
+        assertThatThrownBy(() -> service.createRecord(doctor,id,fixture(12),null,clinical())).isInstanceOf(org.springframework.dao.DataAccessException.class).hasRootCauseMessage("fault");
         assertThat(count("medical_records")).isZero(); reset(revisionSpy);
-        var old=service.createRecord(doctor,id,12,null,clinical());
+        var old=service.createRecord(doctor,id,fixture(12),null,clinical());
         doThrow(new IllegalStateException("fault")).when(revisionSpy).medical(notNull(),any(),anyString());
         assertThatThrownBy(() -> service.replaceRecord(doctor,id,old.id(),0,changedClinical(),"Simulated correction")).isInstanceOf(org.springframework.dao.DataAccessException.class).hasRootCauseMessage("fault");
         assertThat(repository.findRecord(id,old.id()).orElseThrow()).isEqualTo(old);
@@ -227,8 +258,8 @@ class PatientServiceIT {
     }
     @Test void tc11_linkedCreateRaceReturns201And409WithOneRevision() throws Exception {
         UUID id=create("Demo");
-        when(appointments.find(102)).thenReturn(Optional.of(new AppointmentClientPort.AppointmentReference(102,id,12,false)));
-        Callable<Integer> call=() -> postMedical(id,102L,-1).getResponse().getStatus();
+        when(appointments.find(fixture(102))).thenReturn(Optional.of(new AppointmentClientPort.AppointmentReference(fixture(102),id,fixture(12),false)));
+        Callable<Integer> call=() -> postMedical(id,fixture(102),-1).getResponse().getStatus();
         assertThat(race(call,call)).containsExactlyInAnyOrder(201,409);
         assertThat(count("medical_records")).isEqualTo(1); assertThat(count("medical_record_revisions")).isEqualTo(1);
     }
@@ -239,18 +270,18 @@ class PatientServiceIT {
                 repository.lock(id).orElseThrow(); writer.replace(id,0,inactive(),staff.subject()); locked.countDown(); await(release);
             }));
             await(locked);
-            var second=pool.submit(() -> { attempting.countDown(); assertCode(PatientError.Code.PATIENT_INACTIVE,() -> service.createRecord(doctor,id,12,null,clinical())); });
+            var second=pool.submit(() -> { attempting.countDown(); assertCode(PatientError.Code.PATIENT_INACTIVE,() -> service.createRecord(doctor,id,fixture(12),null,clinical())); });
             await(attempting); release.countDown(); first.get(15,TimeUnit.SECONDS); second.get(15,TimeUnit.SECONDS);
         } finally { release.countDown(); }
         assertThat(count("medical_records")).isZero();
     }
     @Test void tc29_recordCommittedBeforeDeactivationRemains() {
-        UUID id=create("Demo"); var record=service.createRecord(doctor,id,12,null,clinical());
+        UUID id=create("Demo"); var record=service.createRecord(doctor,id,fixture(12),null,clinical());
         service.replace(staff,id,0,inactive());
         assertThat(repository.findRecord(id,record.id())).isPresent(); assertThat(count("medical_record_revisions")).isEqualTo(1);
     }
     @Test void tc31_noOpMedicalDetectsConcurrentVersionChangeAtCommit() throws Exception {
-        UUID id=create("Demo"); var record=service.createRecord(doctor,id,12,null,clinical());
+        UUID id=create("Demo"); var record=service.createRecord(doctor,id,fixture(12),null,clinical());
         CountDownLatch checked=new CountDownLatch(1),committed=new CountDownLatch(1);
         try(var pool=Executors.newSingleThreadExecutor()) {
             var noOp=pool.submit(() -> assertThatThrownBy(() -> transaction(() -> {
@@ -270,8 +301,8 @@ class PatientServiceIT {
         assertThatThrownBy(() -> jdbc.update("update patients set version=-1 where id=?",id)).isInstanceOf(org.springframework.dao.DataIntegrityViolationException.class);
         mvc.perform(get("/api/v1/patients")).andExpect(status().isNotFound());
         mvc.perform(post("/api/v1/patients").contentType("application/json").content("{}")).andExpect(status().isNotFound());
-        mvc.perform(get("/api/v2/patients/1").header("Authorization","Bearer component-staff")).andExpect(status().isBadRequest());
-        mvc.perform(get("/api/v2/patients/"+UUID.randomUUID()).header("Authorization","Bearer component-staff"))
+        mvc.perform(get("/api/v3/patients/1").header("Authorization","Bearer component-staff")).andExpect(status().isBadRequest());
+        mvc.perform(get("/api/v3/patients/"+UUID.randomUUID()).header("Authorization","Bearer component-staff"))
                 .andExpect(status().isNotFound()).andExpect(jsonPath("$.code").value("PATIENT_NOT_FOUND"));
     }
     @Test void tc03_tc32_apiBindingRejectsUnknownNullAndCoercedValuesWithoutWriting() throws Exception {
@@ -281,7 +312,7 @@ class PatientServiceIT {
                 "{\"fullName\":\"Demo\",\"phoneNumber\":\"0900000001\",\"createdBy\":\"spoof\"}",
                 "{\"fullName\":\"Demo\",\"phoneNumber\":\"0900000001\",\"dateOfBirth\":\" \"}");
         for(String body:cases) {
-            var result=mvc.perform(post("/api/v2/patients").header("Authorization","Bearer component-staff")
+            var result=mvc.perform(post("/api/v3/patients").header("Authorization","Bearer component-staff")
                     .contentType("application/json").content(body)).andExpect(status().isBadRequest()).andReturn();
             schema(result,"Error"); assertThat(json(result).path("code").asText()).isEqualTo("VALIDATION_ERROR");
         }
@@ -289,37 +320,37 @@ class PatientServiceIT {
     }
     @Test void tc14_parentExistsWithoutRecordsReturnsEmptyPageAndUnknownParent404() throws Exception {
         UUID id=create("Demo");
-        mvc.perform(get("/api/v2/patients/"+id+"/medical-records").header("Authorization","Bearer component-doctor"))
+        mvc.perform(get("/api/v3/patients/"+id+"/medical-records").header("Authorization","Bearer component-doctor"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.data.content").isEmpty()).andExpect(jsonPath("$.data.totalPages").value(0));
-        mvc.perform(get("/api/v2/patients/"+UUID.randomUUID()+"/medical-records").header("Authorization","Bearer component-doctor"))
+        mvc.perform(get("/api/v3/patients/"+UUID.randomUUID()+"/medical-records").header("Authorization","Bearer component-doctor"))
                 .andExpect(status().isNotFound()).andExpect(jsonPath("$.code").value("PATIENT_NOT_FOUND"));
     }
     @Test void tc17_verifierUnavailableReturns503AndInactiveIdentityReturns401() throws Exception {
         doThrow(new IllegalStateException("technical")).when(identities).verify("offline");
-        mvc.perform(get("/api/v2/patients").header("Authorization","Bearer offline"))
+        mvc.perform(get("/api/v3/patients").header("Authorization","Bearer offline"))
                 .andExpect(status().isServiceUnavailable()).andExpect(jsonPath("$.code").value("DEPENDENCY_UNAVAILABLE"));
         doReturn(new TrustedCaller("user:demo",TrustedCaller.PrincipalType.USER,
                 Set.of("ROLE_STAFF"),null,null,null,false)).when(identities).verify("inactive");
-        mvc.perform(get("/api/v2/patients").header("Authorization","Bearer inactive")).andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/v3/patients").header("Authorization","Bearer inactive")).andExpect(status().isUnauthorized());
     }
     private UUID createHttp(String name) throws Exception {
-        var r=mvc.perform(post("/api/v2/patients").header("Authorization","Bearer component-staff")
+        var r=mvc.perform(post("/api/v3/patients").header("Authorization","Bearer component-staff")
                 .contentType("application/json").content(JSON.writeValueAsString(Map.of("fullName",name,"phoneNumber","0900000001"))))
                 .andExpect(status().isCreated()).andReturn();
         schema(r,"PatientCreated"); UUID id=UUID.fromString(json(r).at("/data/id").asText()); allowed.add(id); return id;
     }
     private UUID create(String name) { var p=service.create(staff,profile(name)); allowed.add(p.id()); return p.id(); }
-    private long createMedicalHttp(UUID id,Long appointment) throws Exception {
-        var r=postMedical(id,appointment,201); schema(r,"MedicalRecordCreated"); return json(r).at("/data/id").asLong();
+    private UUID createMedicalHttp(UUID id,UUID appointment) throws Exception {
+        var r=postMedical(id,appointment,201); schema(r,"MedicalRecordCreated"); return UUID.fromString(json(r).at("/data/id").asText());
     }
-    private MvcResult postMedical(UUID id,Long appointment,int expected) throws Exception {
-        var r=mvc.perform(post("/api/v2/patients/"+id+"/medical-records").header("Authorization","Bearer component-doctor")
+    private MvcResult postMedical(UUID id,UUID appointment,int expected) throws Exception {
+        var r=mvc.perform(post("/api/v3/patients/"+id+"/medical-records").header("Authorization","Bearer component-doctor")
                 .contentType("application/json").content(JSON.writeValueAsString(medicalBody(appointment)))).andReturn();
         if(expected!=-1) assertThat(r.getResponse().getStatus()).as(r.getResponse().getContentAsString()).isEqualTo(expected);
         return r;
     }
     private MvcResult putProfile(UUID id,Map<String,Object> b,int expected) throws Exception {
-        return mvc.perform(put("/api/v2/patients/"+id).header("Authorization","Bearer component-staff")
+        return mvc.perform(put("/api/v3/patients/"+id).header("Authorization","Bearer component-staff")
                 .contentType("application/json").content(JSON.writeValueAsString(b))).andExpect(status().is(expected)).andReturn();
     }
     private MvcResult putMedical(String path,Map<String,Object> b,String token,int expected) throws Exception {
@@ -331,8 +362,8 @@ class PatientServiceIT {
     private Map<String,Object> replaceBody(String name,long version) {
         return new HashMap<>(Map.of("fullName",name,"phoneNumber","0900000001","gender","UNKNOWN","status","ACTIVE","version",version));
     }
-    private Map<String,Object> medicalBody(Long appointment) {
-        var b=new HashMap<String,Object>(Map.of("doctorId",12,"visitDate",REGISTRY.at("/clinicalScene/visitDate").asText(),"symptoms","Simulated symptoms","diagnosis","Simulated diagnosis"));
+    private Map<String,Object> medicalBody(UUID appointment) {
+        var b=new HashMap<String,Object>(Map.of("doctorId",fixture(12).toString(),"visitDate",REGISTRY.at("/clinicalScene/visitDate").asText(),"symptoms","Simulated symptoms","diagnosis","Simulated diagnosis"));
         b.put("appointmentId",appointment); return b;
     }
     private ProfileData profile(String name) { return new ProfileData(name,REGISTRY.at("/patient/phoneNumber").asText(),null,null,ProfileData.Gender.UNKNOWN,null,ProfileData.Status.ACTIVE); }
@@ -340,7 +371,7 @@ class PatientServiceIT {
     private ClinicalData clinical() { return new ClinicalData(Instant.parse(REGISTRY.at("/clinicalScene/visitDate").asText()),"Simulated symptoms","Simulated diagnosis",null,null); }
     private ClinicalData changedClinical() { return new ClinicalData(clinical().visitDate(),"Updated simulated","Simulated diagnosis",null,null); }
     private int count(String table) { return jdbc.queryForObject("select count(*) from "+table,Integer.class); }
-    private static TrustedCaller caller(String subject,String role,UUID id,Long doctorId) { return new TrustedCaller(subject,TrustedCaller.PrincipalType.USER,Set.of(role),id,doctorId,null,true); }
+    private static TrustedCaller caller(String subject,String role,UUID id,UUID doctorId) { return new TrustedCaller(subject,TrustedCaller.PrincipalType.USER,Set.of(role),id,doctorId,null,true); }
     private JsonNode json(MvcResult r) { return JSON.readTree(r.getResponse().getContentAsByteArray()); }
     private void schema(MvcResult r,String name) { com.fclinic.patientservice.contract.ContractSchemas.patient(json(r),name); }
     private static JsonNode read(String path) { try(var in=new ClassPathResource(path).getInputStream()) { return JSON.readTree(in); } catch(Exception e) { throw new ExceptionInInitializerError(e); } }
@@ -352,7 +383,7 @@ class PatientServiceIT {
                     .setServerConfig("listen_addresses","127.0.0.1")
                     .setServerConfig("timezone","UTC")
                     .setServerConfig("log_min_error_statement","panic").start();
-            try { new ResourceDatabasePopulator(new ClassPathResource("db/schema/V001__patient_v2_empty.sql")).execute(pg.getPostgresDatabase()); return pg; }
+            try { new ResourceDatabasePopulator(new ClassPathResource("db/schema/uuid/V001__patient_uuid_empty.sql")).execute(pg.getPostgresDatabase()); return pg; }
             catch(Throwable e) { pg.close(); throw e; }
         } catch(Exception e) { throw new ExceptionInInitializerError(e); }
     }

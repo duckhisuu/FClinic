@@ -1,4 +1,5 @@
 package com.fclinic.patientservice.infrastructure.adapter.reference;
+import java.util.UUID;
 
 import com.fclinic.patientservice.domain.model.PatientError;
 import tools.jackson.core.*;
@@ -10,7 +11,6 @@ import static com.fclinic.patientservice.domain.model.PatientError.Code.DEPENDEN
 
 /** Local wire DTO validation only; never expose provider fields or parser exception text. */
 final class ReferenceJson {
-    static final long MAX_ID=9007199254740991L;
     static final JsonMapper JSON=JsonMapper.builder(JsonFactory.builder()
             .enable(StreamReadFeature.STRICT_DUPLICATE_DETECTION)
             .streamReadConstraints(StreamReadConstraints.builder().maxNestingDepth(8).maxStringLength(8192).maxNumberLength(20).build()).build())
@@ -21,10 +21,11 @@ final class ReferenceJson {
         catch(RuntimeException e) { throw unavailable(); }
     }
     static void object(JsonNode n,Set<String> fields) { check(n!=null && n.isObject() && n.propertyNames().equals(fields)); }
-    static long id(JsonNode n) {
-        check(n.isIntegralNumber() && n.canConvertToLong()); long id=n.longValue(); requireId(id); return id;
+    static UUID id(JsonNode n) {
+        try { return com.fclinic.patientservice.domain.model.BusinessId.parse(n.isString() ? n.asText() : null); }
+        catch (RuntimeException ex) { throw unavailable(); }
     }
-    static void requireId(long id) { check(id>0 && id<=MAX_ID); }
+    static void requireId(UUID id) { check(com.fclinic.patientservice.domain.model.BusinessId.valid(id)); }
     static String string(JsonNode n,boolean nullable) {
         if(nullable && n.isNull()) return null;
         check(n.isString() && n.asText().length()<=8192); return n.asText();

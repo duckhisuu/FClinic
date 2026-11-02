@@ -15,7 +15,7 @@ public interface WorkScopePort {
     boolean receptionist(TrustedCaller caller);
     boolean profile(TrustedCaller caller, UUID patientId);
     boolean clinical(TrustedCaller caller, UUID patientId);
-    boolean validVisit(TrustedCaller caller, UUID patientId, Long appointmentId, Instant visitDate);
+    boolean validVisit(TrustedCaller caller, UUID patientId, UUID appointmentId, Instant visitDate);
     boolean appointmentProfileLookup(TrustedCaller caller, UUID patientId);
     SearchScope search(TrustedCaller caller);
     // Compatibility defaults preserve existing port implementations; production overrides exact operations.

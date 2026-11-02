@@ -1,4 +1,5 @@
 package com.fclinic.patientservice.scope;
+import static com.fclinic.patientservice.UuidFixtures.*;
 
 import com.fclinic.patientservice.application.port.out.*;
 import com.fclinic.patientservice.infrastructure.adapter.identity.IntrospectionIdentityVerifier;
@@ -82,8 +83,8 @@ class PatientScopeTcpIT {
         authorized.clear(); SCOPE.rejectAuthentication=false;
         SCOPE.handler=(kind,request) -> TestAuthServer.Reply.json(200,bytes(grant(request,authorized)));
         AUTH.handler=this::authReply;
-        when(doctors.find(12)).thenReturn(Optional.of(new DoctorClientPort.DoctorReference(12,true)));
-        when(appointments.find(anyLong())).thenThrow(new PatientError(PatientError.Code.DEPENDENCY_UNAVAILABLE));
+        when(doctors.find(fixture(12))).thenReturn(Optional.of(new DoctorClientPort.DoctorReference(fixture(12),true)));
+        when(appointments.find(any(UUID.class))).thenThrow(new PatientError(PatientError.Code.DEPENDENCY_UNAVAILABLE));
         own=create("Scope synthetic"); authorized.add(own);
         SCOPE.requests.clear(); SCOPE.adminCalls.set(0); SCOPE.clinicalCalls.set(0);
     }
@@ -92,7 +93,7 @@ class PatientScopeTcpIT {
     @Test void staffRoleWithoutAssignmentAndForgedScopeHeadersCannotCreate() throws Exception {
         SCOPE.handler=(kind,q) -> TestAuthServer.Reply.json(200,bytes(deny(q)));
         var before=snapshot();
-        var req=HttpRequest.newBuilder(url("/api/v2/patients")).header("Authorization","Bearer staff")
+        var req=HttpRequest.newBuilder(url("/api/v3/patients")).header("Authorization","Bearer staff")
                 .header("X-Scope","ALL").header("X-Clinic-Id","1").header("X-Assignment-Id","forged")
                 .header("Content-Type","application/json").POST(HttpRequest.BodyPublishers.ofString(JSON.writeValueAsString(profile("Forged")))).build();
         expect(HTTP.send(req,HttpResponse.BodyHandlers.ofString()),403,"FORBIDDEN");
@@ -103,28 +104,28 @@ class PatientScopeTcpIT {
         UUID other=create("Outside scope");
         SCOPE.handler=(kind,q) -> TestAuthServer.Reply.json(200,bytes(other.toString().equals(q.get("patientId"))?deny(q):grant(q,authorized)));
         var before=snapshot();
-        expect(request("GET","/api/v2/patients/"+other,"staff",null),403,"FORBIDDEN");
-        expect(request("PUT","/api/v2/patients/"+other,"staff",replacement("Outside scope")),403,"FORBIDDEN");
+        expect(request("GET","/api/v3/patients/"+other,"staff",null),403,"FORBIDDEN");
+        expect(request("PUT","/api/v3/patients/"+other,"staff",replacement("Outside scope")),403,"FORBIDDEN");
         assertThat(snapshot()).isEqualTo(before);
     }
     @Test void searchDenialEmptyAndBoundedScopePreserveCountsAndAndFilters() {
         UUID excluded=create("Outside scope"); authorized.clear();
         SCOPE.handler=(kind,q) -> TestAuthServer.Reply.json(200,bytes("ADMIN_SEARCH".equals(q.get("operation"))?deny(q):grant(q,authorized)));
-        expect(request("GET","/api/v2/patients","staff",null),403,"FORBIDDEN");
+        expect(request("GET","/api/v3/patients","staff",null),403,"FORBIDDEN");
         SCOPE.handler=(kind,q) -> TestAuthServer.Reply.json(200,bytes(grant(q,authorized)));
-        var empty=request("GET","/api/v2/patients","staff",null);
+        var empty=request("GET","/api/v3/patients","staff",null);
         assertThat(empty.statusCode()).isEqualTo(200); assertThat(json(empty).at("/data/totalElements").asInt()).isZero();
         authorized.add(own);
-        var result=request("GET","/api/v2/patients?keyword=Scope&phoneNumber=0900000001&size=1","staff",null);
+        var result=request("GET","/api/v3/patients?keyword=Scope&phoneNumber=0900000001&size=1","staff",null);
         assertThat(result.statusCode()).isEqualTo(200); assertThat(json(result).at("/data/totalElements").asInt()).isEqualTo(1);
         assertThat(result.body()).doesNotContain(excluded.toString(),"Outside scope");
-        assertThat(json(request("GET","/api/v2/patients?keyword=absent&phoneNumber=0900000001","staff",null))
+        assertThat(json(request("GET","/api/v3/patients?keyword=absent&phoneNumber=0900000001","staff",null))
                 .at("/data/totalElements").asInt()).isZero();
-        assertThat(json(request("GET","/api/v2/patients?keyword=Scope&phoneNumber=0900000002","staff",null))
+        assertThat(json(request("GET","/api/v3/patients?keyword=Scope&phoneNumber=0900000002","staff",null))
                 .at("/data/totalElements").asInt()).isZero();
     }
     @Test void doctorSearchUsesClinicalAuthorityAndCannotExpandScope() {
-        var result=request("GET","/api/v2/patients","doctor",null);
+        var result=request("GET","/api/v3/patients","doctor",null);
         assertThat(result.statusCode()).isEqualTo(200);
         assertThat(json(result).at("/data/totalElements").asInt()).isEqualTo(1);
         assertThat(SCOPE.adminCalls.get()).isZero();
@@ -133,68 +134,68 @@ class PatientScopeTcpIT {
     @Test void revocationBeforeNoOpAndMutationKeepsVersionsAndRevisions() {
         var before=snapshot();
         SCOPE.handler=(kind,q) -> TestAuthServer.Reply.json(200,bytes(deny(q)));
-        expect(request("PUT","/api/v2/patients/"+own,"staff",replacement("Scope synthetic")),403,"FORBIDDEN");
-        expect(request("PUT","/api/v2/patients/"+own,"staff",replacement("Changed")),403,"FORBIDDEN");
+        expect(request("PUT","/api/v3/patients/"+own,"staff",replacement("Scope synthetic")),403,"FORBIDDEN");
+        expect(request("PUT","/api/v3/patients/"+own,"staff",replacement("Changed")),403,"FORBIDDEN");
         assertThat(snapshot()).isEqualTo(before);
     }
     @Test void currentGrantIsRecheckedBetweenControllerAndUseCaseBeforeWriter() {
         var checks=new AtomicInteger(); var before=snapshot();
         SCOPE.handler=(kind,q) -> TestAuthServer.Reply.json(200,bytes("ADMIN_PROFILE_UPDATE".equals(q.get("operation"))
                 && checks.incrementAndGet()>1?deny(q):grant(q,authorized)));
-        expect(request("PUT","/api/v2/patients/"+own,"staff",replacement("Changed")),403,"FORBIDDEN");
+        expect(request("PUT","/api/v3/patients/"+own,"staff",replacement("Changed")),403,"FORBIDDEN");
         assertThat(checks.get()).isEqualTo(2); assertThat(snapshot()).isEqualTo(before);
     }
     @Test void clinicalReadCreateUpdateRemainDistinctAndAuthorStillRequired() {
         SCOPE.handler=(kind,q) -> TestAuthServer.Reply.json(200,bytes("MEDICAL_UPDATE".equals(q.get("operation"))?deny(q):grant(q,authorized)));
-        long record=createMedical(null);
+        UUID record=createMedical(null);
         var before=snapshot();
-        assertThat(request("GET","/api/v2/patients/"+own+"/medical-records/"+record,"doctor",null).statusCode()).isEqualTo(200);
-        expect(request("PUT","/api/v2/patients/"+own+"/medical-records/"+record,"doctor",medicalReplacement()),403,"FORBIDDEN");
+        assertThat(request("GET","/api/v3/patients/"+own+"/medical-records/"+record,"doctor",null).statusCode()).isEqualTo(200);
+        expect(request("PUT","/api/v3/patients/"+own+"/medical-records/"+record,"doctor",medicalReplacement()),403,"FORBIDDEN");
         SCOPE.handler=(kind,q) -> TestAuthServer.Reply.json(200,bytes(grant(q,authorized)));
-        expect(request("PUT","/api/v2/patients/"+own+"/medical-records/"+record,"other-doctor",medicalReplacement()),403,"FORBIDDEN");
+        expect(request("PUT","/api/v3/patients/"+own+"/medical-records/"+record,"other-doctor",medicalReplacement()),403,"FORBIDDEN");
         assertThat(snapshot()).isEqualTo(before);
     }
     @Test void revokedClinicalAssignmentAndValidVisitDenyBothLinkedAndWalkIn() {
         for(String denied:List.of("MEDICAL_CREATE","VALID_VISIT")) {
             SCOPE.handler=(kind,q) -> TestAuthServer.Reply.json(200,bytes(denied.equals(q.get("operation"))?deny(q):grant(q,authorized)));
             var before=snapshot();
-            expect(request("POST","/api/v2/patients/"+own+"/medical-records","doctor",medical(null)),403,"FORBIDDEN");
-            expect(request("POST","/api/v2/patients/"+own+"/medical-records","doctor",medical(102L)),403,"FORBIDDEN");
+            expect(request("POST","/api/v3/patients/"+own+"/medical-records","doctor",medical(null)),403,"FORBIDDEN");
+            expect(request("POST","/api/v3/patients/"+own+"/medical-records","doctor",medical(fixture(102))),403,"FORBIDDEN");
             assertThat(snapshot()).isEqualTo(before); verifyNoInteractions(doctors,appointments);
         }
     }
     @Test void walkInRequiresVisitEvidenceButSkipsAppointmentAndWritesAtomicRevision() {
-        long record=createMedical(null); verifyNoInteractions(appointments);
+        UUID record=createMedical(null); verifyNoInteractions(appointments);
         assertThat(SCOPE.requests).anySatisfy(q -> {
             assertThat(q.get("operation")).isEqualTo("VALID_VISIT"); assertThat(q.get("appointmentId")).isNull();
-            assertThat(nested(q,"caller").get("doctorId").toString()).isEqualTo("12");
+            assertThat(nested(q,"caller").get("doctorId").toString()).isEqualTo(fixture(12).toString());
         });
         assertThat(jdbc.queryForObject("select created_by from medical_records where id=?",String.class,record)).isEqualTo(DOCTOR.subject());
         assertThat(jdbc.queryForObject("select count(*) from medical_record_revisions",Long.class)).isEqualTo(1);
     }
     @Test void linkedScopeGrantCannotSubstituteForUnavailableAppointmentReference() {
         var before=snapshot();
-        expect(request("POST","/api/v2/patients/"+own+"/medical-records","doctor",medical(102L)),503,"DEPENDENCY_UNAVAILABLE");
-        assertThat(snapshot()).isEqualTo(before); verify(appointments).find(102);
+        expect(request("POST","/api/v3/patients/"+own+"/medical-records","doctor",medical(fixture(102))),503,"DEPENDENCY_UNAVAILABLE");
+        assertThat(snapshot()).isEqualTo(before); verify(appointments).find(fixture(102));
         assertThat(SCOPE.requests).anySatisfy(q -> {
             assertThat(q.get("operation")).isEqualTo("VALID_VISIT");
-            assertThat(q.get("appointmentId").toString()).isEqualTo("102");
+            assertThat(q.get("appointmentId").toString()).isEqualTo(fixture(102).toString());
         });
     }
     @Test void linkedWithReferenceDoubleKeepsDuplicateGuardAndNestedParent() {
-        doReturn(Optional.of(new AppointmentClientPort.AppointmentReference(102,own,12,false))).when(appointments).find(102);
-        long record=createMedical(102L); var before=snapshot();
-        expect(request("POST","/api/v2/patients/"+own+"/medical-records","doctor",medical(102L)),409,"APPOINTMENT_RECORD_EXISTS");
+        doReturn(Optional.of(new AppointmentClientPort.AppointmentReference(fixture(102),own,fixture(12),false))).when(appointments).find(fixture(102));
+        UUID record=createMedical(fixture(102)); var before=snapshot();
+        expect(request("POST","/api/v3/patients/"+own+"/medical-records","doctor",medical(fixture(102))),409,"APPOINTMENT_RECORD_EXISTS");
         assertThat(snapshot()).isEqualTo(before);
         UUID other=create("Other synthetic");
-        expect(request("GET","/api/v2/patients/"+other+"/medical-records/"+record,"doctor",null),404,"MEDICAL_RECORD_NOT_FOUND");
+        expect(request("GET","/api/v3/patients/"+other+"/medical-records/"+record,"doctor",null),404,"MEDICAL_RECORD_NOT_FOUND");
     }
     @Test void wrongDoctorBodyAndStaffAdminNeverAcquireClinicalRights() {
         var before=snapshot();
         for(String token:List.of("staff","admin","doctor-unlinked"))
-            expect(request("POST","/api/v2/patients/"+own+"/medical-records",token,medical(null)),403,"FORBIDDEN");
-        var wrong=medical(null); wrong.put("doctorId",13);
-        expect(request("POST","/api/v2/patients/"+own+"/medical-records","doctor",wrong),403,"FORBIDDEN");
+            expect(request("POST","/api/v3/patients/"+own+"/medical-records",token,medical(null)),403,"FORBIDDEN");
+        var wrong=medical(null); wrong.put("doctorId",fixture(13).toString());
+        expect(request("POST","/api/v3/patients/"+own+"/medical-records","doctor",wrong),403,"FORBIDDEN");
         assertThat(snapshot()).isEqualTo(before); verifyNoInteractions(doctors,appointments);
     }
     @Test void misboundPrincipalPatientDoctorAndForgedPayloadAre503NoWrites() {
@@ -207,7 +208,7 @@ class PatientScopeTcpIT {
                 else { var echo=new LinkedHashMap<>(q); var caller=new LinkedHashMap<>(nested(q,"caller")); caller.put(field,"forged"); echo.put("caller",caller); result.put("request",echo); }
                 return TestAuthServer.Reply.json(200,bytes(result));
             };
-            expect(request("POST","/api/v2/patients/"+own+"/medical-records","doctor",medical(null)),503,"DEPENDENCY_UNAVAILABLE");
+            expect(request("POST","/api/v3/patients/"+own+"/medical-records","doctor",medical(null)),503,"DEPENDENCY_UNAVAILABLE");
         }
         assertThat(snapshot()).isEqualTo(before);
     }
@@ -220,21 +221,21 @@ class PatientScopeTcpIT {
                 if(active) { evidence.put("validFrom",CLOCK.instant().minusSeconds(100).toString()); evidence.put("validUntil",CLOCK.instant().toString()); }
                 return TestAuthServer.Reply.json(200,bytes(result));
             };
-            expect(request("POST","/api/v2/patients","staff",profile("Denied")),403,"FORBIDDEN");
+            expect(request("POST","/api/v3/patients","staff",profile("Denied")),403,"FORBIDDEN");
         }
         assertThat(snapshot()).isEqualTo(before);
     }
     @Test void technicalCredentialFailureOutageAndMalformedPayloadAre503WithoutLeak() {
         var before=snapshot();
         SCOPE.rejectAuthentication=true;
-        expect(request("POST","/api/v2/patients","staff",profile("Denied")),503,"DEPENDENCY_UNAVAILABLE");
+        expect(request("POST","/api/v3/patients","staff",profile("Denied")),503,"DEPENDENCY_UNAVAILABLE");
         SCOPE.rejectAuthentication=false;
         for(var reply:new TestAuthServer.Reply[]{
                 TestAuthServer.Reply.json(503,bytes(Map.of("error","private-scope-detail"))),
                 TestAuthServer.Reply.json(200,"not-json".getBytes()),
                 TestAuthServer.Reply.json(200,"x".repeat(262145).getBytes())}) {
             SCOPE.handler=(kind,q) -> reply;
-            var response=request("POST","/api/v2/patients","staff",profile("Denied"));
+            var response=request("POST","/api/v3/patients","staff",profile("Denied"));
             expect(response,503,"DEPENDENCY_UNAVAILABLE");
             assertThat(response.body()).doesNotContain("private-scope-detail",SCOPE.adminSecret,SCOPE.clinicalSecret,
                     AUTH.clientSecret,SCOPE.endpoint(ScopeQuery.Authority.ADMINISTRATIVE).toString(),"stackTrace");
@@ -249,7 +250,7 @@ class PatientScopeTcpIT {
             return TestAuthServer.Reply.json(200,bytes(grant(q,authorized)));
         };
         try(var pool=Executors.newVirtualThreadPerTaskExecutor()) {
-            var result=pool.submit(() -> request("POST","/api/v2/patients","staff",profile("Denied")));
+            var result=pool.submit(() -> request("POST","/api/v3/patients","staff",profile("Denied")));
             assertThat(entered.await(5,TimeUnit.SECONDS)).isTrue();
             expect(result.get(6,TimeUnit.SECONDS),503,"DEPENDENCY_UNAVAILABLE");
         } finally { release.countDown(); }
@@ -258,24 +259,24 @@ class PatientScopeTcpIT {
     @Test void f06UntypedScopeFaultIs503AndNoWrite() {
         var before=snapshot();
         doThrow(new IllegalStateException("private-scope-fault")).when(scopeAdapter).receptionist(any(),any(AdministrativeAction.class));
-        expect(request("POST","/api/v2/patients","staff",profile("Denied")),503,"DEPENDENCY_UNAVAILABLE");
+        expect(request("POST","/api/v3/patients","staff",profile("Denied")),503,"DEPENDENCY_UNAVAILABLE");
         assertThat(snapshot()).isEqualTo(before);
     }
     @Test void medicalNoOpThenRevocationKeepsDataVersionAndRevision() {
-        long id=createMedical(null);
-        var noop=request("PUT","/api/v2/patients/"+own+"/medical-records/"+id,"doctor",medicalReplacement());
+        UUID id=createMedical(null);
+        var noop=request("PUT","/api/v3/patients/"+own+"/medical-records/"+id,"doctor",medicalReplacement());
         assertThat(noop.statusCode()).as(noop.body()).isEqualTo(200);
         assertThat(json(noop).at("/data/version").asInt()).isZero(); var before=snapshot();
         SCOPE.handler=(kind,q) -> TestAuthServer.Reply.json(200,bytes(deny(q)));
-        expect(request("PUT","/api/v2/patients/"+own+"/medical-records/"+id,"doctor",medicalReplacement()),403,"FORBIDDEN");
+        expect(request("PUT","/api/v3/patients/"+own+"/medical-records/"+id,"doctor",medicalReplacement()),403,"FORBIDDEN");
         assertThat(snapshot()).isEqualTo(before);
     }
     @Test void serviceProfileLookupNeedsAdministrativeGrantAndNeverClinical() {
-        assertThat(request("GET","/api/v2/patients/"+own,"service",null).statusCode()).isEqualTo(200);
+        assertThat(request("GET","/api/v3/patients/"+own,"service",null).statusCode()).isEqualTo(200);
         assertThat(SCOPE.requests).allSatisfy(q -> assertThat(q.get("operation")).isEqualTo("APPOINTMENT_PROFILE_READ"));
         SCOPE.handler=(kind,q) -> TestAuthServer.Reply.json(200,bytes(deny(q)));
-        expect(request("GET","/api/v2/patients/"+own,"service",null),403,"FORBIDDEN");
-        expect(request("GET","/api/v2/patients/"+own+"/medical-records","service",null),403,"FORBIDDEN");
+        expect(request("GET","/api/v3/patients/"+own,"service",null),403,"FORBIDDEN");
+        expect(request("GET","/api/v3/patients/"+own+"/medical-records","service",null),403,"FORBIDDEN");
     }
     private TestAuthServer.Reply authReply(String token) {
         var data=IdentityFixtures.user(); data.put("patientId",null);
@@ -284,7 +285,7 @@ class PatientScopeTcpIT {
             case "doctor","other-doctor","doctor-unlinked" -> {
                 data.put("sub",token.equals("other-doctor")?"opaque-other-doctor-fixture":DOCTOR.subject());
                 data.put("authorities",List.of("ROLE_DOCTOR"));
-                data.put("doctorId",token.equals("doctor-unlinked")?null:token.equals("other-doctor")?13L:12L);
+                data.put("doctorId",token.equals("doctor-unlinked")?null:token.equals("other-doctor")?fixture(13):fixture(12));
             }
             case "admin" -> data.put("authorities",List.of("ROLE_ADMIN"));
             case "service" -> data=IdentityFixtures.service();
@@ -293,14 +294,14 @@ class PatientScopeTcpIT {
         return TestAuthServer.Reply.json(200,bytes(data));
     }
     private UUID create(String name) {
-        var response=request("POST","/api/v2/patients","staff",profile(name));
+        var response=request("POST","/api/v3/patients","staff",profile(name));
         assertThat(response.statusCode()).as(response.body()).isEqualTo(201);
         return UUID.fromString(json(response).at("/data/id").asText());
     }
-    private long createMedical(Long appointment) {
-        var response=request("POST","/api/v2/patients/"+own+"/medical-records","doctor",medical(appointment));
+    private UUID createMedical(UUID appointment) {
+        var response=request("POST","/api/v3/patients/"+own+"/medical-records","doctor",medical(appointment));
         assertThat(response.statusCode()).as(response.body()).isEqualTo(201);
-        return json(response).at("/data/id").asLong();
+        return UUID.fromString(json(response).at("/data/id").asText());
     }
     private HttpResponse<String> request(String method,String path,String token,Map<String,Object> body) {
         try {
@@ -330,8 +331,8 @@ class PatientScopeTcpIT {
     private static Map<String,Object> replacement(String name) {
         return new LinkedHashMap<>(Map.of("fullName",name,"phoneNumber","0900000001","gender","UNKNOWN","status","ACTIVE","version",0));
     }
-    private static Map<String,Object> medical(Long appointment) {
-        var body=new LinkedHashMap<String,Object>(Map.of("doctorId",12,"visitDate","2026-10-20T02:00:00Z",
+    private static Map<String,Object> medical(UUID appointment) {
+        var body=new LinkedHashMap<String,Object>(Map.of("doctorId",fixture(12).toString(),"visitDate","2026-10-20T02:00:00Z",
                 "symptoms","Scope simulated symptoms","diagnosis","Scope simulated diagnosis"));
         body.put("appointmentId",appointment); return body;
     }
@@ -345,7 +346,7 @@ class PatientScopeTcpIT {
                     .setOverrideWorkingDirectory(root.resolve("binaries").toFile()).setCleanDataDirectory(true)
                     .setServerConfig("listen_addresses","127.0.0.1").setServerConfig("timezone","UTC")
                     .setServerConfig("log_min_error_statement","panic").start();
-            try { new ResourceDatabasePopulator(new ClassPathResource("db/schema/V001__patient_v2_empty.sql"))
+            try { new ResourceDatabasePopulator(new ClassPathResource("db/schema/uuid/V001__patient_uuid_empty.sql"))
                     .execute(pg.getPostgresDatabase()); return pg; }
             catch(Throwable e) { pg.close(); throw e; }
         } catch(Exception e) { throw new ExceptionInInitializerError(e); }
