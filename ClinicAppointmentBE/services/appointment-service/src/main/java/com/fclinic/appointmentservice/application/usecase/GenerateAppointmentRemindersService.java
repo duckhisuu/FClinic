@@ -38,7 +38,7 @@ public class GenerateAppointmentRemindersService implements GenerateAppointmentR
   public void generateDueReminders() {
     Duration lead = policy.reminderLead();
     if (lead == null) return;
-    for (long id : repository.reminderCandidates(clock.instant(), lead))
+    for (UUID id : repository.reminderCandidates(clock.instant(), lead))
       transactions.execute(
           () -> {
             var a = repository.findByIdForUpdate(id).orElseThrow(AppointmentNotFoundException::new);

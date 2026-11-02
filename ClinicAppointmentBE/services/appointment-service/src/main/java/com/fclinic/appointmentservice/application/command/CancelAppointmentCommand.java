@@ -5,4 +5,4 @@ import java.time.*;
 import java.util.*;
 
 public record CancelAppointmentCommand(
-    AppointmentActor actor, UUID idempotencyKey, long appointmentId, long version, String reason) {}
+    AppointmentActor actor, UUID idempotencyKey, UUID appointmentId, long version, String reason) {}

@@ -1,0 +1,119 @@
+{
+  "verifiedAt": "2026-11-02T10:11:24.374725+07:00",
+  "scope": "UUID and Patient medical-reference response contract /2 in Appointment only; internal HTTP retained; other services, security and configs unchanged",
+  "build": "mvn -pl services/appointment-service -am clean package -Dmaven.test.skip=true; BUILD SUCCESS",
+  "runtime": {
+    "scope": "appointment-service only",
+    "realComponents": [
+      "Appointment JAR",
+      "temporary native PostgreSQL"
+    ],
+    "providerDoubles": [
+      "Patient UUID reference",
+      "Doctor UUID profile/offers/published-slot"
+    ],
+    "otherServicesModified": false,
+    "configurationFilesModified": false,
+    "results": [
+      {
+        "case": "Appointment Flyway/JPA boots with UUID primary/reference columns",
+        "passed": true
+      },
+      {
+        "case": "Booking persists UUID appointment and server-side UUID snapshots",
+        "passed": true
+      },
+      {
+        "case": "Exact-byte UUID idempotent replay works without provider calls",
+        "passed": true
+      },
+      {
+        "case": "Changed payload cannot reuse an idempotency key",
+        "passed": true
+      },
+      {
+        "case": "Numeric body/path IDs are rejected",
+        "passed": true
+      },
+      {
+        "case": "Distinct UUID slot IDs cannot bypass doctor/hour capacity",
+        "passed": true
+      },
+      {
+        "case": "Concurrent UUID bookings have exactly one winner",
+        "passed": true
+      },
+      {
+        "case": "UUID equality rejects rescheduling to the same slot",
+        "passed": true
+      },
+      {
+        "case": "Optimistic version remains numeric and enforced",
+        "passed": true
+      },
+      {
+        "case": "UUID detail/reschedule/cancel/history preserve the original use cases",
+        "passed": true
+      },
+      {
+        "case": "Appointment-owned minimal medical projection uses UUID references",
+        "passed": true
+      },
+      {
+        "case": "HTTP medical-reference 200 advertises exactly one UUID contract /2, never echoes /1",
+        "passed": true
+      },
+      {
+        "case": "HTTP medical-reference 404 and validation errors preserve the UUID contract header",
+        "passed": true
+      },
+      {
+        "case": "Medical-reference header does not leak to detail, reminder, retired v1 or POST",
+        "passed": true
+      },
+      {
+        "case": "UUID event v3 is durable and excludes private reasons",
+        "passed": true
+      },
+      {
+        "case": "Reference contract requires UUID; no adaptation to another service numeric IDs",
+        "passed": true
+      },
+      {
+        "case": "Patient ACTIVE business guard remains unchanged",
+        "passed": true
+      },
+      {
+        "case": "Appointment-only legacy migration preserves data, UUID history links and numeric versions",
+        "passed": true
+      }
+    ]
+  },
+  "configAndTransportMatchPulledHead": true,
+  "gitChangesOnlyAppointment": true,
+  "originalAppointmentJavaPathsRetained": 37,
+  "sourceManifestSha256": "2fd95020befd8a438afa8fd100764b5704e01b5c781bc23a745d7f5528b868bd",
+  "appointmentJarSha256": "5cb21c3b90c4ff592764c641cd2cdc513438cc58cc56089de2da2c474f719a7a",
+  "limits": [
+    "Patient/Doctor are HTTP UUID contract doubles; no real inter-service integration claim after scope restoration",
+    "No database writes/migrations against current Docker volumes",
+    "No new security or configuration changes",
+    "Earlier broad-scope results are withdrawn for this narrower implementation"
+  ],
+  "patientMedicalReferenceContract": {
+    "transport": "HTTP",
+    "responseHeader": {
+      "X-FClinic-Reference-Contract": "patient-appointment-medical-reference/2"
+    },
+    "requestMethod": "GET",
+    "path": "/api/v2/appointments/{uuid}/medical-reference",
+    "verifiedHttpStatuses": [
+      200,
+      400,
+      404
+    ],
+    "doesNotEchoClientVersion": true,
+    "patientClientUpdateRequired": "UUID IDs/decoder/storage, expected contract /2 and HTTP support; Patient is unchanged",
+    "verificationScriptSha256": "22240e2528961b4b76aa2420a61e95f8853c25815e4ee0c427d9eec1d9374f12"
+  }
+}

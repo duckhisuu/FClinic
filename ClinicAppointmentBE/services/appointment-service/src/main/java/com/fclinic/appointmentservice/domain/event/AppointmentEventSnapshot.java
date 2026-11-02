@@ -5,15 +5,15 @@ import java.time.*;
 import java.util.*;
 
 public record AppointmentEventSnapshot(
-    Long id,
+    UUID id,
     String bookingCode,
     UUID patientId,
     String patientName,
     String patientPhone,
-    Long doctorId,
+    UUID doctorId,
     String doctorName,
     String doctorSpecialty,
-    Long slotId,
+    UUID slotId,
     LocalDate appointmentDate,
     LocalTime startTime,
     LocalTime endTime,

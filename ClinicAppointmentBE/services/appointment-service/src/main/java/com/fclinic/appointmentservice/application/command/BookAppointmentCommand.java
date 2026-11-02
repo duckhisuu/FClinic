@@ -8,6 +8,6 @@ public record BookAppointmentCommand(
     AppointmentActor actor,
     UUID idempotencyKey,
     UUID patientId,
-    long doctorId,
-    long slotId,
+    UUID doctorId,
+    UUID slotId,
     String reasonForVisit) {}

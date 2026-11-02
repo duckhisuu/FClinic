@@ -1,11 +1,13 @@
 package com.fclinic.appointmentservice.api.dto;
 
+import java.util.UUID;
+
 import static com.fclinic.appointmentservice.api.mapper.AppointmentWireFormat.*;
 
 import com.fclinic.appointmentservice.application.result.AppointmentHistoryView;
 
 public record AppointmentHistoryResponse(
-    long id,
+    UUID id,
     String action,
     long version,
     String oldDate,

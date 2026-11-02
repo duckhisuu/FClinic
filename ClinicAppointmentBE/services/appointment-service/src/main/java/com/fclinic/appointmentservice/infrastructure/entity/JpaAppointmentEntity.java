@@ -15,8 +15,8 @@ import lombok.*;
 @NoArgsConstructor
 public class JpaAppointmentEntity extends BaseEntity {
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+  @GeneratedValue(strategy = GenerationType.UUID)
+  private UUID id;
 
   @Column(name = "booking_code", nullable = false, unique = true, length = 40)
   private String bookingCode;
@@ -31,7 +31,7 @@ public class JpaAppointmentEntity extends BaseEntity {
   private String patientPhone;
 
   @Column(name = "doctor_id", nullable = false)
-  private Long doctorId;
+  private UUID doctorId;
 
   @Column(name = "doctor_name", nullable = false)
   private String doctorName;
@@ -40,7 +40,7 @@ public class JpaAppointmentEntity extends BaseEntity {
   private String doctorSpecialty;
 
   @Column(name = "slot_id", nullable = false)
-  private Long slotId;
+  private UUID slotId;
 
   @Column(name = "appointment_date", nullable = false)
   private LocalDate appointmentDate;

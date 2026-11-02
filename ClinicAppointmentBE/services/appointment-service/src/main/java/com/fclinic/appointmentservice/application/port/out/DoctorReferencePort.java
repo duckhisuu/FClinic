@@ -7,9 +7,9 @@ import java.time.*;
 import java.util.*;
 
 public interface DoctorReferencePort {
-  DoctorReference doctor(long doctorId, long deadline);
+  DoctorReference doctor(UUID doctorId, long deadline);
 
-  Slot slot(long doctorId, long slotId, long deadline);
+  Slot slot(UUID doctorId, UUID slotId, long deadline);
 
-  List<Slot> offered(long doctorId, LocalDate date, long deadline);
+  List<Slot> offered(UUID doctorId, LocalDate date, long deadline);
 }

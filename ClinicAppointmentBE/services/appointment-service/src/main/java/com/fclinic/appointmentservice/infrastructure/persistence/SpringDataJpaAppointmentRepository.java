@@ -8,17 +8,17 @@ import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 
 public interface SpringDataJpaAppointmentRepository
-    extends JpaRepository<JpaAppointmentEntity, Long>,
+    extends JpaRepository<JpaAppointmentEntity, UUID>,
         JpaSpecificationExecutor<JpaAppointmentEntity> {
   @Lock(LockModeType.PESSIMISTIC_WRITE)
   @Query("select a from JpaAppointmentEntity a where a.id=:id")
-  Optional<JpaAppointmentEntity> findLockedById(@Param("id") Long id);
+  Optional<JpaAppointmentEntity> findLockedById(@Param("id") UUID id);
 
   @Query(
       "select a.startTime from JpaAppointmentEntity a where a.doctorId=:doctor and"
           + " a.appointmentDate=:date and"
           + " a.status=com.fclinic.appointmentservice.domain.model.AppointmentStatus.CONFIRMED")
-  List<LocalTime> occupied(@Param("doctor") long doctor, @Param("date") LocalDate date);
+  List<LocalTime> occupied(@Param("doctor") UUID doctor, @Param("date") LocalDate date);
 
   @Query(
       value =
@@ -31,6 +31,6 @@ public interface SpringDataJpaAppointmentRepository
               + " 'Asia/Saigon')-CAST(:lead AS interval))) ORDER BY"
               + " a.appointment_date,a.start_time,a.id LIMIT 1000",
       nativeQuery = true)
-  List<Long> reminderCandidates(
+  List<UUID> reminderCandidates(
       @Param("now") Instant now, @Param("through") Instant through, @Param("lead") String lead);
 }

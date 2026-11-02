@@ -6,5 +6,5 @@ import java.time.*;
 import java.util.*;
 
 public interface GetAppointmentHistoryUseCase {
-  List<AppointmentHistoryView> getHistory(long id);
+  List<AppointmentHistoryView> getHistory(UUID id);
 }

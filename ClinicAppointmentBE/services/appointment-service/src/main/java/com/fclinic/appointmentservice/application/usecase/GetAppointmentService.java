@@ -18,7 +18,7 @@ public class GetAppointmentService implements GetAppointmentUseCase {
     this.repository = repository;
   }
 
-  public AppointmentView getById(long id) {
+  public AppointmentView getById(UUID id) {
     return AppointmentView.from(
         repository.findById(id).orElseThrow(AppointmentNotFoundException::new));
   }

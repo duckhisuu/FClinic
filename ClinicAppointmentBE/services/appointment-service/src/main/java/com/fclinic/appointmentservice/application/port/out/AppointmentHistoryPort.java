@@ -16,5 +16,5 @@ public interface AppointmentHistoryPort {
       String role,
       Instant now);
 
-  List<AppointmentHistoryView> history(long id);
+  List<AppointmentHistoryView> history(UUID id);
 }

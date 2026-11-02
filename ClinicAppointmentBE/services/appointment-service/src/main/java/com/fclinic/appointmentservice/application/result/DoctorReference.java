@@ -4,4 +4,4 @@ import java.math.BigDecimal;
 import java.time.*;
 import java.util.*;
 
-public record DoctorReference(long id, String name, String specialty, BigDecimal fee) {}
+public record DoctorReference(UUID id, String name, String specialty, BigDecimal fee) {}

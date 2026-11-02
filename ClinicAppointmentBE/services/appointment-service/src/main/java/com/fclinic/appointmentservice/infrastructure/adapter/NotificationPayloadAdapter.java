@@ -19,7 +19,7 @@ public class NotificationPayloadAdapter implements NotificationPayloadPort {
     var n = read(row.intent()).deepCopy();
     var resolved =
         recipients.recipients(
-            UUID.fromString(n.path("patientId").asText()), n.path("doctorId").longValue());
+            id(n.path("patientId")), id(n.path("doctorId")));
     ((tools.jackson.databind.node.ObjectNode) n).set("recipients", JSON.valueToTree(resolved));
     return write(n);
   }

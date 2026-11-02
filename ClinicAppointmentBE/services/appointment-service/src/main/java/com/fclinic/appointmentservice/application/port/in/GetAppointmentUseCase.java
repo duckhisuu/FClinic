@@ -6,5 +6,5 @@ import java.time.*;
 import java.util.*;
 
 public interface GetAppointmentUseCase {
-  AppointmentView getById(long id);
+  AppointmentView getById(UUID id);
 }

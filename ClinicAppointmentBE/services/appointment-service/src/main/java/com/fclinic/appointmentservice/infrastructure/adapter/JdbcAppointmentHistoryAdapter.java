@@ -42,12 +42,12 @@ public class JdbcAppointmentHistoryAdapter implements AppointmentHistoryPort {
         Timestamp.from(now));
   }
 
-  public List<AppointmentHistoryView> history(long id) {
+  public List<AppointmentHistoryView> history(UUID id) {
     return jdbc.query(
         "SELECT * FROM appointment_history WHERE appointment_id=? ORDER BY entity_version,id",
         (r, i) ->
             new AppointmentHistoryView(
-                r.getLong("id"),
+                r.getObject("id", UUID.class),
                 r.getString("action"),
                 r.getLong("entity_version"),
                 r.getObject("old_date", LocalDate.class),

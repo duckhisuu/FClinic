@@ -1,5 +1,7 @@
 # Appointment — tài liệu bàn giao
 
+**Contract hiện hành: [UUID chỉ trong Appointment](uuid/README.md).** Các service khác/config đã giữ lại bản pull; tài liệu/report có ID số dưới đây là nguồn lịch sử để đối chiếu nghiệp vụ.
+
 Cập nhật 27/10/2026. Đọc thư mục này trước khi tích hợp Appointment. Nghiệp vụ lấy Report làm chuẩn; không sửa Patient, Doctor, Notification, Gateway hoặc security để chạy theo implementation hiện tại của từng nhóm.
 
 Giữ 37 file Java gốc, xử lý qua input/output ports và các use case riêng: [sơ đồ và mapping lớp](integration-readiness/08_USE_CASE_ARCHITECTURE.md).

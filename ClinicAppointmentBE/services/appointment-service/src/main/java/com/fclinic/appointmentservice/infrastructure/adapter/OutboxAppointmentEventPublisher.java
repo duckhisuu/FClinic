@@ -30,7 +30,7 @@ public class OutboxAppointmentEventPublisher implements AppointmentEventPublishe
     Map<String, Object> n = new LinkedHashMap<>();
     n.put("eventId", event.eventId().toString());
     n.put("eventType", event.eventType());
-    n.put("schemaVersion", 2);
+    n.put("schemaVersion", 3);
     n.put("occurredAt", event.occurredAt().toString());
     n.put("source", "appointment-service");
     n.put("appointmentId", a.id());

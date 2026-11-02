@@ -6,5 +6,5 @@ import java.time.*;
 import java.util.*;
 
 public interface GetAvailableSlotsUseCase {
-  AvailabilityView getAvailableSlots(long doctorId, LocalDate date);
+  AvailabilityView getAvailableSlots(UUID doctorId, LocalDate date);
 }

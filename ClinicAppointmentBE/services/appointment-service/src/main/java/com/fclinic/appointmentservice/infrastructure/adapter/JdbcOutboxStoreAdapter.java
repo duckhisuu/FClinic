@@ -31,7 +31,7 @@ public class JdbcOutboxStoreAdapter implements OutboxStorePort {
     if (!type.equals("APPOINTMENT_REMINDER")) return null;
     var n = read(intent);
     return new ReminderContext(
-        n.path("slotId").longValue(),
+        id(n.path("slotId")),
         LocalDate.parse(n.path("appointmentDate").asText()),
         LocalTime.parse(n.path("startTime").asText()),
         LocalTime.parse(n.path("endTime").asText()));
@@ -51,7 +51,7 @@ public class JdbcOutboxStoreAdapter implements OutboxStorePort {
                   new OutboxMessage(
                       r.getObject("id", UUID.class),
                       r.getString("event_type"),
-                      r.getLong("aggregate_id"),
+                      r.getObject("aggregate_id", UUID.class),
                       r.getLong("aggregate_version"),
                       r.getString("intent"),
                       r.getString("payload"),

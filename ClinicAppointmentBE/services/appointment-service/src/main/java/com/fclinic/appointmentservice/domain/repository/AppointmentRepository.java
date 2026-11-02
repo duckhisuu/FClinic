@@ -7,11 +7,11 @@ import java.util.*;
 public interface AppointmentRepository {
   Appointment save(Appointment appointment);
 
-  Optional<Appointment> findById(Long id);
+  Optional<Appointment> findById(UUID id);
 
-  Optional<Appointment> findByIdForUpdate(Long id);
+  Optional<Appointment> findByIdForUpdate(UUID id);
 
-  Set<LocalTime> occupied(long doctorId, LocalDate date);
+  Set<LocalTime> occupied(UUID doctorId, LocalDate date);
 
-  List<Long> reminderCandidates(Instant now, Duration lead);
+  List<UUID> reminderCandidates(Instant now, Duration lead);
 }

@@ -6,7 +6,7 @@ import java.time.*;
 import java.util.*;
 
 public interface GetAppointmentReferenceUseCase {
-  MedicalReferenceView medicalReference(long id);
+  MedicalReferenceView medicalReference(UUID id);
 
-  ReminderReferenceView reminderReference(long id);
+  ReminderReferenceView reminderReference(UUID id);
 }

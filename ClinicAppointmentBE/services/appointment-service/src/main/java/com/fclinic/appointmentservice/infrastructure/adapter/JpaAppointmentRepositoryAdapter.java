@@ -55,22 +55,22 @@ public class JpaAppointmentRepositoryAdapter implements AppointmentRepositoryPor
   }
 
   @Override
-  public Optional<Appointment> findById(Long id) {
+  public Optional<Appointment> findById(UUID id) {
     return repository.findById(id).map(this::toDomain);
   }
 
   @Override
-  public Optional<Appointment> findByIdForUpdate(Long id) {
+  public Optional<Appointment> findByIdForUpdate(UUID id) {
     return repository.findLockedById(id).map(this::toDomain);
   }
 
   @Override
-  public Set<LocalTime> occupied(long doctor, LocalDate date) {
+  public Set<LocalTime> occupied(UUID doctor, LocalDate date) {
     return new HashSet<>(repository.occupied(doctor, date));
   }
 
   @Override
-  public List<Long> reminderCandidates(Instant now, Duration lead) {
+  public List<UUID> reminderCandidates(Instant now, Duration lead) {
     return repository.reminderCandidates(now, now.plus(lead), lead.toString());
   }
 
