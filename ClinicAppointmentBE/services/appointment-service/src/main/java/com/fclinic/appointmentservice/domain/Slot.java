@@ -3,14 +3,16 @@ package com.fclinic.appointmentservice.domain;
 import java.util.UUID;
 
 import com.fclinic.appointmentservice.domain.aggregate.Appointment;
+import com.fclinic.appointmentservice.domain.vo.BusinessId;
 import java.time.*;
 
 public record Slot(
     UUID id, UUID doctorId, LocalDate date, LocalTime start, LocalTime end, boolean published) {
   public boolean valid() {
     return published
-        && id != null
-        && doctorId != null
+        && BusinessId.valid(id)
+        && BusinessId.valid(doctorId)
+        && date != null && start != null && end != null
         && start.getMinute() == 0
         && start.getSecond() == 0
         && start.getNano() == 0

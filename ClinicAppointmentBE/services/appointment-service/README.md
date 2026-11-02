@@ -1,12 +1,12 @@
 # Appointment v2
 
-**Cập nhật UUID chỉ trong Appointment:** [phạm vi, contract và migration](docs/uuid/README.md). Các service khác và cấu hình giữ nguyên bản pull để thành viên phụ trách tự cập nhật. Các kiểu ID số trong tài liệu/report lịch sử bên dưới được thay bằng contract UUID của Appointment.
+**Cập nhật sau merge main 02/11/2026:** Appointment gọi Patient v3, dùng UUIDv4 cho business ID và giữ reference header `/2`. Xem [contract/migration](docs/uuid/README.md) và [Docker riêng Appointment](docs/uuid/DOCKER.md). Không sửa service khác/security/shared config. Các kiểu ID số trong tài liệu/report lịch sử bên dưới được thay bằng contract UUIDv4 hiện hành.
 
 Phạm vi: nghiệp vụ Appointment BE và giao diện React trong `ClinicAppointmentFE/src/appointment`. Report được giữ nguyên và dùng làm chuẩn cho nghiệp vụ. Không bổ sung security, không sửa service khác. Hướng dẫn bàn giao đầy đủ: [docs/README.md](docs/README.md).
 
 ## Cấu trúc theo bản pull
 
-Giữ đủ 37 file Java gốc: controller/dto/command/port/in/port/out/usecase/domain/JPA adapter/entity/repository/config. AppointmentApplicationService triển khai booking; hủy, đổi lịch, truy vấn, availability, history, references, reminder và outbox có use case riêng. Application chỉ phụ thuộc port/domain, không gọi trực tiếp JDBC/HTTP/RabbitMQ. Xem [mapping các use case](docs/integration-readiness/08_USE_CASE_ARCHITECTURE.md).
+Giữ đủ 109 file Java có trong bản merge, thêm value object BusinessId để kiểm tra UUIDv4. AppointmentApplicationService triển khai booking; hủy, đổi lịch, truy vấn, availability, history, references, reminder và outbox có use case riêng. Application chỉ phụ thuộc port/domain, không gọi trực tiếp JDBC/HTTP/RabbitMQ. Xem [mapping các use case](docs/integration-readiness/08_USE_CASE_ARCHITECTURE.md).
 
 ## Nghiệp vụ đã triển khai
 

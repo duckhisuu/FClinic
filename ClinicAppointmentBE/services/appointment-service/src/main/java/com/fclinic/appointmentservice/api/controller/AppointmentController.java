@@ -7,6 +7,7 @@ import com.fclinic.appointmentservice.application.command.*;
 import com.fclinic.appointmentservice.application.port.in.*;
 import com.fclinic.appointmentservice.application.result.AppointmentOperationResult;
 import com.fclinic.appointmentservice.domain.AppointmentError;
+import com.fclinic.appointmentservice.domain.vo.BusinessId;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import java.security.Principal;
@@ -58,8 +59,8 @@ public class AppointmentController {
                 actor(principal),
                 AppointmentRequestMapper.key(key),
                 UUID.fromString(body.patientId()),
-                body.doctorId(),
-                body.slotId(),
+                BusinessId.require(body.doctorId()),
+                BusinessId.require(body.slotId()),
                 body.reasonForVisit())));
   }
 
@@ -74,7 +75,7 @@ public class AppointmentController {
             new CancelAppointmentCommand(
                 actor(principal),
                 AppointmentRequestMapper.key(key),
-                id,
+                BusinessId.require(id),
                 body.version(),
                 body.reason())));
   }
@@ -90,15 +91,15 @@ public class AppointmentController {
             new RescheduleAppointmentCommand(
                 actor(principal),
                 AppointmentRequestMapper.key(key),
-                id,
+                BusinessId.require(id),
                 body.version(),
-                body.slotId(),
+                BusinessId.require(body.slotId()),
                 body.reason())));
   }
 
   @GetMapping("/{id}")
   public Object getAppointmentById(@PathVariable UUID id) {
-    return wrap(AppointmentResponse.from(detail.getById(id)));
+    return wrap(AppointmentResponse.from(detail.getById(BusinessId.require(id))));
   }
 
   @GetMapping
@@ -116,29 +117,31 @@ public class AppointmentController {
     return wrap(
         AppointmentPageResponse.from(
             listing.listAppointments(
-                new AppointmentPageQuery(patientId, doctorId, date, status, page, size))));
+                new AppointmentPageQuery(
+                    patientId == null ? null : BusinessId.require(patientId),
+                    doctorId == null ? null : BusinessId.require(doctorId), date, status, page, size))));
   }
 
   @GetMapping("/available-slots")
   public Object availableSlots(
       @RequestParam UUID doctorId,
       @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-    return wrap(AvailabilityResponse.from(availability.getAvailableSlots(doctorId, date)));
+    return wrap(AvailabilityResponse.from(availability.getAvailableSlots(BusinessId.require(doctorId), date)));
   }
 
   @GetMapping("/{id}/history")
   public Object getHistory(@PathVariable UUID id) {
-    return wrap(history.getHistory(id).stream().map(AppointmentHistoryResponse::from).toList());
+    return wrap(history.getHistory(BusinessId.require(id)).stream().map(AppointmentHistoryResponse::from).toList());
   }
 
   @GetMapping("/{id}/medical-reference")
   public Object medicalReference(@PathVariable UUID id) {
-    return wrap(references.medicalReference(id));
+    return wrap(references.medicalReference(BusinessId.require(id)));
   }
 
   @GetMapping("/{id}/reminder-reference")
   public Object reminderReference(@PathVariable UUID id) {
-    return wrap(ReminderReferenceResponse.from(references.reminderReference(id)));
+    return wrap(ReminderReferenceResponse.from(references.reminderReference(BusinessId.require(id))));
   }
 
   private Object wrap(Object data) {

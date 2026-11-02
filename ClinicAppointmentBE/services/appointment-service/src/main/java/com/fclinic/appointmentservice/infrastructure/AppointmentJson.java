@@ -3,6 +3,7 @@ package com.fclinic.appointmentservice.infrastructure;
 import java.util.UUID;
 
 import com.fclinic.appointmentservice.domain.AppointmentError;
+import com.fclinic.appointmentservice.domain.vo.BusinessId;
 import tools.jackson.core.*;
 import tools.jackson.core.json.JsonFactory;
 import tools.jackson.databind.*;
@@ -38,7 +39,7 @@ public final class AppointmentJson {
 
   public static UUID id(JsonNode n) {
     if (n == null || !n.isString()
-        || !n.asText().matches("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"))
+        || !n.asText().matches(BusinessId.PATTERN))
       throw AppointmentError.unavailable();
     return UUID.fromString(n.asText());
   }

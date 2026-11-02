@@ -1,119 +1,113 @@
 {
-  "verifiedAt": "2026-11-02T10:11:24.374725+07:00",
-  "scope": "UUID and Patient medical-reference response contract /2 in Appointment only; internal HTTP retained; other services, security and configs unchanged",
-  "build": "mvn -pl services/appointment-service -am clean package -Dmaven.test.skip=true; BUILD SUCCESS",
+  "verifiedAt": "2026-11-02T10:46:14.429144+07:00",
+  "baseCommit": "adfcc42e8125c3fb40cb9a29bcfd3e8775cdc7da",
+  "scope": "Appointment BE only: Patient v3, UUIDv4 business IDs, forward migration, owned Docker packaging and docs; no security implementation",
+  "build": "mvn -f ClinicAppointmentBE/pom.xml -pl services/appointment-service -am clean package -Dmaven.test.skip=true -B -ntp; BUILD SUCCESS",
   "runtime": {
-    "scope": "appointment-service only",
-    "realComponents": [
-      "Appointment JAR",
-      "temporary native PostgreSQL"
-    ],
-    "providerDoubles": [
-      "Patient UUID reference",
-      "Doctor UUID profile/offers/published-slot"
-    ],
-    "otherServicesModified": false,
-    "configurationFilesModified": false,
+    "scope": "Appointment only",
     "results": [
       {
-        "case": "Appointment Flyway/JPA boots with UUID primary/reference columns",
+        "case": "Appointment Dockerfile/Compose boots through Docker DNS and internal PostgreSQL port 5432; Flyway V1-V4 succeeds",
         "passed": true
       },
       {
-        "case": "Booking persists UUID appointment and server-side UUID snapshots",
+        "case": "Real Patient Docker service is reached at HTTP /api/v3/patients over DNS; unavailable Auth stays 503, never false PATIENT_NOT_FOUND",
         "passed": true
       },
       {
-        "case": "Exact-byte UUID idempotent replay works without provider calls",
+        "case": "Runtime image has only the JAR, runs unprivileged and keeps secrets/tests out of the build context",
         "passed": true
       },
       {
-        "case": "Changed payload cannot reuse an idempotency key",
+        "case": "Positive booking through Docker Appointment, real PostgreSQL and explicit UUIDv4 HTTP provider fixtures uses only Patient v3",
         "passed": true
       },
       {
-        "case": "Numeric body/path IDs are rejected",
+        "case": "Idempotent replay is byte-identical with providers offline; changed body conflicts",
         "passed": true
       },
       {
-        "case": "Distinct UUID slot IDs cannot bypass doctor/hour capacity",
+        "case": "UUIDv1/v3/v5/nil/numeric IDs are rejected across body, path and query before provider calls",
         "passed": true
       },
       {
-        "case": "Concurrent UUID bookings have exactly one winner",
+        "case": "Doctor/hour uniqueness holds across distinct UUIDv4 slots and eight concurrent bookings",
         "passed": true
       },
       {
-        "case": "UUID equality rejects rescheduling to the same slot",
+        "case": "Same-slot/version guards and reschedule/cancel/history use cases preserve UUIDv4 and numeric versions",
         "passed": true
       },
       {
-        "case": "Optimistic version remains numeric and enforced",
+        "case": "Contract /2 survives 200/404/400; nonexistent routes are 404 and unsupported methods 405 with Allow",
         "passed": true
       },
       {
-        "case": "UUID detail/reschedule/cancel/history preserve the original use cases",
+        "case": "Provider ID mismatch is a typed dependency failure and Patient INACTIVE remains a business conflict",
         "passed": true
       },
       {
-        "case": "Appointment-owned minimal medical projection uses UUID references",
+        "case": "All persisted business IDs, history, operations, outbox references and event v3 identifiers are UUIDv4",
         "passed": true
       },
       {
-        "case": "HTTP medical-reference 200 advertises exactly one UUID contract /2, never echoes /1",
+        "case": "Legacy V4 refuses missing external-owner mappings and rolls back all generated mappings/data changes",
         "passed": true
       },
       {
-        "case": "HTTP medical-reference 404 and validation errors preserve the UUID contract header",
+        "case": "UUIDv4 cutover refuses frozen READY events before modifying owned IDs",
         "passed": true
       },
       {
-        "case": "Medical-reference header does not leak to detail, reminder, retired v1 or POST",
+        "case": "Legacy conversion preserves mappings, FKs, cached responses, versions and published payloads while upgrading owned IDs/pending intents to UUIDv4",
         "passed": true
       },
       {
-        "case": "UUID event v3 is durable and excludes private reasons",
-        "passed": true
-      },
-      {
-        "case": "Reference contract requires UUID; no adaptation to another service numeric IDs",
-        "passed": true
-      },
-      {
-        "case": "Patient ACTIVE business guard remains unchanged",
-        "passed": true
-      },
-      {
-        "case": "Appointment-only legacy migration preserves data, UUID history links and numeric versions",
+        "case": "Database constraints reject a non-v4 business identifier after migration",
         "passed": true
       }
+    ],
+    "realComponents": [
+      "Appointment image built from workspace Dockerfile",
+      "Appointment Compose",
+      "Docker PostgreSQL 16",
+      "Docker RabbitMQ",
+      "unchanged real Patient JAR for v3/DNS/fail-closed test"
+    ],
+    "fixtureComponents": [
+      "Patient v3/Doctor UUIDv4 HTTP doubles for positive business tests; no Auth/Scope double"
+    ],
+    "limits": [
+      "Real Patient requires genuine Auth/Scope provisioning; successful full real-service booking remains blocked externally.",
+      "No Patient, Doctor, Notification, Gateway, shared config or existing Docker volume modified."
     ]
   },
-  "configAndTransportMatchPulledHead": true,
-  "gitChangesOnlyAppointment": true,
-  "originalAppointmentJavaPathsRetained": 37,
-  "sourceManifestSha256": "2fd95020befd8a438afa8fd100764b5704e01b5c781bc23a745d7f5528b868bd",
-  "appointmentJarSha256": "5cb21c3b90c4ff592764c641cd2cdc513438cc58cc56089de2da2c474f719a7a",
-  "limits": [
-    "Patient/Doctor are HTTP UUID contract doubles; no real inter-service integration claim after scope restoration",
-    "No database writes/migrations against current Docker volumes",
-    "No new security or configuration changes",
-    "Earlier broad-scope results are withdrawn for this narrower implementation"
+  "appointmentJarSha256": "d8fe0c0474e5192f1a9063b27b936b26f7776d94c5a5caf21482eb2e678f6ed0",
+  "sourceManifestSha256": "41924d1266d851b525993012348a8112337b98eef56d2aade86c829e4a250656",
+  "originalJavaPathsRetained": 109,
+  "currentJavaFileCount": 110,
+  "protectedFilesUnchanged": [
+    "V1/V2 migrations",
+    "application.yml",
+    "POM",
+    "config classes",
+    "ProviderHttp credential handling"
   ],
-  "patientMedicalReferenceContract": {
-    "transport": "HTTP",
-    "responseHeader": {
-      "X-FClinic-Reference-Contract": "patient-appointment-medical-reference/2"
-    },
-    "requestMethod": "GET",
-    "path": "/api/v2/appointments/{uuid}/medical-reference",
-    "verifiedHttpStatuses": [
-      200,
-      400,
-      404
-    ],
-    "doesNotEchoClientVersion": true,
-    "patientClientUpdateRequired": "UUID IDs/decoder/storage, expected contract /2 and HTTP support; Patient is unchanged",
-    "verificationScriptSha256": "22240e2528961b4b76aa2420a61e95f8853c25815e4ee0c427d9eec1d9374f12"
-  }
+  "gitChangesOnlyAppointment": true,
+  "realPatientV3OverDockerDnsObserved": true,
+  "sharedDockerVolumesModified": false,
+  "dockerResourcesCleanedUp": true,
+  "testAndEnvFilesIgnored": true,
+  "migration": "V3 persistent map; V4 random owned UUIDv4, authoritative external maps, transactional guards and FK/JSON updates; no shared DB migration performed",
+  "httpContract": {
+    "patientProfile": "GET /api/v3/patients/{uuidv4}",
+    "medicalReference": "GET /api/v2/appointments/{uuidv4}/medical-reference",
+    "referenceHeader": "X-FClinic-Reference-Contract: patient-appointment-medical-reference/2"
+  },
+  "limits": [
+    "Real Patient requires genuine Auth/Scope provisioning; successful full real-service booking remains blocked externally.",
+    "No Patient, Doctor, Notification, Gateway, shared config or existing Docker volume modified.",
+    "Positive booking/reschedule/cancel use explicit Patient/Doctor HTTP fixtures, not genuine Auth/Scope or a complete production clinical flow.",
+    "Doctor UUIDv4/internal slot, Notification schema3, Gateway routes and Patient HTTP DNS/collection URI remain owner dependencies."
+  ]
 }

@@ -30,7 +30,7 @@ public class HttpAppointmentReferenceAdapter
     try {
       n =
           http.get(
-              settings.patientUrl() + "/api/v2/patients/" + patient,
+              settings.patientUrl() + "/api/v3/patients/" + patient,
               settings.serviceToken(),
               deadline);
     } catch (ProviderHttp.MissingReference e) {

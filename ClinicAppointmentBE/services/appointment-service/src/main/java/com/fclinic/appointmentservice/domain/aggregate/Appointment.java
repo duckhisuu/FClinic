@@ -4,6 +4,7 @@ import com.fclinic.appointmentservice.domain.AppointmentError;
 import com.fclinic.appointmentservice.domain.Slot;
 import com.fclinic.appointmentservice.domain.model.AppointmentStatus;
 import com.fclinic.appointmentservice.domain.vo.BookingCode;
+import com.fclinic.appointmentservice.domain.vo.BusinessId;
 import java.math.BigDecimal;
 import java.time.*;
 import java.util.UUID;
@@ -48,15 +49,15 @@ public class Appointment {
       long version,
       Instant createdAt,
       Instant updatedAt) {
-    this.id = id;
+    this.id = id == null ? null : BusinessId.require(id);
     this.bookingCode = bookingCode;
-    this.patientId = patientId;
+    this.patientId = BusinessId.require(patientId);
     this.patientName = patientName;
     this.patientPhone = patientPhone;
-    this.doctorId = doctorId;
+    this.doctorId = BusinessId.require(doctorId);
     this.doctorName = doctorName;
     this.doctorSpecialty = doctorSpecialty;
-    this.slotId = slotId;
+    this.slotId = BusinessId.require(slotId);
     this.appointmentDate = appointmentDate;
     this.startTime = startTime;
     this.endTime = endTime;
