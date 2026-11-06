@@ -13,6 +13,7 @@ import { DoctorDirectory } from "./appointment/DoctorDirectory";
 import { Booking } from "./appointment/Booking";
 import { AppointmentHistory } from "./appointment/AppointmentHistory";
 import { NotificationDrawer } from "./components/NotificationDrawer";
+import { DoctorSchedulePage } from "./pages/DoctorSchedulePage";
 
 // The host may supply its existing user context. Appointment does not implement login or roles.
 export default function App({
@@ -21,8 +22,15 @@ export default function App({
 }) {
   const [tab, setTab] = useState("doctors"),
     [selection, setSelection] = useState(null),
-    [isNotificationOpen, setIsNotificationOpen] = useState(false);
+    [isNotificationOpen, setIsNotificationOpen] = useState(false),
+    [doctorNotice, setDoctorNotice] = useState("");
   const menu = [
+    {
+      id: "doctor-management",
+      icon: Stethoscope,
+      title: "Quản lý bác sĩ (demo)",
+      desc: "Hồ sơ & lịch bác sĩ",
+    },
     {
       id: "doctors",
       icon: Stethoscope,
@@ -123,7 +131,19 @@ export default function App({
           </div>
         </aside>
         <main className="main">
-          {tab === "doctors" ? (
+          {tab === "doctor-management" ? (
+            <section>
+              <p role="status">
+                {doctorNotice || "Bản xem trước quản lý bác sĩ. Đặt lịch tại mục Bác sĩ & giờ khám."}
+              </p>
+              <DoctorSchedulePage
+                onNotify={(message) => setDoctorNotice(message)}
+                onSelectSlot={() =>
+                  setDoctorNotice("Đặt lịch từ bản xem trước chưa sẵn sàng. Vui lòng dùng mục Bác sĩ & giờ khám.")
+                }
+              />
+            </section>
+          ) : tab === "doctors" ? (
             <DoctorDirectory
               onPick={(doctor, slot) => {
                 setSelection({ doctor, slot });
