@@ -1,0 +1,3 @@
+# Keep the Patient UI regression suite versioned despite the monorepo test-directory rule.
+!src/patient/__tests__/
+!src/patient/__tests__/**
