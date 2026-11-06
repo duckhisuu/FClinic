@@ -1,0 +1,36 @@
+# Appointment only. The shared infrastructure and other services are owned separately.
+services:
+  appointment-service:
+    image: ${APPOINTMENT_IMAGE:-fclinic/appointment-service:local}
+    mem_limit: 512m
+    build:
+      context: ../..
+      dockerfile: services/appointment-service/Dockerfile
+    ports:
+      - "127.0.0.1:${APPOINTMENT_HTTP_PORT:-8083}:8083"
+    environment:
+      APPOINTMENT_SERVICE_PORT: "8083"
+      DB_HOST: ${APPOINTMENT_DB_HOST:-postgres-appointment}
+      POSTGRES_APPOINTMENT_PORT: "5432"
+      APPOINTMENT_DB_NAME: ${APPOINTMENT_DB_NAME:-appointment_db}
+      DB_USERNAME: ${DB_USERNAME:?Supply the Appointment database user}
+      DB_PASSWORD: ${DB_PASSWORD:?Supply the Appointment database password}
+      APPOINTMENT_LOCK_PROVIDER: postgres
+      APPOINTMENT_PATIENT_URL: ${APPOINTMENT_PATIENT_URL:-http://patient-service:8081}
+      APPOINTMENT_DOCTOR_URL: ${APPOINTMENT_DOCTOR_URL:-http://doctor-service:8082}
+      APPOINTMENT_SERVICE_TOKEN: ${APPOINTMENT_SERVICE_TOKEN:-}
+      APPOINTMENT_RECIPIENT_URL: ${APPOINTMENT_RECIPIENT_URL:-}
+      APPOINTMENT_OUTBOX_ENABLED: ${APPOINTMENT_OUTBOX_ENABLED:-true}
+      APPOINTMENT_REMINDER_LEAD: ${APPOINTMENT_REMINDER_LEAD:-}
+      RABBITMQ_HOST: ${RABBITMQ_HOST:-rabbitmq}
+      RABBITMQ_PORT: "5672"
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-}
+      EUREKA_ENABLED: ${EUREKA_ENABLED:-false}
+      EUREKA_SERVER_URL: ${EUREKA_SERVER_URL:-http://discovery-server:8761/eureka/}
+    networks:
+      - clinic
+networks:
+  clinic:
+    external: true
+    name: ${APPOINTMENT_DOCKER_NETWORK:-clinicappointmentbe_fclinic-network}

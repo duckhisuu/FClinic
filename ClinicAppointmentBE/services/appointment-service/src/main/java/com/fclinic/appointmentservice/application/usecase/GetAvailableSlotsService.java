@@ -24,7 +24,7 @@ public class GetAvailableSlotsService implements GetAvailableSlotsUseCase {
     this.clock = clock;
   }
 
-  public AvailabilityView getAvailableSlots(long doctorId, LocalDate date) {
+  public AvailabilityView getAvailableSlots(UUID doctorId, LocalDate date) {
     long deadline = System.nanoTime() + Duration.ofSeconds(5).toNanos();
     doctors.doctor(doctorId, deadline);
     var offered = doctors.offered(doctorId, date, deadline);

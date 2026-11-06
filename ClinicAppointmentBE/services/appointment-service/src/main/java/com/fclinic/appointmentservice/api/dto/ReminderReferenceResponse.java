@@ -1,16 +1,18 @@
 package com.fclinic.appointmentservice.api.dto;
 
+import java.util.UUID;
+
 import static com.fclinic.appointmentservice.api.mapper.AppointmentWireFormat.*;
 
 import com.fclinic.appointmentservice.application.result.ReminderReferenceView;
 
 public record ReminderReferenceResponse(
-    long id,
+    UUID id,
     String patientId,
-    long doctorId,
+    UUID doctorId,
     String status,
     long version,
-    long slotId,
+    UUID slotId,
     String appointmentDate,
     String startTime,
     String endTime,

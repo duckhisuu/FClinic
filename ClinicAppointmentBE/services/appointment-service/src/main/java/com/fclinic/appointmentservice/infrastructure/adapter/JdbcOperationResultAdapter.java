@@ -35,7 +35,7 @@ public class JdbcOperationResultAdapter implements OperationResultPort {
   }
 
   public void save(
-      OperationAttempt a, long appointmentId, AppointmentOperationResult result, Instant now) {
+      OperationAttempt a, UUID appointmentId, AppointmentOperationResult result, Instant now) {
     jdbc.update(
         "INSERT INTO"
             + " operation_results(caller_subject,operation,idempotency_key,request_hash,appointment_id,response_status,response_body,created_at)"

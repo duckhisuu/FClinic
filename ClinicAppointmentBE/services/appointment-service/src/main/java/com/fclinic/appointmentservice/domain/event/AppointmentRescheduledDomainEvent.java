@@ -7,7 +7,7 @@ public record AppointmentRescheduledDomainEvent(
     UUID eventId,
     Instant occurredAt,
     AppointmentEventSnapshot snapshot,
-    long previousSlotId,
+    UUID previousSlotId,
     LocalDate previousAppointmentDate,
     LocalTime previousStartTime,
     LocalTime previousEndTime)

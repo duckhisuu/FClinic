@@ -1,14 +1,18 @@
 package com.fclinic.appointmentservice.domain;
 
+import java.util.UUID;
+
 import com.fclinic.appointmentservice.domain.aggregate.Appointment;
+import com.fclinic.appointmentservice.domain.vo.BusinessId;
 import java.time.*;
 
 public record Slot(
-    long id, long doctorId, LocalDate date, LocalTime start, LocalTime end, boolean published) {
+    UUID id, UUID doctorId, LocalDate date, LocalTime start, LocalTime end, boolean published) {
   public boolean valid() {
     return published
-        && id > 0
-        && doctorId > 0
+        && BusinessId.valid(id)
+        && BusinessId.valid(doctorId)
+        && date != null && start != null && end != null
         && start.getMinute() == 0
         && start.getSecond() == 0
         && start.getNano() == 0
@@ -16,8 +20,8 @@ public record Slot(
         && Duration.between(start, end).equals(Duration.ofHours(1));
   }
 
-  public void requireBookable(long expectedDoctor, Clock clock) {
-    if (doctorId != expectedDoctor
+  public void requireBookable(UUID expectedDoctor, Clock clock) {
+    if (!java.util.Objects.equals(doctorId, expectedDoctor)
         || !valid()
         || !date.atTime(start).atZone(Appointment.CLINIC).toInstant().isAfter(clock.instant()))
       throw AppointmentError.conflict(

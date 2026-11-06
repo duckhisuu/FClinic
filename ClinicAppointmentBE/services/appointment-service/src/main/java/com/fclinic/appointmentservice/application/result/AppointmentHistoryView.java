@@ -4,7 +4,7 @@ import java.time.*;
 import java.util.*;
 
 public record AppointmentHistoryView(
-    long id,
+    UUID id,
     String action,
     long version,
     LocalDate oldDate,

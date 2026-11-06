@@ -1,20 +1,22 @@
 package com.fclinic.appointmentservice.api.dto;
 
+import java.util.UUID;
+
 import static com.fclinic.appointmentservice.api.mapper.AppointmentWireFormat.*;
 
 import com.fclinic.appointmentservice.application.result.AppointmentView;
 import java.math.BigDecimal;
 
 public record AppointmentResponse(
-    Long id,
+    UUID id,
     String bookingCode,
     String patientId,
     String patientName,
     String patientPhone,
-    Long doctorId,
+    UUID doctorId,
     String doctorName,
     String doctorSpecialty,
-    Long slotId,
+    UUID slotId,
     String appointmentDate,
     String startTime,
     String endTime,

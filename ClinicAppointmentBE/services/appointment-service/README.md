@@ -1,14 +1,16 @@
 # Appointment v2
 
+**Cập nhật sau merge main 02/11/2026:** Appointment gọi Patient v3, dùng UUIDv4 cho business ID và giữ reference header `/2`. Xem [contract/migration](docs/uuid/README.md) và [Docker riêng Appointment](docs/uuid/DOCKER.md). Không sửa service khác/security/shared config. Các kiểu ID số trong tài liệu/report lịch sử bên dưới được thay bằng contract UUIDv4 hiện hành.
+
 Phạm vi: nghiệp vụ Appointment BE và giao diện React trong `ClinicAppointmentFE/src/appointment`. Report được giữ nguyên và dùng làm chuẩn cho nghiệp vụ. Không bổ sung security, không sửa service khác. Hướng dẫn bàn giao đầy đủ: [docs/README.md](docs/README.md).
 
 ## Cấu trúc theo bản pull
 
-Giữ đủ 37 file Java gốc: controller/dto/command/port/in/port/out/usecase/domain/JPA adapter/entity/repository/config. AppointmentApplicationService triển khai booking; hủy, đổi lịch, truy vấn, availability, history, references, reminder và outbox có use case riêng. Application chỉ phụ thuộc port/domain, không gọi trực tiếp JDBC/HTTP/RabbitMQ. Xem [mapping các use case](docs/integration-readiness/08_USE_CASE_ARCHITECTURE.md).
+Giữ đủ 109 file Java có trong bản merge, thêm value object BusinessId để kiểm tra UUIDv4. AppointmentApplicationService triển khai booking; hủy, đổi lịch, truy vấn, availability, history, references, reminder và outbox có use case riêng. Application chỉ phụ thuộc port/domain, không gọi trực tiếp JDBC/HTTP/RabbitMQ. Xem [mapping các use case](docs/integration-readiness/08_USE_CASE_ARCHITECTURE.md).
 
 ## Nghiệp vụ đã triển khai
 
-- Tạo lịch `CONFIRMED` bằng `patientId` UUID, `doctorId`, `slotId`, `reasonForVisit` tùy chọn. Tên, điện thoại, chuyên khoa, phí và giờ khám lấy từ dịch vụ nguồn; không nhận snapshot do trình duyệt gửi.
+- Tạo lịch `CONFIRMED` bằng `patientId`, `doctorId`, `slotId` UUID và `reasonForVisit` tùy chọn. Tên, điện thoại, chuyên khoa, phí và giờ khám lấy từ dịch vụ nguồn; không nhận snapshot do trình duyệt gửi.
 - Bệnh nhân phải ACTIVE, bác sĩ active; slot do Doctor trả về, đúng bác sĩ, trong tương lai, bắt đầu đúng giờ và dài 60 phút theo Asia/Saigon. Xác minh slot bằng contract Report `GET /internal/v1/doctors/{doctorId}/slots/{slotId}` có published, và đọc danh sách offer qua `GET /api/v1/doctors/{id}/slots?date=...`; không thêm endpoint bên Doctor, không dùng `isBooked` làm nguồn occupancy.
 - PostgreSQL partial unique `(doctor_id, appointment_date, start_time) WHERE status='CONFIRMED'` chặn tranh chấp kể cả hai slotId khác nhau cùng giờ. Redis không quyết định việc giữ chỗ.
 - Hủy/đổi lịch chỉ khi CONFIRMED, trước giờ bắt đầu, đúng version. Đổi lịch giữ nguyên bệnh nhân, bác sĩ và snapshot phí; lỗi khi giữ giờ mới rollback toàn bộ, giữ giờ cũ.
@@ -72,7 +74,7 @@ Provider dùng wrapper chuẩn. Recipient adapter POST `{patientId,doctorId}`, n
 
 ## Outbox và nhắc lịch
 
-Publish JSON thô schemaVersion 2 tới topic `clinic.events`, queue `fclinic.appointment.notifications`, routing `appointment.created/cancelled/rescheduled/reminder`. EventId ổn định từ lúc tạo intent; payload cuối đóng băng nguyên byte khi resolve người nhận. Không có reasonForVisit, lý do hủy/đổi, chẩn đoán hay ghi chú trong event.
+Publish JSON thô schemaVersion 3 với ID UUID tới topic `clinic.events`, queue `fclinic.appointment.notifications`, routing `appointment.created/cancelled/rescheduled/reminder`. EventId ổn định từ lúc tạo intent; payload cuối đóng băng nguyên byte khi resolve người nhận. Không có reasonForVisit, lý do hủy/đổi, chẩn đoán hay ghi chú trong event.
 
 Dùng lease claim và SKIP LOCKED; retry sau lỗi provider/broker, không mất intent khi khởi động lại. Chỉ ghi PUBLISHED sau publisher ACK và không có mandatory return. Vẫn là at-least-once: consumer cần chống lặp theo eventId. Nhắc lịch có unique appointment/version/due, kiểm tra trạng thái/version/giờ hiện tại trước publish và suppress reminder cũ.
 

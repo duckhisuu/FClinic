@@ -4,8 +4,8 @@ import java.time.*;
 import java.util.*;
 
 public record SlotView(
-    long id,
-    long doctorId,
+    UUID id,
+    UUID doctorId,
     LocalDate slotDate,
     LocalTime startTime,
     LocalTime endTime,

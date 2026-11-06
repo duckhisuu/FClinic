@@ -18,13 +18,13 @@ public class GetAppointmentReferenceService implements GetAppointmentReferenceUs
     this.repository = repository;
   }
 
-  public MedicalReferenceView medicalReference(long id) {
+  public MedicalReferenceView medicalReference(UUID id) {
     var a = repository.findById(id).orElseThrow(AppointmentNotFoundException::new);
     return new MedicalReferenceView(
         a.getId(), a.getPatientId(), a.getDoctorId(), a.getStatus().name());
   }
 
-  public ReminderReferenceView reminderReference(long id) {
+  public ReminderReferenceView reminderReference(UUID id) {
     var a = repository.findById(id).orElseThrow(AppointmentNotFoundException::new);
     return new ReminderReferenceView(
         a.getId(),

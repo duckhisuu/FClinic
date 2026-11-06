@@ -6,7 +6,7 @@ import java.util.*;
 public record OutboxMessage(
     UUID id,
     String eventType,
-    long appointmentId,
+    UUID appointmentId,
     long aggregateVersion,
     String intent,
     String payload,

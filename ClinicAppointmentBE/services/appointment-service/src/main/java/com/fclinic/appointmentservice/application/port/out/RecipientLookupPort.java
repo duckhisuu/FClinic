@@ -6,5 +6,5 @@ import java.time.*;
 import java.util.*;
 
 public interface RecipientLookupPort {
-  List<Recipient> recipients(UUID patientId, long doctorId);
+  List<Recipient> recipients(UUID patientId, UUID doctorId);
 }

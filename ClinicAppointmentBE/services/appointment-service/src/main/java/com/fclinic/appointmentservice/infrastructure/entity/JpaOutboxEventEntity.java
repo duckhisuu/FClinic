@@ -18,7 +18,7 @@ public class JpaOutboxEventEntity extends BaseEntity {
   private UUID id;
 
   @Column(name = "aggregate_id", nullable = false)
-  private Long aggregateId;
+  private UUID aggregateId;
 
   @Column(name = "aggregate_version", nullable = false)
   private long aggregateVersion;
@@ -56,7 +56,7 @@ public class JpaOutboxEventEntity extends BaseEntity {
 
   public static JpaOutboxEventEntity pending(
       UUID eventId,
-      long appointmentId,
+      UUID appointmentId,
       long version,
       String eventType,
       String intent,

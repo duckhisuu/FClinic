@@ -21,7 +21,7 @@ public class GetAppointmentHistoryService implements GetAppointmentHistoryUseCas
     this.history = history;
   }
 
-  public List<AppointmentHistoryView> getHistory(long id) {
+  public List<AppointmentHistoryView> getHistory(UUID id) {
     repository.findById(id).orElseThrow(AppointmentNotFoundException::new);
     return history.history(id);
   }

@@ -9,7 +9,7 @@ import java.util.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-/** Correlation and retired API response only. Does not authenticate or authorize requests. */
+/** Correlation, reference contract metadata and retired API response. No authentication logic. */
 @Component
 public class AppointmentRequestIdFilter extends OncePerRequestFilter {
   @Override
@@ -24,6 +24,11 @@ public class AppointmentRequestIdFilter extends OncePerRequestFilter {
       throws ServletException, IOException {
     response.setCharacterEncoding("UTF-8");
     response.setHeader("Cache-Control", "no-store");
+    if ("GET".equals(request.getMethod())
+        && request.getRequestURI().matches("/api/v2/appointments/[^/]+/medical-reference")) {
+      response.setHeader(
+          "X-FClinic-Reference-Contract", "patient-appointment-medical-reference/2");
+    }
     String requestId = request.getHeader("X-Request-Id");
     if (requestId == null
         || !requestId.matches("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")) {

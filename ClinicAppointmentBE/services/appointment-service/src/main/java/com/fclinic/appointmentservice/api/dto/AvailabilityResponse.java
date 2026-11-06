@@ -1,15 +1,17 @@
 package com.fclinic.appointmentservice.api.dto;
 
+import java.util.UUID;
+
 import static com.fclinic.appointmentservice.api.mapper.AppointmentWireFormat.*;
 
 import com.fclinic.appointmentservice.application.result.AvailabilityView;
 import java.util.List;
 
 public record AvailabilityResponse(
-    long doctorId, String date, String timezone, List<OfferedSlotResponse> slots) {
+    UUID doctorId, String date, String timezone, List<OfferedSlotResponse> slots) {
   public record OfferedSlotResponse(
-      long id,
-      long doctorId,
+      UUID id,
+      UUID doctorId,
       String slotDate,
       String startTime,
       String endTime,

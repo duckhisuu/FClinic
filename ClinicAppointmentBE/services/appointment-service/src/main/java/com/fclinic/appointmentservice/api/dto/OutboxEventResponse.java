@@ -6,7 +6,7 @@ import java.util.UUID;
 /** Legacy operations projection: excludes intent, recipients and final payload. */
 public record OutboxEventResponse(
     UUID id,
-    long aggregateId,
+    UUID aggregateId,
     String eventType,
     String status,
     int attemptCount,

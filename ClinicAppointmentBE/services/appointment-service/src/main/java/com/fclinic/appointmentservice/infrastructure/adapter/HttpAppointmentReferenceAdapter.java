@@ -30,7 +30,7 @@ public class HttpAppointmentReferenceAdapter
     try {
       n =
           http.get(
-              settings.patientUrl() + "/api/v2/patients/" + patient,
+              settings.patientUrl() + "/api/v3/patients/" + patient,
               settings.serviceToken(),
               deadline);
     } catch (ProviderHttp.MissingReference e) {
@@ -67,7 +67,7 @@ public class HttpAppointmentReferenceAdapter
     return new PatientReference(patient, text(n.path("fullName"), 255), phone);
   }
 
-  public DoctorReference doctor(long doctor, long deadline) {
+  public DoctorReference doctor(UUID doctor, long deadline) {
     JsonNode n;
     try {
       n =
@@ -94,7 +94,7 @@ public class HttpAppointmentReferenceAdapter
                         "bio",
                         "avatarUrl",
                         "active")));
-    require(id(n.path("id")) == doctor && n.path("active").isBoolean());
+    require(id(n.path("id")).equals(doctor) && n.path("active").isBoolean());
     if (!n.path("active").asBoolean())
       throw AppointmentError.conflict("DOCTOR_INACTIVE", "Bác sĩ đang ngừng nhận lịch.");
     require(n.path("consultationFee").isNumber());
@@ -109,14 +109,14 @@ public class HttpAppointmentReferenceAdapter
         doctor, text(n.path("name"), 255), text(n.path("specialty"), 255), fee);
   }
 
-  public Slot slot(long doctor, long slot, long deadline) {
+  public Slot slot(UUID doctor, UUID slot, long deadline) {
     try {
       JsonNode n =
           http.get(
               settings.doctorUrl() + "/internal/v1/doctors/" + doctor + "/slots/" + slot,
               settings.serviceToken(),
               deadline);
-      require(n.isObject() && id(n.path("id")) == slot && n.path("published").isBoolean());
+      require(n.isObject() && id(n.path("id")).equals(slot) && n.path("published").isBoolean());
       return parseSlot(n, n.path("published").asBoolean());
     } catch (ProviderHttp.MissingReference e) {
       // The report does not name the provider's missing-slot code (D-18).
@@ -130,7 +130,7 @@ public class HttpAppointmentReferenceAdapter
     }
   }
 
-  public List<Slot> offered(long doctor, LocalDate date, long deadline) {
+  public List<Slot> offered(UUID doctor, LocalDate date, long deadline) {
     try {
       JsonNode array =
           http.get(
@@ -139,10 +139,10 @@ public class HttpAppointmentReferenceAdapter
               deadline);
       require(array.isArray() && array.size() <= 1000);
       List<Slot> result = new ArrayList<>();
-      Set<Long> ids = new HashSet<>();
+      Set<UUID> ids = new HashSet<>();
       for (JsonNode n : array) {
         Slot s = parseSlot(n, true);
-        require(s.doctorId() == doctor && s.date().equals(date) && ids.add(s.id()));
+        require(s.doctorId().equals(doctor) && s.date().equals(date) && ids.add(s.id()));
         result.add(s);
       }
       return result;
@@ -173,7 +173,7 @@ public class HttpAppointmentReferenceAdapter
    * Endpoint supplied by Auth/Doctor owner. No guessed address, account, phone linking or mock
    * fallback.
    */
-  public List<Recipient> recipients(UUID patientId, long doctorId) {
+  public List<Recipient> recipients(UUID patientId, UUID doctorId) {
     String url = settings.value("recipient-url");
     if (url.isEmpty()) throw AppointmentError.unavailable();
     JsonNode n;
@@ -194,7 +194,7 @@ public class HttpAppointmentReferenceAdapter
       String type = text(r.path("recipientType"), 16);
       require(Set.of("PATIENT", "DOCTOR").contains(type) && types.add(type));
       require(r.has("userId") && r.has("email"));
-      Long account = r.path("userId").isNull() ? null : id(r.path("userId"));
+      UUID account = r.path("userId").isNull() ? null : id(r.path("userId"));
       require(type.equals("PATIENT") || account != null);
       String name = text(r.path("name"), 255);
       String email = r.path("email").isNull() ? null : text(r.path("email"), 320);

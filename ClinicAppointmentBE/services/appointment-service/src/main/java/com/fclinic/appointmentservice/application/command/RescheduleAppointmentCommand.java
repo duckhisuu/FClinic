@@ -7,7 +7,7 @@ import java.util.*;
 public record RescheduleAppointmentCommand(
     AppointmentActor actor,
     UUID idempotencyKey,
-    long appointmentId,
+    UUID appointmentId,
     long version,
-    long slotId,
+    UUID slotId,
     String reason) {}

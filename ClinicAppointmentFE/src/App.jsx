@@ -7,10 +7,12 @@ import {
   Clock3,
   Stethoscope,
   MapPin,
+  Bell,
 } from "lucide-react";
 import { DoctorDirectory } from "./appointment/DoctorDirectory";
 import { Booking } from "./appointment/Booking";
 import { AppointmentHistory } from "./appointment/AppointmentHistory";
+import { NotificationDrawer } from "./components/NotificationDrawer";
 
 // The host may supply its existing user context. Appointment does not implement login or roles.
 export default function App({
@@ -18,7 +20,8 @@ export default function App({
   actorSubject = "appointment-ui",
 }) {
   const [tab, setTab] = useState("doctors"),
-    [selection, setSelection] = useState(null);
+    [selection, setSelection] = useState(null),
+    [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const menu = [
     {
       id: "doctors",
@@ -57,7 +60,29 @@ export default function App({
             FClinic<small>CLINIC APPOINTMENTS</small>
           </div>
         </a>
-        <div className="header-right">
+        <div className="header-right" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <button
+            type="button"
+            className="noti-btn"
+            onClick={() => setIsNotificationOpen(true)}
+            title="Xem thông báo hệ thống"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              background: '#f8fafc',
+              border: '1px solid #cbd5e1',
+              padding: '0.4rem 0.75rem',
+              borderRadius: '0.5rem',
+              cursor: 'pointer',
+              color: '#1e293b',
+              fontWeight: 500,
+              fontSize: '0.875rem'
+            }}
+          >
+            <Bell size={16} />
+            <span>Thông báo</span>
+          </button>
           <span className="clinic-label">
             <MapPin size={15} />
             Phòng khám FClinic
@@ -126,6 +151,11 @@ export default function App({
           </footer>
         </main>
       </div>
+      <NotificationDrawer
+        isOpen={isNotificationOpen}
+        onClose={() => setIsNotificationOpen(false)}
+        onNotify={(msg) => console.log(msg)}
+      />
     </div>
   );
 }

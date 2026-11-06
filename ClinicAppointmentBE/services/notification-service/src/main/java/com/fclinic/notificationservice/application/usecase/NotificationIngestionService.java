@@ -71,8 +71,9 @@ public class NotificationIngestionService implements IngestAppointmentEventUseCa
             Boolean created = transactionTemplate.execute(status -> doIngest(event));
             if (Boolean.TRUE.equals(created)) {
                 meterRegistry.counter("notification.events.ingested").increment();
+                var appt = event.appointment();
                 log.info("event_ingested eventId={} appointmentId={}", event.eventId(),
-                        event.appointment().appointmentId());
+                        appt != null ? appt.appointmentId() : null);
             } else {
                 duplicate(event);
             }
@@ -100,19 +101,30 @@ public class NotificationIngestionService implements IngestAppointmentEventUseCa
 
         // Insert the marker first so a duplicate race fails here, before any notification rows are written.
         processedEventPort.save(event, now);
-        createNotification(event, event.patient(), type, now);
-        createNotification(event, event.doctor(), type, now);
+        RecipientDto patient = event.patient();
+        if (patient != null && patient.email() != null && !patient.email().isBlank()) {
+            createNotification(event, patient, type, now);
+        } else if (patient != null) {
+            log.info("Skipping email creation for patient without email: eventId={}", event.eventId());
+        }
+        RecipientDto doctor = event.doctor();
+        if (doctor != null && doctor.email() != null && !doctor.email().isBlank()) {
+            createNotification(event, doctor, type, now);
+        } else if (doctor != null) {
+            log.info("Skipping email creation for doctor without email: eventId={}", event.eventId());
+        }
         return true;
     }
 
     private void createNotification(AppointmentNotificationEvent event, RecipientDto recipient,
                                     NotificationType type, Instant now) {
+        var appt = event.appointment();
         RenderedMessage rendered = templateRenderPort.render(type, recipient.recipientType(),
                 buildVariables(event, recipient));
 
         Notification saved = notificationRepository.save(Notification.pending(
                 event.eventId(),
-                event.appointment().appointmentId(),
+                appt != null ? appt.appointmentId() : 0L,
                 recipient.userId(),
                 recipient.recipientType(),
                 recipient.displayName(),
@@ -139,9 +151,14 @@ public class NotificationIngestionService implements IngestAppointmentEventUseCa
             log.error("invalid_event eventId={} violations={}", event.eventId(), detail);
             throw new InvalidNotificationEventException("Invalid event: " + detail);
         }
-        if (event.patient().recipientType() != com.fclinic.notificationservice.domain.model.RecipientType.PATIENT
-                || event.doctor().recipientType() != com.fclinic.notificationservice.domain.model.RecipientType.DOCTOR) {
+        var patient = event.patient();
+        var doctor = event.doctor();
+        if (patient == null || patient.recipientType() != com.fclinic.notificationservice.domain.model.RecipientType.PATIENT
+                || doctor == null || doctor.recipientType() != com.fclinic.notificationservice.domain.model.RecipientType.DOCTOR) {
             throw new InvalidNotificationEventException("patient/doctor recipientType does not match its role");
+        }
+        if (event.appointment() == null) {
+            throw new InvalidNotificationEventException("appointment details are missing");
         }
         if (event.eventType() == AppointmentEventType.APPOINTMENT_RESCHEDULED && event.previousSlot() == null) {
             throw new InvalidNotificationEventException("previousSlot is required for APPOINTMENT_RESCHEDULED");
@@ -159,21 +176,24 @@ public class NotificationIngestionService implements IngestAppointmentEventUseCa
 
     private Map<String, Object> buildVariables(AppointmentNotificationEvent event, RecipientDto recipient) {
         var appt = event.appointment();
+        var patient = event.patient();
+        var doctor = event.doctor();
         Map<String, Object> vars = new HashMap<>();
         vars.put("recipientName", recipient.displayName());
-        vars.put("patientName", event.patient().displayName());
-        vars.put("doctorName", event.doctor().displayName());
-        vars.put("appointmentId", appt.appointmentId());
-        vars.put("appointmentDate", appt.appointmentDate().format(DATE_FORMAT));
-        vars.put("appointmentTime", appt.startTime().format(TIME_FORMAT));
-        vars.put("appointmentEndTime", appt.endTime() == null ? "" : appt.endTime().format(TIME_FORMAT));
-        vars.put("clinicName", appt.clinicName());
-        vars.put("roomName", appt.roomName() == null ? "" : appt.roomName());
-        vars.put("reason", appt.reason() == null ? "" : appt.reason());
-        vars.put("cancellationReason", appt.cancellationReason() == null ? "" : appt.cancellationReason());
-        if (event.previousSlot() != null) {
-            vars.put("previousAppointmentDate", event.previousSlot().appointmentDate().format(DATE_FORMAT));
-            vars.put("previousAppointmentTime", event.previousSlot().startTime().format(TIME_FORMAT));
+        vars.put("patientName", patient != null ? patient.displayName() : "");
+        vars.put("doctorName", doctor != null ? doctor.displayName() : "");
+        vars.put("appointmentId", appt != null ? appt.appointmentId() : "");
+        vars.put("appointmentDate", appt != null && appt.appointmentDate() != null ? appt.appointmentDate().format(DATE_FORMAT) : "");
+        vars.put("appointmentTime", appt != null && appt.startTime() != null ? appt.startTime().format(TIME_FORMAT) : "");
+        vars.put("appointmentEndTime", appt != null && appt.endTime() != null ? appt.endTime().format(TIME_FORMAT) : "");
+        vars.put("clinicName", appt != null && appt.clinicName() != null ? appt.clinicName() : "FClinic");
+        vars.put("roomName", appt != null && appt.roomName() != null ? appt.roomName() : "");
+        vars.put("reason", appt != null && appt.reason() != null ? appt.reason() : "");
+        vars.put("cancellationReason", appt != null && appt.cancellationReason() != null ? appt.cancellationReason() : "");
+        var prev = event.previousSlot();
+        if (prev != null) {
+            vars.put("previousAppointmentDate", prev.appointmentDate() != null ? prev.appointmentDate().format(DATE_FORMAT) : "");
+            vars.put("previousAppointmentTime", prev.startTime() != null ? prev.startTime().format(TIME_FORMAT) : "");
         }
         return vars;
     }

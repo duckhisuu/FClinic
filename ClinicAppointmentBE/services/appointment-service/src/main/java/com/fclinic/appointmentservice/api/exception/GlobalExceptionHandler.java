@@ -62,4 +62,20 @@ public class GlobalExceptionHandler {
                 "Không thể hoàn tất thao tác. Vui lòng thử lại.",
                 List.of()));
   }
+
+  @ExceptionHandler({
+    org.springframework.web.servlet.resource.NoResourceFoundException.class,
+    org.springframework.web.servlet.NoHandlerFoundException.class
+  })
+  public ResponseEntity<?> absent(Exception e) {
+    return ResponseEntity.status(404)
+        .body(body(404, "RESOURCE_NOT_FOUND", "Đường dẫn không tồn tại.", List.of()));
+  }
+
+  @ExceptionHandler(org.springframework.web.HttpRequestMethodNotSupportedException.class)
+  public ResponseEntity<?> method(org.springframework.web.HttpRequestMethodNotSupportedException e) {
+    return ResponseEntity.status(405)
+        .headers(e.getHeaders())
+        .body(body(405, "METHOD_NOT_ALLOWED", "Phương thức không được hỗ trợ.", List.of()));
+  }
 }

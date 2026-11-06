@@ -77,7 +77,7 @@ public class PublishOutboxService implements PublishOutboxUseCase {
     return a.getStatus() == AppointmentStatus.CONFIRMED
         && a.getVersion() == row.aggregateVersion()
         && a.startInstant().isAfter(clock.instant())
-        && a.getSlotId() == reminder.slotId()
+        && a.getSlotId().equals(reminder.slotId())
         && a.getAppointmentDate().equals(reminder.date())
         && a.getStartTime().equals(reminder.start())
         && a.getEndTime().equals(reminder.end());

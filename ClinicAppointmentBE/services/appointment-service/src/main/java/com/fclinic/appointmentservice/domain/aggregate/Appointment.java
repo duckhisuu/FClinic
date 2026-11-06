@@ -4,21 +4,22 @@ import com.fclinic.appointmentservice.domain.AppointmentError;
 import com.fclinic.appointmentservice.domain.Slot;
 import com.fclinic.appointmentservice.domain.model.AppointmentStatus;
 import com.fclinic.appointmentservice.domain.vo.BookingCode;
+import com.fclinic.appointmentservice.domain.vo.BusinessId;
 import java.math.BigDecimal;
 import java.time.*;
 import java.util.UUID;
 
 public class Appointment {
   public static final ZoneId CLINIC = ZoneId.of("Asia/Saigon");
-  private Long id;
+  private UUID id;
   private BookingCode bookingCode;
   private UUID patientId;
   private String patientName;
   private String patientPhone;
-  private Long doctorId;
+  private UUID doctorId;
   private String doctorName;
   private String doctorSpecialty;
-  private Long slotId;
+  private UUID slotId;
   private LocalDate appointmentDate;
   private LocalTime startTime;
   private LocalTime endTime;
@@ -30,15 +31,15 @@ public class Appointment {
   private Instant updatedAt;
 
   public Appointment(
-      Long id,
+      UUID id,
       BookingCode bookingCode,
       UUID patientId,
       String patientName,
       String patientPhone,
-      Long doctorId,
+      UUID doctorId,
       String doctorName,
       String doctorSpecialty,
-      Long slotId,
+      UUID slotId,
       LocalDate appointmentDate,
       LocalTime startTime,
       LocalTime endTime,
@@ -48,15 +49,15 @@ public class Appointment {
       long version,
       Instant createdAt,
       Instant updatedAt) {
-    this.id = id;
+    this.id = id == null ? null : BusinessId.require(id);
     this.bookingCode = bookingCode;
-    this.patientId = patientId;
+    this.patientId = BusinessId.require(patientId);
     this.patientName = patientName;
     this.patientPhone = patientPhone;
-    this.doctorId = doctorId;
+    this.doctorId = BusinessId.require(doctorId);
     this.doctorName = doctorName;
     this.doctorSpecialty = doctorSpecialty;
-    this.slotId = slotId;
+    this.slotId = BusinessId.require(slotId);
     this.appointmentDate = appointmentDate;
     this.startTime = startTime;
     this.endTime = endTime;
@@ -72,7 +73,7 @@ public class Appointment {
       UUID patientId,
       String patientName,
       String patientPhone,
-      long doctorId,
+      UUID doctorId,
       String doctorName,
       String doctorSpecialty,
       Slot slot,
@@ -147,7 +148,7 @@ public class Appointment {
   public void reschedule(Slot destination, long expectedVersion, Clock clock) {
     requireChange(clock, expectedVersion);
     destination.requireBookable(doctorId, clock);
-    if (slotId == destination.id()
+    if (slotId.equals(destination.id())
         || (appointmentDate.equals(destination.date()) && startTime.equals(destination.start())))
       throw AppointmentError.conflict(
           "INVALID_TRANSITION", "Vui lòng chọn khung giờ khác lịch hiện tại.");
@@ -159,11 +160,11 @@ public class Appointment {
     updatedAt = clock.instant();
   }
 
-  public void setId(Long id) {
+  public void setId(UUID id) {
     this.id = id;
   }
 
-  public Long getId() {
+  public UUID getId() {
     return id;
   }
 
@@ -183,7 +184,7 @@ public class Appointment {
     return patientPhone;
   }
 
-  public Long getDoctorId() {
+  public UUID getDoctorId() {
     return doctorId;
   }
 
@@ -195,7 +196,7 @@ public class Appointment {
     return doctorSpecialty;
   }
 
-  public Long getSlotId() {
+  public UUID getSlotId() {
     return slotId;
   }
 

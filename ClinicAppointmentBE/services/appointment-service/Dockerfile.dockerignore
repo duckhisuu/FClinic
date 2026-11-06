@@ -1,0 +1,5 @@
+**
+!services/
+!services/appointment-service/
+!services/appointment-service/target/
+!services/appointment-service/target/appointment-service-1.0.0-SNAPSHOT.jar
