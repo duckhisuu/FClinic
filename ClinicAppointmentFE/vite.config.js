@@ -8,6 +8,9 @@ export default defineConfig(({ mode }) => {
       host: "127.0.0.1",
       port: 5173,
       proxy: {
+        "/api/v3/patients": {
+          target: env.VITE_PATIENT_PROXY_TARGET || "http://localhost:8081",
+        },
         "/api/v2/appointments": {
           target: env.VITE_APPOINTMENT_PROXY_TARGET || "http://localhost:8083",
         },

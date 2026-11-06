@@ -29,7 +29,7 @@ apiClient.interceptors.response.use(
 );
 
 // Fallback interactive mock data for seamless demo when backend services are offline
-const MOCK_DOCTORS = [
+let MOCK_DOCTORS = [
   {
     id: 1,
     name: 'BS. CKII Nguyễn Văn An',
@@ -84,15 +84,25 @@ const MOCK_DOCTORS = [
   },
 ];
 
-const generateMockSlots = (doctorId, dateStr) => [
-  { id: doctorId * 10 + 1, doctorId, slotDate: dateStr, startTime: '08:00:00', endTime: '08:30:00', isBooked: false },
-  { id: doctorId * 10 + 2, doctorId, slotDate: dateStr, startTime: '08:30:00', endTime: '09:00:00', isBooked: false },
-  { id: doctorId * 10 + 3, doctorId, slotDate: dateStr, startTime: '09:00:00', endTime: '09:30:00', isBooked: true },
-  { id: doctorId * 10 + 4, doctorId, slotDate: dateStr, startTime: '10:00:00', endTime: '10:30:00', isBooked: false },
-  { id: doctorId * 10 + 5, doctorId, slotDate: dateStr, startTime: '14:00:00', endTime: '14:30:00', isBooked: false },
-  { id: doctorId * 10 + 6, doctorId, slotDate: dateStr, startTime: '14:30:00', endTime: '15:00:00', isBooked: false },
-  { id: doctorId * 10 + 7, doctorId, slotDate: dateStr, startTime: '15:30:00', endTime: '16:00:00', isBooked: false },
-];
+let mockDynamicSlots = {};
+
+const generateMockSlots = (doctorId, dateStr) => {
+  const key = `${doctorId}_${dateStr}`;
+  if (mockDynamicSlots[key]) {
+    return mockDynamicSlots[key];
+  }
+  const defaultSlots = [
+    { id: doctorId * 100 + 1, doctorId, slotDate: dateStr, startTime: '08:00:00', endTime: '08:30:00', isBooked: false },
+    { id: doctorId * 100 + 2, doctorId, slotDate: dateStr, startTime: '08:30:00', endTime: '09:00:00', isBooked: false },
+    { id: doctorId * 100 + 3, doctorId, slotDate: dateStr, startTime: '09:00:00', endTime: '09:30:00', isBooked: true },
+    { id: doctorId * 100 + 4, doctorId, slotDate: dateStr, startTime: '10:00:00', endTime: '10:30:00', isBooked: false },
+    { id: doctorId * 100 + 5, doctorId, slotDate: dateStr, startTime: '14:00:00', endTime: '14:30:00', isBooked: false },
+    { id: doctorId * 100 + 6, doctorId, slotDate: dateStr, startTime: '14:30:00', endTime: '15:00:00', isBooked: false },
+    { id: doctorId * 100 + 7, doctorId, slotDate: dateStr, startTime: '15:30:00', endTime: '16:00:00', isBooked: false },
+  ];
+  mockDynamicSlots[key] = defaultSlots;
+  return defaultSlots;
+};
 
 let mockAppointments = [
   {
@@ -208,8 +218,12 @@ export const doctorApi = {
       return await apiClient.get(`/api/v1/doctors?${params.toString()}`);
     } catch {
       let filtered = [...MOCK_DOCTORS];
-      if (specialty) filtered = filtered.filter((d) => d.specialty.toLowerCase() === specialty.toLowerCase());
-      if (department) filtered = filtered.filter((d) => d.department.toLowerCase() === department.toLowerCase());
+      if (specialty && specialty !== 'Tất cả') {
+        filtered = filtered.filter((d) => d.specialty.toLowerCase() === specialty.toLowerCase());
+      }
+      if (department && department !== 'Tất cả') {
+        filtered = filtered.filter((d) => d.department.toLowerCase() === department.toLowerCase());
+      }
       return filtered;
     }
   },
@@ -222,6 +236,28 @@ export const doctorApi = {
     }
   },
 
+  createDoctor: async (data) => {
+    try {
+      return await apiClient.post('/api/v1/doctors', data);
+    } catch {
+      const newDoctor = {
+        id: MOCK_DOCTORS.length + 1,
+        name: data.name,
+        specialty: data.specialty,
+        department: data.department || 'Khoa Khám Bệnh',
+        qualification: data.qualification || 'Bác sĩ Chuyên khoa',
+        experienceYears: Number(data.experienceYears) || 5,
+        consultationFee: Number(data.consultationFee) || 300000,
+        roomNumber: data.roomNumber || 'P.101 - Tầng 1',
+        bio: data.bio || 'Bác sĩ tận tâm, giàu kinh nghiệm chuyên môn trong chẩn đoán và điều trị.',
+        avatarUrl: data.avatarUrl || 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400',
+        active: true,
+      };
+      MOCK_DOCTORS.push(newDoctor);
+      return newDoctor;
+    }
+  },
+
   getDoctorSlots: async (doctorId, date) => {
     try {
       const params = date ? `?date=${date}` : '';
@@ -229,6 +265,67 @@ export const doctorApi = {
     } catch {
       const dateStr = date || new Date().toISOString().split('T')[0];
       return generateMockSlots(doctorId, dateStr);
+    }
+  },
+
+  createDoctorSlot: async (doctorId, slotData) => {
+    try {
+      return await apiClient.post(`/api/v1/doctors/${doctorId}/slots`, slotData);
+    } catch {
+      const dateStr = slotData.slotDate;
+      const key = `${doctorId}_${dateStr}`;
+      const currentSlots = generateMockSlots(doctorId, dateStr);
+      const newSlot = {
+        id: Date.now(),
+        doctorId: Number(doctorId),
+        slotDate: dateStr,
+        startTime: slotData.startTime.length === 5 ? slotData.startTime + ':00' : slotData.startTime,
+        endTime: slotData.endTime.length === 5 ? slotData.endTime + ':00' : slotData.endTime,
+        isBooked: false,
+      };
+      const updated = [...currentSlots, newSlot].sort((a, b) => a.startTime.localeCompare(b.startTime));
+      mockDynamicSlots[key] = updated;
+      return newSlot;
+    }
+  },
+
+  getDoctorSchedule: async (doctorId, period = 'WEEK', anchorDate) => {
+    try {
+      const params = new URLSearchParams();
+      if (period) params.append('period', period);
+      if (anchorDate) params.append('anchorDate', anchorDate);
+      return await apiClient.get(`/api/v1/doctors/${doctorId}/schedule?${params.toString()}`);
+    } catch {
+      // Generate mock schedule days
+      const anchor = anchorDate ? new Date(anchorDate) : new Date();
+      const numDays = period === 'MONTH' ? 30 : 7;
+      const days = [];
+      
+      const start = new Date(anchor);
+      if (period === 'WEEK') {
+        const dayOfWeek = (start.getDay() + 6) % 7; // Monday = 0
+        start.setDate(start.getDate() - dayOfWeek);
+      } else {
+        start.setDate(1);
+      }
+
+      for (let i = 0; i < numDays; i++) {
+        const d = new Date(start);
+        d.setDate(start.getDate() + i);
+        const dateStr = d.toISOString().split('T')[0];
+        days.push({
+          date: dateStr,
+          slots: generateMockSlots(doctorId, dateStr),
+        });
+      }
+
+      return {
+        doctorId: Number(doctorId),
+        period,
+        fromDate: days[0]?.date,
+        toDate: days[days.length - 1]?.date,
+        days,
+      };
     }
   },
 };

@@ -1521,3 +1521,10 @@ hr {
     padding: 12px;
   }
 }
+
+/* Patient navigation expansion: preserve readable, horizontally scrollable mobile tabs. */
+@media (max-width: 800px) {
+  .sidebar nav { overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: thin; padding-bottom: 3px; }
+  .sidebar nav button { flex: 0 0 auto; white-space: nowrap; padding: 11px 12px; }
+  .sidebar nav strong { font-size: 11px; }
+}

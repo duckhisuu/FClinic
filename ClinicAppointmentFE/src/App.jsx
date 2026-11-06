@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import {
   HeartPulse,
   CalendarDays,
@@ -8,21 +8,38 @@ import {
   Stethoscope,
   MapPin,
   Bell,
+  UsersRound,
 } from "lucide-react";
 import { DoctorDirectory } from "./appointment/DoctorDirectory";
 import { Booking } from "./appointment/Booking";
 import { AppointmentHistory } from "./appointment/AppointmentHistory";
 import { NotificationDrawer } from "./components/NotificationDrawer";
+import { DoctorSchedulePage } from "./pages/DoctorSchedulePage";
+import { PatientModule, previewRequested } from "./patient/PatientModule";
 
 // The host may supply its existing user context. Appointment does not implement login or roles.
 export default function App({
   patientId = null,
   actorSubject = "appointment-ui",
+  patientSession = null,
 }) {
-  const [tab, setTab] = useState("doctors"),
+  const patientLeave = useRef(null);
+  const registerPatientGuard = useCallback(guard => { patientLeave.current = guard; }, []);
+  const [tab, setTab] = useState(previewRequested() ? "patients" : "doctors"),
     [selection, setSelection] = useState(null),
-    [isNotificationOpen, setIsNotificationOpen] = useState(false);
+    [isNotificationOpen, setIsNotificationOpen] = useState(false),
+    [doctorNotice, setDoctorNotice] = useState("");
+  const selectTab = next => {
+    if (tab !== "patients" || !patientLeave.current || patientLeave.current()) setTab(next);
+  };
   const menu = [
+    { id: "patients", icon: UsersRound, title: "Quản lý bệnh nhân", desc: "Hồ sơ & bệnh án" },
+    {
+      id: "doctor-management",
+      icon: Stethoscope,
+      title: "Quản lý bác sĩ (demo)",
+      desc: "Hồ sơ & lịch bác sĩ",
+    },
     {
       id: "doctors",
       icon: Stethoscope,
@@ -50,7 +67,7 @@ export default function App({
           href="/"
           onClick={(e) => {
             e.preventDefault();
-            setTab("doctors");
+            selectTab("doctors");
           }}
         >
           <span>
@@ -97,7 +114,7 @@ export default function App({
               <button
                 key={item.id}
                 className={tab === item.id ? "active" : ""}
-                onClick={() => setTab(item.id)}
+                onClick={() => selectTab(item.id)}
               >
                 <item.icon size={21} />
                 <span>
@@ -123,7 +140,21 @@ export default function App({
           </div>
         </aside>
         <main className="main">
-          {tab === "doctors" ? (
+          {tab === "patients" ? (
+            <PatientModule session={patientSession} onBeforeLeave={registerPatientGuard} />
+          ) : tab === "doctor-management" ? (
+            <section>
+              <p role="status">
+                {doctorNotice || "Bản xem trước quản lý bác sĩ. Đặt lịch tại mục Bác sĩ & giờ khám."}
+              </p>
+              <DoctorSchedulePage
+                onNotify={(message) => setDoctorNotice(message)}
+                onSelectSlot={() =>
+                  setDoctorNotice("Đặt lịch từ bản xem trước chưa sẵn sàng. Vui lòng dùng mục Bác sĩ & giờ khám.")
+                }
+              />
+            </section>
+          ) : tab === "doctors" ? (
             <DoctorDirectory
               onPick={(doctor, slot) => {
                 setSelection({ doctor, slot });
