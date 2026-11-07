@@ -22,7 +22,7 @@ spring:
             - id: doctor-service-route
               uri: lb://doctor-service
               predicates:
-                - Path=/api/v1/doctors/**
+                - Path=/api/v1/doctors/**,/internal/v1/doctors/**
             - id: appointment-service-route
               uri: lb://appointment-service
               predicates:

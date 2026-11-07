@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Component
 public class JpaDoctorRepositoryAdapter implements DoctorRepositoryPort, DoctorRepository {
@@ -28,7 +29,7 @@ public class JpaDoctorRepositoryAdapter implements DoctorRepositoryPort, DoctorR
     }
 
     @Override
-    public Optional<Doctor> findById(Long id) {
+    public Optional<Doctor> findById(UUID id) {
         return repository.findById(id).map(DoctorPersistenceMapper::toDomain);
     }
 
@@ -51,5 +52,4 @@ public class JpaDoctorRepositoryAdapter implements DoctorRepositoryPort, DoctorR
     public long count() {
         return repository.count();
     }
-
 }

@@ -9,6 +9,7 @@ import com.fclinic.doctorservice.application.result.TimeSlotView;
 
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 public final class DoctorApiMapper {
@@ -22,20 +23,23 @@ public final class DoctorApiMapper {
                 request.getRoomNumber(), request.getBio(), request.getAvatarUrl());
     }
 
-    public static CreateTimeSlotCommand toCommand(Long doctorId, CreateTimeSlotRequest request) {
+    public static CreateTimeSlotCommand toCommand(UUID doctorId, CreateTimeSlotRequest request) {
         return new CreateTimeSlotCommand(doctorId, request.getSlotDate(), request.getStartTime(), request.getEndTime());
     }
 
     public static DoctorResponse toResponse(DoctorView view) {
+        if (view == null) return null;
         return new DoctorResponse(view.id(), view.name(), view.specialty(), view.department(), view.qualification(),
                 view.experienceYears(), view.consultationFee(), view.roomNumber(), view.bio(), view.avatarUrl(), view.active());
     }
 
     public static TimeSlotResponse toResponse(TimeSlotView view) {
-        return new TimeSlotResponse(view.id(), view.doctorId(), view.slotDate(), view.startTime(), view.endTime(), view.isBooked());
+        if (view == null) return null;
+        return new TimeSlotResponse(view.id(), view.doctorId(), view.slotDate(), view.startTime(), view.endTime(), view.isBooked(), view.published());
     }
 
     public static DoctorScheduleResponse toResponse(DoctorScheduleView view) {
+        if (view == null) return null;
         var slotsByDate = view.slots().stream().collect(Collectors.groupingBy(
                 TimeSlotView::slotDate, LinkedHashMap::new, Collectors.toList()));
         List<DoctorScheduleResponse.ScheduleDayResponse> days = slotsByDate.entrySet().stream()

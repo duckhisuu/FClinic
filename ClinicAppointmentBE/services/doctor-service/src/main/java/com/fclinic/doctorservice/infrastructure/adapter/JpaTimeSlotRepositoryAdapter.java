@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Component
 public class JpaTimeSlotRepositoryAdapter implements TimeSlotRepositoryPort, TimeSlotRepository {
@@ -29,25 +30,30 @@ public class JpaTimeSlotRepositoryAdapter implements TimeSlotRepositoryPort, Tim
     }
 
     @Override
-    public Optional<TimeSlot> findById(Long id) {
+    public Optional<TimeSlot> findById(UUID id) {
         return repository.findById(id).map(TimeSlotPersistenceMapper::toDomain);
     }
 
     @Override
-    public List<TimeSlot> findByDoctorIdAndSlotDateOrderByStartTimeAsc(Long doctorId, LocalDate date) {
+    public Optional<TimeSlot> findByIdAndDoctorId(UUID id, UUID doctorId) {
+        return repository.findByIdAndDoctorId(id, doctorId).map(TimeSlotPersistenceMapper::toDomain);
+    }
+
+    @Override
+    public List<TimeSlot> findByDoctorIdAndSlotDateOrderByStartTimeAsc(UUID doctorId, LocalDate date) {
         return repository.findByDoctorIdAndSlotDateOrderByStartTimeAsc(doctorId, date)
                 .stream().map(TimeSlotPersistenceMapper::toDomain).toList();
     }
 
     @Override
-    public List<TimeSlot> findByDoctorIdAndSlotDateGreaterThanEqualOrderBySlotDateAscStartTimeAsc(Long doctorId, LocalDate date) {
+    public List<TimeSlot> findByDoctorIdAndSlotDateGreaterThanEqualOrderBySlotDateAscStartTimeAsc(UUID doctorId, LocalDate date) {
         return repository.findByDoctorIdAndSlotDateGreaterThanEqualOrderBySlotDateAscStartTimeAsc(doctorId, date)
                 .stream().map(TimeSlotPersistenceMapper::toDomain).toList();
     }
 
     @Override
     public List<TimeSlot> findByDoctorIdAndSlotDateBetweenOrderBySlotDateAscStartTimeAsc(
-            Long doctorId, LocalDate fromDate, LocalDate toDate) {
+            UUID doctorId, LocalDate fromDate, LocalDate toDate) {
         return repository.findByDoctorIdAndSlotDateBetweenOrderBySlotDateAscStartTimeAsc(doctorId, fromDate, toDate)
                 .stream().map(TimeSlotPersistenceMapper::toDomain).toList();
     }
@@ -56,5 +62,4 @@ public class JpaTimeSlotRepositoryAdapter implements TimeSlotRepositoryPort, Tim
     public long count() {
         return repository.count();
     }
-
 }

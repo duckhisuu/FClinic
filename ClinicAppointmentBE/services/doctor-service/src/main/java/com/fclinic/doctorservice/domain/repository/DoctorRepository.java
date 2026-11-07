@@ -4,12 +4,13 @@ import com.fclinic.doctorservice.domain.aggregate.Doctor;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 public interface DoctorRepository {
 
     Doctor save(Doctor doctor);
 
-    Optional<Doctor> findById(Long id);
+    Optional<Doctor> findById(UUID id);
 
     List<Doctor> findByActiveTrue();
 

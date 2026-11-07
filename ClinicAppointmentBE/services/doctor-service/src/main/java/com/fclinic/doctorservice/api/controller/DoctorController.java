@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/doctors")
@@ -45,7 +46,7 @@ public class DoctorController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<DoctorResponse>> getDoctorById(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<DoctorResponse>> getDoctorById(@PathVariable UUID id) {
         DoctorView view = getDoctorUseCase.getById(id)
                 .orElseThrow(() -> new DoctorNotFoundException("Không tìm thấy bác sĩ ID: " + id));
         return ResponseEntity.ok(ApiResponse.success(DoctorApiMapper.toResponse(view)));
@@ -60,7 +61,7 @@ public class DoctorController {
 
     @GetMapping("/{id}/slots")
     public ResponseEntity<ApiResponse<List<TimeSlotResponse>>> getDoctorSlots(
-            @PathVariable Long id,
+            @PathVariable UUID id,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
     ) {
         List<TimeSlotResponse> slots = listTimeSlotsUseCase.listSlots(id, date)
@@ -70,7 +71,7 @@ public class DoctorController {
 
     @GetMapping("/{id}/schedule")
     public ResponseEntity<ApiResponse<DoctorScheduleResponse>> getDoctorSchedule(
-            @PathVariable Long id,
+            @PathVariable UUID id,
             @RequestParam(defaultValue = "WEEK") SchedulePeriod period,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate anchorDate
     ) {
@@ -80,7 +81,7 @@ public class DoctorController {
 
     @PostMapping("/{id}/slots")
     public ResponseEntity<ApiResponse<TimeSlotResponse>> createSlot(
-            @PathVariable Long id,
+            @PathVariable UUID id,
             @Valid @RequestBody CreateTimeSlotRequest request
     ) {
         TimeSlotView view = createTimeSlotUseCase.createTimeSlot(DoctorApiMapper.toCommand(id, request));

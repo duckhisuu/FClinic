@@ -1,7 +1,9 @@
 package com.fclinic.doctorservice.api.dto;
 
+import java.util.UUID;
+
 public record DoctorResponse(
-        Long id,
+        UUID id,
         String name,
         String specialty,
         String department,
