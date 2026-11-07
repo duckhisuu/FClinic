@@ -31,7 +31,7 @@ apiClient.interceptors.response.use(
 // Fallback interactive mock data for seamless demo when backend services are offline
 let MOCK_DOCTORS = [
   {
-    id: 1,
+    id: '11111111-1111-1111-1111-111111111111',
     name: 'BS. CKII Nguyễn Văn An',
     specialty: 'Tim Mạch',
     department: 'Khoa Nội Tim Mạch',
@@ -44,7 +44,7 @@ let MOCK_DOCTORS = [
     active: true,
   },
   {
-    id: 2,
+    id: '22222222-2222-2222-2222-222222222222',
     name: 'ThS. BS Trần Thị Mai',
     specialty: 'Nhi Khoa',
     department: 'Khoa Nhi',
@@ -57,7 +57,7 @@ let MOCK_DOCTORS = [
     active: true,
   },
   {
-    id: 3,
+    id: '33333333-3333-3333-3333-333333333333',
     name: 'BS. CKI Lê Hoàng Quân',
     specialty: 'Răng Hàm Mặt',
     department: 'Khoa Răng Hàm Mặt',
@@ -70,7 +70,7 @@ let MOCK_DOCTORS = [
     active: true,
   },
   {
-    id: 4,
+    id: '44444444-4444-4444-4444-444444444444',
     name: 'PGS. TS Phạm Minh Đức',
     specialty: 'Cơ Xương Khớp',
     department: 'Khoa Cơ Xương Khớp',
@@ -91,15 +91,25 @@ const generateMockSlots = (doctorId, dateStr) => {
   if (mockDynamicSlots[key]) {
     return mockDynamicSlots[key];
   }
-  const defaultSlots = [
-    { id: doctorId * 100 + 1, doctorId, slotDate: dateStr, startTime: '08:00:00', endTime: '08:30:00', isBooked: false },
-    { id: doctorId * 100 + 2, doctorId, slotDate: dateStr, startTime: '08:30:00', endTime: '09:00:00', isBooked: false },
-    { id: doctorId * 100 + 3, doctorId, slotDate: dateStr, startTime: '09:00:00', endTime: '09:30:00', isBooked: true },
-    { id: doctorId * 100 + 4, doctorId, slotDate: dateStr, startTime: '10:00:00', endTime: '10:30:00', isBooked: false },
-    { id: doctorId * 100 + 5, doctorId, slotDate: dateStr, startTime: '14:00:00', endTime: '14:30:00', isBooked: false },
-    { id: doctorId * 100 + 6, doctorId, slotDate: dateStr, startTime: '14:30:00', endTime: '15:00:00', isBooked: false },
-    { id: doctorId * 100 + 7, doctorId, slotDate: dateStr, startTime: '15:30:00', endTime: '16:00:00', isBooked: false },
+  const times = [
+    ['08:00:00', '08:30:00', false],
+    ['08:30:00', '09:00:00', false],
+    ['09:00:00', '09:30:00', true],
+    ['10:00:00', '10:30:00', false],
+    ['14:00:00', '14:30:00', false],
+    ['14:30:00', '15:00:00', false],
+    ['15:30:00', '16:00:00', false],
   ];
+  const docDigits = String(doctorId).replace(/[^0-9a-fA-F]/g, '').slice(-8).padStart(8, '0');
+  const defaultSlots = times.map(([startTime, endTime, isBooked], idx) => ({
+    id: `a0000000-0000-4000-8000-${docDigits}${(idx + 1).toString().padStart(4, '0')}`,
+    doctorId: String(doctorId),
+    slotDate: dateStr,
+    startTime,
+    endTime,
+    isBooked,
+    published: true,
+  }));
   mockDynamicSlots[key] = defaultSlots;
   return defaultSlots;
 };
@@ -111,7 +121,7 @@ let mockAppointments = [
     patientId: 1,
     patientName: 'Nguyễn Văn Hùng',
     patientPhone: '0912345678',
-    doctorId: 1,
+    doctorId: '11111111-1111-1111-1111-111111111111',
     doctorName: 'BS. CKII Nguyễn Văn An',
     doctorSpecialty: 'Tim Mạch',
     slotId: 1,
@@ -129,7 +139,7 @@ let mockAppointments = [
     patientId: 2,
     patientName: 'Lê Thuỳ Linh',
     patientPhone: '0987654321',
-    doctorId: 2,
+    doctorId: '22222222-2222-2222-2222-222222222222',
     doctorName: 'ThS. BS Trần Thị Mai',
     doctorSpecialty: 'Nhi Khoa',
     slotId: 2,
@@ -232,7 +242,7 @@ export const doctorApi = {
     try {
       return await apiClient.get(`/api/v1/doctors/${id}`);
     } catch {
-      return MOCK_DOCTORS.find((d) => d.id === Number(id)) || MOCK_DOCTORS[0];
+      return MOCK_DOCTORS.find((d) => String(d.id) === String(id)) || MOCK_DOCTORS[0];
     }
   },
 
@@ -241,7 +251,7 @@ export const doctorApi = {
       return await apiClient.post('/api/v1/doctors', data);
     } catch {
       const newDoctor = {
-        id: MOCK_DOCTORS.length + 1,
+        id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : '550e8400-e29b-41d4-a716-44665544' + (MOCK_DOCTORS.length + 1).toString().padStart(4, '0'),
         name: data.name,
         specialty: data.specialty,
         department: data.department || 'Khoa Khám Bệnh',
@@ -276,8 +286,8 @@ export const doctorApi = {
       const key = `${doctorId}_${dateStr}`;
       const currentSlots = generateMockSlots(doctorId, dateStr);
       const newSlot = {
-        id: Date.now(),
-        doctorId: Number(doctorId),
+        id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : '660e8400-e29b-41d4-a716-44665544' + Date.now().toString(16).slice(-4),
+        doctorId: String(doctorId),
         slotDate: dateStr,
         startTime: slotData.startTime.length === 5 ? slotData.startTime + ':00' : slotData.startTime,
         endTime: slotData.endTime.length === 5 ? slotData.endTime + ':00' : slotData.endTime,
@@ -320,7 +330,7 @@ export const doctorApi = {
       }
 
       return {
-        doctorId: Number(doctorId),
+        doctorId: String(doctorId),
         period,
         fromDate: days[0]?.date,
         toDate: days[days.length - 1]?.date,

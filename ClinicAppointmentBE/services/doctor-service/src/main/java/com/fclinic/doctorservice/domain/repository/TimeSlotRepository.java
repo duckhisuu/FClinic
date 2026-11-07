@@ -5,18 +5,22 @@ import com.fclinic.doctorservice.domain.model.TimeSlot;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 public interface TimeSlotRepository {
 
     TimeSlot save(TimeSlot timeSlot);
 
-    Optional<TimeSlot> findById(Long id);
+    Optional<TimeSlot> findById(UUID id);
 
-    List<TimeSlot> findByDoctorIdAndSlotDateOrderByStartTimeAsc(Long doctorId, LocalDate date);
+    Optional<TimeSlot> findByIdAndDoctorId(UUID id, UUID doctorId);
 
-    List<TimeSlot> findByDoctorIdAndSlotDateGreaterThanEqualOrderBySlotDateAscStartTimeAsc(Long doctorId, LocalDate date);
+    List<TimeSlot> findByDoctorIdAndSlotDateOrderByStartTimeAsc(UUID doctorId, LocalDate date);
+
+    List<TimeSlot> findByDoctorIdAndSlotDateGreaterThanEqualOrderBySlotDateAscStartTimeAsc(UUID doctorId, LocalDate date);
+
     List<TimeSlot> findByDoctorIdAndSlotDateBetweenOrderBySlotDateAscStartTimeAsc(
-            Long doctorId, LocalDate fromDate, LocalDate toDate);
+            UUID doctorId, LocalDate fromDate, LocalDate toDate);
 
     long count();
 }

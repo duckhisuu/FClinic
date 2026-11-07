@@ -5,6 +5,7 @@ import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "doctor_time_slots")
@@ -16,11 +17,11 @@ import java.time.LocalTime;
 public class JpaTimeSlotEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Column(name = "doctor_id", nullable = false)
-    private Long doctorId;
+    private UUID doctorId;
 
     @Column(name = "slot_date", nullable = false)
     private LocalDate slotDate;
@@ -33,4 +34,8 @@ public class JpaTimeSlotEntity {
 
     @Column(name = "is_booked", nullable = false)
     private boolean isBooked;
+
+    @Column(name = "published", nullable = false)
+    @Builder.Default
+    private boolean published = true;
 }

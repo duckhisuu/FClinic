@@ -1,7 +1,9 @@
 package com.fclinic.doctorservice.application.result;
 
+import java.util.UUID;
+
 public record DoctorView(
-        Long id,
+        UUID id,
         String name,
         String specialty,
         String department,
