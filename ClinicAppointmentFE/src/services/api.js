@@ -10,6 +10,15 @@ export const apiClient = axios.create({
   },
 });
 
+// Request interceptor to attach Bearer token
+apiClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem('fclinic_token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 // Response interceptor to unwrap ApiResponse format: { status, message, data }
 apiClient.interceptors.response.use(
   (response) => {

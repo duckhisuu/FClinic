@@ -99,7 +99,7 @@ export const PatientHistoryPage = ({ onBookNew }) => {
             <FileCheck className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="Hoặc mã hẹn (VD: FC-DEMO001)"
+              placeholder="Hoặc mã hẹn (VD: FC-APT-001)"
               value={searchCode}
               onChange={(e) => {
                 setSearchCode(e.target.value);

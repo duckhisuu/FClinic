@@ -23,6 +23,7 @@
         <module>common/common-web</module>
         <module>infra/discovery-server</module>
         <module>infra/api-gateway</module>
+        <module>services/auth-service</module>
         <module>services/patient-service</module>
         <module>services/doctor-service</module>
         <module>services/appointment-service</module>

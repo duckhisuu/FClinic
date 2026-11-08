@@ -15,11 +15,15 @@ export class ApiError extends Error {
 // Appointment HTTP adapter only; authentication stays in the existing host application.
 export const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_GATEWAY_URL || "",
-  timeout: 10000,
+  timeout: 60000,
   withCredentials: true,
 });
 apiClient.interceptors.request.use((config) => {
   config.headers["X-Request-Id"] = crypto.randomUUID();
+  const token = localStorage.getItem("fclinic_token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
   return config;
 });
 apiClient.interceptors.response.use(

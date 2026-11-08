@@ -1,0 +1,681 @@
+{
+  "id": "fclinic",
+  "realm": "fclinic",
+  "displayName": "FClinic Healthcare Identity",
+  "enabled": true,
+  "sslRequired": "external",
+  "registrationAllowed": true,
+  "registrationEmailAsUsername": false,
+  "rememberMe": true,
+  "verifyEmail": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": true,
+  "failureFactor": 5,
+  "waitIncrementSeconds": 60,
+  "maxFailureWaitSeconds": 900,
+  "accessTokenLifespan": 3600,
+  "ssoSessionIdleTimeout": 3600,
+  "ssoSessionMaxLifespan": 36000,
+  "offlineSessionIdleTimeout": 2592000,
+  "roles": {
+    "realm": [
+      {
+        "id": "a0000001-0000-4000-8000-000000000001",
+        "name": "ROLE_ADMIN",
+        "description": "System Administrator - full user, role and clinic management access",
+        "composite": false,
+        "clientRole": false
+      },
+      {
+        "id": "a0000001-0000-4000-8000-000000000002",
+        "name": "ROLE_DOCTOR",
+        "description": "Doctor - schedule management and patient clinical records",
+        "composite": false,
+        "clientRole": false
+      },
+      {
+        "id": "a0000001-0000-4000-8000-000000000003",
+        "name": "ROLE_PATIENT",
+        "description": "Patient - appointment booking and personal profile access",
+        "composite": false,
+        "clientRole": false
+      },
+      {
+        "id": "a0000001-0000-4000-8000-000000000004",
+        "name": "ROLE_STAFF",
+        "description": "Reception Staff - walk-in patient intake and desk operations",
+        "composite": false,
+        "clientRole": false
+      },
+      {
+        "id": "a0000001-0000-4000-8000-000000000005",
+        "name": "SVC_APPOINTMENT_READ",
+        "description": "Service-to-service capability for appointment reference lookups",
+        "composite": false,
+        "clientRole": false
+      },
+      {
+        "id": "a0000001-0000-4000-8000-000000000006",
+        "name": "SVC_PATIENT_PROFILE_READ",
+        "description": "Service-to-service capability for reading patient profile metadata",
+        "composite": false,
+        "clientRole": false
+      }
+    ]
+  },
+  "defaultRole": {
+    "id": "a0000001-0000-4000-8000-000000000003",
+    "name": "ROLE_PATIENT"
+  },
+  "clientScopes": [
+    {
+      "id": "b0000001-0000-4000-8000-000000000001",
+      "name": "fclinic-claims",
+      "description": "Maps FClinic UUID business identifiers, roles, and microservice audiences into OIDC tokens",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "false"
+      },
+      "protocolMappers": [
+        {
+          "name": "fclinic-audience-patient-service",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.custom.audience": "patient-service",
+            "id.token.claim": "false",
+            "access.token.claim": "true",
+            "introspection.token.claim": "true"
+          }
+        },
+        {
+          "name": "fclinic-audience-auth-service",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.custom.audience": "auth-service",
+            "id.token.claim": "false",
+            "access.token.claim": "true",
+            "introspection.token.claim": "true"
+          }
+        },
+        {
+          "name": "fclinic-user-id-mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "userinfo.token.claim": "true",
+            "user.attribute": "fclinic_user_id",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "fclinic_user_id",
+            "jsonType.label": "String",
+            "introspection.token.claim": "true"
+          }
+        },
+        {
+          "name": "fclinic-patient-id-mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "userinfo.token.claim": "true",
+            "user.attribute": "patient_id",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "patient_id",
+            "jsonType.label": "String",
+            "introspection.token.claim": "true"
+          }
+        },
+        {
+          "name": "fclinic-doctor-id-mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "userinfo.token.claim": "true",
+            "user.attribute": "doctor_id",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "doctor_id",
+            "jsonType.label": "String",
+            "introspection.token.claim": "true"
+          }
+        },
+        {
+          "name": "fclinic-realm-roles-mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "userinfo.token.claim": "true",
+            "multivalued": "true",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "authorities",
+            "jsonType.label": "String",
+            "introspection.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "id": "b0000001-0000-4000-8000-000000000002",
+      "name": "basic",
+      "description": "OpenID Connect scope for add all basic claims to the token",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "false",
+        "display.on.consent.screen": "false"
+      },
+      "protocolMappers": [
+        {
+          "name": "auth_time",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usersessionmodel-note-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.session.note": "AUTH_TIME",
+            "id.token.claim": "true",
+            "introspection.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "auth_time",
+            "jsonType.label": "long"
+          }
+        },
+        {
+          "name": "sub",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-sub-mapper",
+          "consentRequired": false,
+          "config": {
+            "introspection.token.claim": "true",
+            "access.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "id": "b0000001-0000-4000-8000-000000000003",
+      "name": "acr",
+      "description": "OpenID Connect scope for add acr (authentication context class reference) to the token",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "false",
+        "display.on.consent.screen": "false"
+      },
+      "protocolMappers": [
+        {
+          "name": "acr loa level",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-acr-mapper",
+          "consentRequired": false,
+          "config": {
+            "id.token.claim": "true",
+            "introspection.token.claim": "true",
+            "access.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "id": "b0000001-0000-4000-8000-000000000004",
+      "name": "profile",
+      "description": "OpenID Connect built-in scope: profile",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "consent.screen.text": "${profileScopeConsentText}",
+        "display.on.consent.screen": "true"
+      },
+      "protocolMappers": [
+        {
+          "name": "username",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "introspection.token.claim": "true",
+            "userinfo.token.claim": "true",
+            "user.attribute": "username",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "preferred_username",
+            "jsonType.label": "String"
+          }
+        },
+        {
+          "name": "full name",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-full-name-mapper",
+          "consentRequired": false,
+          "config": {
+            "id.token.claim": "true",
+            "introspection.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        },
+        {
+          "name": "given name",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "introspection.token.claim": "true",
+            "userinfo.token.claim": "true",
+            "user.attribute": "firstName",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "given_name",
+            "jsonType.label": "String"
+          }
+        },
+        {
+          "name": "family name",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "introspection.token.claim": "true",
+            "userinfo.token.claim": "true",
+            "user.attribute": "lastName",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "family_name",
+            "jsonType.label": "String"
+          }
+        }
+      ]
+    },
+    {
+      "id": "b0000001-0000-4000-8000-000000000005",
+      "name": "email",
+      "description": "OpenID Connect built-in scope: email",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "consent.screen.text": "${emailScopeConsentText}",
+        "display.on.consent.screen": "true"
+      },
+      "protocolMappers": [
+        {
+          "name": "email",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "introspection.token.claim": "true",
+            "userinfo.token.claim": "true",
+            "user.attribute": "email",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "email",
+            "jsonType.label": "String"
+          }
+        },
+        {
+          "name": "email verified",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-property-mapper",
+          "consentRequired": false,
+          "config": {
+            "introspection.token.claim": "true",
+            "userinfo.token.claim": "true",
+            "user.attribute": "emailVerified",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "email_verified",
+            "jsonType.label": "boolean"
+          }
+        }
+      ]
+    },
+    {
+      "id": "b0000001-0000-4000-8000-000000000006",
+      "name": "roles",
+      "description": "OpenID Connect scope for add user roles to the access token",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "false",
+        "consent.screen.text": "${rolesScopeConsentText}",
+        "display.on.consent.screen": "true"
+      },
+      "protocolMappers": [
+        {
+          "name": "audience resolve",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-resolve-mapper",
+          "consentRequired": false,
+          "config": {
+            "introspection.token.claim": "true",
+            "access.token.claim": "true"
+          }
+        },
+        {
+          "name": "realm roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "foo",
+            "introspection.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "realm_access.roles",
+            "jsonType.label": "String",
+            "multivalued": "true"
+          }
+        },
+        {
+          "name": "client roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-client-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "foo",
+            "introspection.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "resource_access.${client_id}.roles",
+            "jsonType.label": "String",
+            "multivalued": "true"
+          }
+        }
+      ]
+    },
+    {
+      "id": "b0000001-0000-4000-8000-000000000007",
+      "name": "web-origins",
+      "description": "OpenID Connect scope for add allowed web origins to the access token",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "false",
+        "consent.screen.text": "",
+        "display.on.consent.screen": "false"
+      },
+      "protocolMappers": [
+        {
+          "name": "allowed web origins",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-allowed-origins-mapper",
+          "consentRequired": false,
+          "config": {
+            "introspection.token.claim": "true",
+            "access.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "id": "b0000001-0000-4000-8000-000000000008",
+      "name": "role_list",
+      "description": "SAML role list",
+      "protocol": "saml",
+      "attributes": {
+        "consent.screen.text": "${samlRoleListScopeConsentText}",
+        "display.on.consent.screen": "true"
+      },
+      "protocolMappers": [
+        {
+          "name": "role list",
+          "protocol": "saml",
+          "protocolMapper": "saml-role-list-mapper",
+          "consentRequired": false,
+          "config": {
+            "single": "false",
+            "attribute.nameformat": "Basic",
+            "attribute.name": "Role"
+          }
+        }
+      ]
+    }
+  ],
+  "defaultDefaultClientScopes": [
+    "role_list",
+    "basic",
+    "acr",
+    "profile",
+    "email",
+    "roles",
+    "web-origins",
+    "fclinic-claims"
+  ],
+  "clients": [
+    {
+      "id": "c0000001-0000-4000-8000-000000000001",
+      "clientId": "fclinic-auth-service",
+      "name": "FClinic Auth Service (Backend Facade & Admin Sync)",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "fclinic-auth-secret-dev",
+      "publicClient": false,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": true,
+      "implicitFlowEnabled": false,
+      "fullScopeAllowed": true,
+      "defaultClientScopes": ["basic", "acr", "profile", "email", "roles", "web-origins", "fclinic-claims"],
+      "redirectUris": [
+        "http://localhost:8085/*",
+        "http://localhost:8080/*",
+        "http://localhost:5173/*",
+        "http://localhost:3000/*"
+      ],
+      "webOrigins": [
+        "http://localhost:8085",
+        "http://localhost:8080",
+        "http://localhost:5173",
+        "http://localhost:3000"
+      ]
+    },
+    {
+      "id": "c0000001-0000-4000-8000-000000000002",
+      "clientId": "fclinic-web",
+      "name": "FClinic Frontend SPA (PKCE)",
+      "enabled": true,
+      "publicClient": true,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "implicitFlowEnabled": false,
+      "defaultClientScopes": ["basic", "acr", "profile", "email", "roles", "web-origins", "fclinic-claims"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      },
+      "redirectUris": [
+        "http://localhost:5173/*",
+        "http://localhost:3000/*",
+        "http://localhost:8080/*"
+      ],
+      "webOrigins": [
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "http://localhost:8080"
+      ]
+    },
+    {
+      "id": "c0000001-0000-4000-8000-000000000003",
+      "clientId": "patient-service",
+      "name": "Patient Service Introspection Client",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "patient-introspection-secret-dev",
+      "publicClient": false,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "fullScopeAllowed": true,
+      "defaultClientScopes": ["basic", "acr", "profile", "email", "roles", "web-origins", "fclinic-claims"]
+    },
+    {
+      "id": "c0000001-0000-4000-8000-000000000004",
+      "clientId": "appointment-service",
+      "name": "Appointment Service M2M Client",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "appointment-service-secret-dev",
+      "publicClient": false,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "fullScopeAllowed": true,
+      "defaultClientScopes": ["basic", "acr", "profile", "email", "roles", "web-origins", "fclinic-claims"]
+    }
+  ],
+  "users": [
+    {
+      "id": "22222222-2222-4222-8222-222222222201",
+      "username": "admin",
+      "email": "admin@fclinic.vn",
+      "firstName": "System",
+      "lastName": "Administrator",
+      "enabled": true,
+      "emailVerified": true,
+      "attributes": {
+        "fclinic_user_id": ["11111111-1111-4111-8111-111111111101"],
+        "phone_number": ["0900000000"]
+      },
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Admin@123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["ROLE_ADMIN"]
+    },
+    {
+      "id": "22222222-2222-4222-8222-222222222202",
+      "username": "staff_linh",
+      "email": "staff@fclinic.vn",
+      "firstName": "Linh",
+      "lastName": "Le",
+      "enabled": true,
+      "emailVerified": true,
+      "attributes": {
+        "fclinic_user_id": ["11111111-1111-4111-8111-111111111102"],
+        "phone_number": ["0900000002"]
+      },
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Staff@123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["ROLE_STAFF"]
+    },
+    {
+      "id": "22222222-2222-4222-8222-222222222203",
+      "username": "bs_an",
+      "email": "doctor.an@fclinic.vn",
+      "firstName": "An",
+      "lastName": "Nguyen Van",
+      "enabled": true,
+      "emailVerified": true,
+      "attributes": {
+        "fclinic_user_id": ["11111111-1111-4111-8111-111111111103"],
+        "doctor_id": ["33333333-3333-4333-8333-333333333301"],
+        "phone_number": ["0900000003"]
+      },
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Doctor@123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["ROLE_DOCTOR"]
+    },
+    {
+      "id": "22222222-2222-4222-8222-222222222204",
+      "username": "patient_hung",
+      "email": "patient@fclinic.vn",
+      "firstName": "Hung",
+      "lastName": "Nguyen Van",
+      "enabled": true,
+      "emailVerified": true,
+      "attributes": {
+        "fclinic_user_id": ["11111111-1111-4111-8111-111111111104"],
+        "patient_id": ["74fba630-5953-44b8-86d6-bc236ac1213b"],
+        "phone_number": ["+84900000001"]
+      },
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Patient@123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["ROLE_PATIENT"]
+    },
+    {
+      "username": "service-account-fclinic-auth-service",
+      "enabled": true,
+      "serviceAccountClientId": "fclinic-auth-service",
+      "clientRoles": {
+        "realm-management": [
+          "manage-users",
+          "view-users",
+          "query-users",
+          "manage-realm",
+          "view-realm"
+        ]
+      }
+    },
+    {
+      "username": "service-account-appointment-service",
+      "enabled": true,
+      "serviceAccountClientId": "appointment-service",
+      "realmRoles": [
+        "SVC_APPOINTMENT_READ",
+        "SVC_PATIENT_PROFILE_READ"
+      ]
+    }
+  ],
+  "identityProviders": [
+    {
+      "alias": "google",
+      "displayName": "Google",
+      "providerId": "google",
+      "enabled": false,
+      "trustEmail": true,
+      "storeToken": false,
+      "addReadTokenRoleOnCreate": false,
+      "authenticateByDefault": false,
+      "linkOnly": false,
+      "firstBrokerLoginFlowAlias": "first broker login",
+      "config": {
+        "clientId": "REPLACE_WITH_GOOGLE_CLIENT_ID",
+        "clientSecret": "REPLACE_WITH_GOOGLE_CLIENT_SECRET",
+        "defaultScope": "openid profile email"
+      }
+    }
+  ],
+  "components": {
+    "org.keycloak.userprofile.UserProfileProvider": [
+      {
+        "id": "d0000001-0000-4000-8000-000000000001",
+        "providerId": "declarative-user-profile",
+        "subComponents": {},
+        "config": {
+          "kc.user.profile.config": [
+            "{\"attributes\":[{\"name\":\"username\",\"displayName\":\"${username}\",\"validations\":{\"length\":{\"min\":3,\"max\":255},\"username-prohibited-characters\":{},\"up-username-not-idn-homograph\":{}},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"email\",\"displayName\":\"${email}\",\"validations\":{\"email\":{},\"length\":{\"max\":255}},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"firstName\",\"displayName\":\"${firstName}\",\"validations\":{\"length\":{\"max\":255},\"person-name-prohibited-characters\":{}},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"lastName\",\"displayName\":\"${lastName}\",\"validations\":{\"length\":{\"max\":255},\"person-name-prohibited-characters\":{}},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"fclinic_user_id\",\"displayName\":\"FClinic User UUID\",\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\"]},\"multivalued\":false},{\"name\":\"patient_id\",\"displayName\":\"FClinic Patient UUID\",\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\"]},\"multivalued\":false},{\"name\":\"doctor_id\",\"displayName\":\"FClinic Doctor UUID\",\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\"]},\"multivalued\":false},{\"name\":\"phone_number\",\"displayName\":\"Phone Number\",\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false}],\"groups\":[{\"name\":\"user-metadata\",\"displayHeader\":\"User metadata\",\"displayDescription\":\"Attributes, which refer to user metadata\"}],\"unmanagedAttributePolicy\":\"ADMIN_EDIT\"}"
+          ]
+        }
+      }
+    ]
+  }
+}
+

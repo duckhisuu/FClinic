@@ -1,5 +1,84 @@
 services:
   # ==============================================================================
+  # PostgreSQL - Auth Service Database
+  # ==============================================================================
+  postgres-auth:
+    image: postgres:16-alpine
+    container_name: fclinic-postgres-auth
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USERNAME:-fclinic_admin}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-fclinic_secret}
+      POSTGRES_DB: ${AUTH_DB_NAME:-auth_db}
+    ports:
+      - "${POSTGRES_AUTH_PORT:-5438}:5432"
+    volumes:
+      - auth_pgdata:/var/lib/postgresql/data
+    networks:
+      - fclinic-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-fclinic_admin} -d ${AUTH_DB_NAME:-auth_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==============================================================================
+  # PostgreSQL - Keycloak Identity Database
+  # ==============================================================================
+  postgres-keycloak:
+    image: postgres:16-alpine
+    container_name: fclinic-postgres-keycloak
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USERNAME:-fclinic_admin}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-fclinic_secret}
+      POSTGRES_DB: ${KEYCLOAK_DB_NAME:-keycloak_db}
+    ports:
+      - "${POSTGRES_KEYCLOAK_PORT:-5439}:5432"
+    volumes:
+      - keycloak_pgdata:/var/lib/postgresql/data
+    networks:
+      - fclinic-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-fclinic_admin} -d ${KEYCLOAK_DB_NAME:-keycloak_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==============================================================================
+  # Keycloak - OIDC Identity Provider & Authorization Server
+  # ==============================================================================
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0.7
+    container_name: fclinic-keycloak
+    restart: always
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres-keycloak:5432/${KEYCLOAK_DB_NAME:-keycloak_db}
+      KC_DB_USERNAME: ${DB_USERNAME:-fclinic_admin}
+      KC_DB_PASSWORD: ${DB_PASSWORD:-fclinic_secret}
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USER:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+      KC_HEALTH_ENABLED: "true"
+      KC_HTTP_ENABLED: "true"
+      KC_HOSTNAME_STRICT: "false"
+    ports:
+      - "${KEYCLOAK_PORT:-8180}:8080"
+    volumes:
+      - ./infra/keycloak:/opt/keycloak/data/import:ro
+    depends_on:
+      postgres-keycloak:
+        condition: service_healthy
+    networks:
+      - fclinic-network
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000 && echo -e 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && grep -q '200 OK' <&3"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
+  # ==============================================================================
   # PostgreSQL - Patient Service Database
   # ==============================================================================
   postgres-patient:
@@ -147,6 +226,10 @@ services:
       - fclinic-network
 
 volumes:
+  auth_pgdata:
+    driver: local
+  keycloak_pgdata:
+    driver: local
   patient_pgdata:
     driver: local
   doctor_pgdata:

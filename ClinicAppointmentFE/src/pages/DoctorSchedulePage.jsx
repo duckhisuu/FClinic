@@ -10,7 +10,6 @@ import {
   ChevronLeft,
   Stethoscope,
   RefreshCw,
-  UserPlus,
   PlusCircle,
   CalendarRange,
   Info,
@@ -59,19 +58,7 @@ export const DoctorSchedulePage = ({ onSelectSlot, onNotify }) => {
   const [scheduleAnchorDate, setScheduleAnchorDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [scheduleLoading, setScheduleLoading] = useState(false);
 
-  const [showAddDoctorModal, setShowAddDoctorModal] = useState(false);
-  const [addDoctorLoading, setAddDoctorLoading] = useState(false);
-  const [newDoctorForm, setNewDoctorForm] = useState({
-    name: '',
-    specialty: 'Tim Mạch',
-    department: 'Khoa Khám Bệnh',
-    qualification: 'Bác sĩ CKI',
-    experienceYears: 8,
-    consultationFee: 300000,
-    roomNumber: 'P.201 - Tầng 2',
-    bio: '',
-    avatarUrl: PRESET_AVATARS[0],
-  });
+
 
   const [showAddSlotModal, setShowAddSlotModal] = useState(false);
   const [slotTargetDoctor, setSlotTargetDoctor] = useState(null);
@@ -158,40 +145,6 @@ export const DoctorSchedulePage = ({ onSelectSlot, onNotify }) => {
     }
   };
 
-  // Create doctor handler
-  const handleCreateDoctorSubmit = async (e) => {
-    e.preventDefault();
-    if (!newDoctorForm.name.trim()) {
-      notify('Vui lòng nhập họ tên bác sĩ.', 'error');
-      return;
-    }
-    setAddDoctorLoading(true);
-    try {
-      await doctorApi.createDoctor({
-        ...newDoctorForm,
-        experienceYears: Number(newDoctorForm.experienceYears),
-        consultationFee: Number(newDoctorForm.consultationFee),
-      });
-      notify(`Đã thêm bác sĩ "${newDoctorForm.name}" thành công!`, 'success');
-      setShowAddDoctorModal(false);
-      setNewDoctorForm({
-        name: '',
-        specialty: 'Tim Mạch',
-        department: 'Khoa Khám Bệnh',
-        qualification: 'Bác sĩ CKI',
-        experienceYears: 8,
-        consultationFee: 300000,
-        roomNumber: 'P.201 - Tầng 2',
-        bio: '',
-        avatarUrl: PRESET_AVATARS[0],
-      });
-      await loadDoctors();
-    } catch (err) {
-      notify(err.message || 'Không thể tạo bác sĩ mới.', 'error');
-    } finally {
-      setAddDoctorLoading(false);
-    }
-  };
 
   // Create slot handler
   const handleOpenAddSlotModal = (doc) => {
@@ -278,13 +231,6 @@ export const DoctorSchedulePage = ({ onSelectSlot, onNotify }) => {
 
           {/* Action buttons on top right */}
           <div className="flex flex-col sm:flex-row lg:flex-col gap-2.5 shrink-0">
-            <button
-              onClick={() => setShowAddDoctorModal(true)}
-              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-semibold text-xs sm:text-sm shadow-md hover:shadow-lg transition-all"
-            >
-              <UserPlus className="w-4 h-4" />
-              <span>Thêm Bác Sĩ Mới</span>
-            </button>
             <button
               onClick={() => {
                 if (doctors.length > 0) {
@@ -399,14 +345,8 @@ export const DoctorSchedulePage = ({ onSelectSlot, onNotify }) => {
           <Stethoscope className="w-12 h-12 mx-auto stroke-1 text-slate-300 mb-3" />
           <p className="text-base font-semibold text-slate-700">Không tìm thấy bác sĩ phù hợp</p>
           <p className="text-xs text-slate-400 mt-1">
-            Vui lòng thử tìm kiếm với từ khóa khác hoặc nhấn "Thêm Bác Sĩ Mới" để tạo hồ sơ.
+            Vui lòng thử tìm kiếm với từ khóa khác hoặc liên hệ Quản trị viên để tạo thêm tài khoản bác sĩ.
           </p>
-          <button
-            onClick={() => setShowAddDoctorModal(true)}
-            className="mt-4 px-4 py-2 bg-teal-700 text-white text-xs font-semibold rounded-xl hover:bg-teal-800 transition-colors"
-          >
-            Thêm Bác Sĩ Mới
-          </button>
         </div>
       ) : (
         <div className="space-y-5">
@@ -891,196 +831,6 @@ export const DoctorSchedulePage = ({ onSelectSlot, onNotify }) => {
         </div>
       )}
 
-      {/* ============================================================== */}
-      {/* MODAL 3: CREATE DOCTOR MODAL */}
-      {/* ============================================================== */}
-      {showAddDoctorModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl max-w-xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
-            <form onSubmit={handleCreateDoctorSubmit} className="p-6 sm:p-8 space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                <div className="flex items-center gap-2 text-teal-800 font-bold text-base">
-                  <UserPlus className="w-5 h-5 text-teal-600" />
-                  <span>Thêm Bác Sĩ Mới Vào Hệ Thống</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setShowAddDoctorModal(false)}
-                  className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              {/* Name */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Họ và tên Bác sĩ <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Ví dụ: BS. CKI Vũ Hoàng Nam"
-                  value={newDoctorForm.name}
-                  onChange={(e) => setNewDoctorForm({ ...newDoctorForm, name: e.target.value })}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:bg-white"
-                />
-              </div>
-
-              {/* Specialty & Department */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Chuyên khoa <span className="text-rose-500">*</span>
-                  </label>
-                  <select
-                    value={newDoctorForm.specialty}
-                    onChange={(e) => setNewDoctorForm({ ...newDoctorForm, specialty: e.target.value })}
-                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:bg-white"
-                  >
-                    {SPECIALTIES.filter((s) => s !== 'Tất cả').map((s) => (
-                      <option key={s} value={s}>
-                        {s}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Khoa phòng công tác <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Ví dụ: Khoa Khám Bệnh Yêu Cầu"
-                    value={newDoctorForm.department}
-                    onChange={(e) => setNewDoctorForm({ ...newDoctorForm, department: e.target.value })}
-                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:bg-white"
-                  />
-                </div>
-              </div>
-
-              {/* Qualification & Experience */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Học vị / Học hàm
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Ví dụ: Bác sĩ CKII, Tiến sĩ Y khoa"
-                    value={newDoctorForm.qualification}
-                    onChange={(e) => setNewDoctorForm({ ...newDoctorForm, qualification: e.target.value })}
-                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:bg-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Số năm kinh nghiệm
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    max="50"
-                    value={newDoctorForm.experienceYears}
-                    onChange={(e) => setNewDoctorForm({ ...newDoctorForm, experienceYears: e.target.value })}
-                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:bg-white"
-                  />
-                </div>
-              </div>
-
-              {/* Consultation Fee & Room Number */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Phí khám tư vấn (VNĐ) <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    step="10000"
-                    required
-                    value={newDoctorForm.consultationFee}
-                    onChange={(e) => setNewDoctorForm({ ...newDoctorForm, consultationFee: e.target.value })}
-                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:bg-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Số phòng khám
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Ví dụ: P.305 - Tầng 3"
-                    value={newDoctorForm.roomNumber}
-                    onChange={(e) => setNewDoctorForm({ ...newDoctorForm, roomNumber: e.target.value })}
-                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:bg-white"
-                  />
-                </div>
-              </div>
-
-              {/* Bio */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Tiểu sử & Chuyên môn
-                </label>
-                <textarea
-                  rows="3"
-                  placeholder="Mô tả quá trình học tập, kinh nghiệm công tác và các chứng chỉ nổi bật..."
-                  value={newDoctorForm.bio}
-                  onChange={(e) => setNewDoctorForm({ ...newDoctorForm, bio: e.target.value })}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:bg-white"
-                />
-              </div>
-
-              {/* Avatar Url & Preset Selector */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Ảnh đại diện (URL hoặc chọn mẫu bên dưới)
-                </label>
-                <input
-                  type="url"
-                  value={newDoctorForm.avatarUrl}
-                  onChange={(e) => setNewDoctorForm({ ...newDoctorForm, avatarUrl: e.target.value })}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:bg-white mb-2"
-                />
-                <div className="flex items-center gap-2">
-                  <span className="text-[11px] text-slate-400">Chọn mẫu nhanh:</span>
-                  {PRESET_AVATARS.map((url, idx) => (
-                    <img
-                      key={idx}
-                      src={url}
-                      alt={`Avatar preset ${idx + 1}`}
-                      onClick={() => setNewDoctorForm({ ...newDoctorForm, avatarUrl: url })}
-                      className={`w-8 h-8 rounded-lg object-cover cursor-pointer ring-2 transition-all ${
-                        newDoctorForm.avatarUrl === url ? 'ring-teal-600 scale-105' : 'ring-transparent opacity-60 hover:opacity-100'
-                      }`}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              {/* Submit Buttons */}
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setShowAddDoctorModal(false)}
-                  className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-xs font-semibold hover:bg-slate-50"
-                >
-                  Hủy
-                </button>
-                <button
-                  type="submit"
-                  disabled={addDoctorLoading}
-                  className="px-5 py-2.5 rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold shadow-md disabled:opacity-50 flex items-center gap-2"
-                >
-                  {addDoctorLoading && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
-                  <span>{addDoctorLoading ? 'Đang lưu...' : 'Lưu Hồ Sơ Bác Sĩ'}</span>
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       {/* ============================================================== */}
       {/* MODAL 4: CREATE TIME SLOT MODAL */}

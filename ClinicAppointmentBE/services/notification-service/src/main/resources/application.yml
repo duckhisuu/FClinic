@@ -24,6 +24,7 @@ spring:
           time_zone: UTC
   flyway:
     enabled: true
+    baseline-on-migrate: true
     # Template seeds contain Thymeleaf ${...} expressions, which Flyway would treat as placeholders.
     placeholder-replacement: false
   rabbitmq:

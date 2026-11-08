@@ -1,0 +1,95 @@
+server:
+  port: ${AUTH_SERVICE_PORT:8085}
+
+spring:
+  config:
+    import: "optional:file:.env[.properties],optional:file:../../.env[.properties],optional:file:ClinicAppointmentBE/.env[.properties]"
+  application:
+    name: auth-service
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${POSTGRES_AUTH_PORT:5438}/${AUTH_DB_NAME:auth_db}
+    username: ${DB_USERNAME:fclinic_admin}
+    password: ${DB_PASSWORD:fclinic_secret}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 16
+      connection-timeout: 3000
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:${KEYCLOAK_BASE_URL:http://localhost:8180}/realms/${KEYCLOAK_REALM:fclinic}/protocol/openid-connect/certs}
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:${KEYCLOAK_BASE_URL:http://localhost:8180}/realms/${KEYCLOAK_REALM:fclinic}}
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:1025}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      "[mail.smtp.auth]": ${MAIL_SMTP_AUTH:false}
+      "[mail.smtp.starttls.enable]": ${MAIL_STARTTLS:false}
+      "[mail.smtp.connectiontimeout]": 5000
+      "[mail.smtp.timeout]": 5000
+
+app:
+  keycloak:
+    base-url: ${KEYCLOAK_BASE_URL:http://localhost:8180}
+    realm: ${KEYCLOAK_REALM:fclinic}
+    client-id: ${KEYCLOAK_CLIENT_ID:fclinic-auth-service}
+    client-secret: ${KEYCLOAK_CLIENT_SECRET:fclinic-auth-secret-dev}
+    web-client-id: ${KEYCLOAK_WEB_CLIENT_ID:fclinic-web}
+    admin-realm: ${KEYCLOAK_ADMIN_REALM:master}
+    admin-username: ${KEYCLOAK_ADMIN_USER:admin}
+    admin-password: ${KEYCLOAK_ADMIN_PASSWORD:admin}
+    connect-timeout-ms: ${KEYCLOAK_CONNECT_TIMEOUT_MS:10000}
+    read-timeout-ms: ${KEYCLOAK_READ_TIMEOUT_MS:60000}
+  introspection:
+    client-id: ${AUTH_INTROSPECTION_CLIENT_ID:patient-service}
+    client-secret: ${AUTH_INTROSPECTION_CLIENT_SECRET:patient-introspection-secret-dev}
+    issuer: ${AUTH_INTROSPECTION_ISSUER:${KEYCLOAK_BASE_URL:http://localhost:8180}/realms/${KEYCLOAK_REALM:fclinic}}
+    default-audiences:
+      - patient-service
+      - auth-service
+  auth:
+    otp:
+      expiration-seconds: ${AUTH_OTP_EXPIRATION_SECONDS:300}
+      expose-in-response: ${AUTH_OTP_EXPOSE_IN_RESPONSE:true}
+      mail-enabled: ${AUTH_OTP_MAIL_ENABLED:false}
+      from-address: ${MAIL_FROM_ADDRESS:no-reply@fclinic.local}
+
+eureka:
+  instance:
+    prefer-ip-address: true
+  client:
+    enabled: ${EUREKA_ENABLED:false}
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+  health:
+    mail:
+      enabled: false
+
+logging:
+  level:
+    com.fclinic.authservice: INFO
+
