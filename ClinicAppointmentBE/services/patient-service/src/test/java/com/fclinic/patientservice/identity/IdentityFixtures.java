@@ -33,7 +33,7 @@ public final class IdentityFixtures {
         return new IdentitySettings(true,URI.create("https://localhost/introspection"),"https://identity.example.test",
                 "patient-service",CLIENT_ID,UUID.randomUUID().toString(),Duration.ofSeconds(1),Duration.ofSeconds(3),
                 65536,32,null,null,Map.of(SERVICE_SUBJECT,
-                new IdentitySettings.ServiceBinding("appointment-service",Set.of("SVC_PATIENT_READ"))));
+                new IdentitySettings.ServiceBinding("appointment-service",Set.of("SVC_PATIENT_READ"))),false);
     }
     public static byte[] bytes(Map<String,Object> body) { return JSON.writeValueAsBytes(body); }
     private static Clock registryClock() {

@@ -55,7 +55,7 @@ class IntrospectionTransportTest {
         };
         var s=auth.settings(Duration.ofSeconds(2));
         var one=new IdentitySettings(true,s.endpoint(),s.issuer(),s.audience(),s.clientId(),s.clientSecret(),
-                s.connectTimeout(),s.exchangeTimeout(),s.maxResponseBytes(),1,s.trustStore(),s.trustStorePassword(),s.services());
+                s.connectTimeout(),s.exchangeTimeout(),s.maxResponseBytes(),1,s.trustStore(),s.trustStorePassword(),s.services(),false);
         try(var verifier=new IntrospectionIdentityVerifier(one,CLOCK); var pool=Executors.newVirtualThreadPerTaskExecutor()) {
             var first=pool.submit(() -> { error(DEPENDENCY_UNAVAILABLE,() -> verifier.verify("fixture")); });
             assertThat(entered.await(5,TimeUnit.SECONDS)).isTrue();
@@ -67,7 +67,7 @@ class IntrospectionTransportTest {
     @Test void untrustedTlsCertificateFailsClosed() {
         var s=auth.settings(Duration.ofSeconds(3));
         var systemTrust=new IdentitySettings(true,s.endpoint(),s.issuer(),s.audience(),s.clientId(),s.clientSecret(),
-                s.connectTimeout(),s.exchangeTimeout(),s.maxResponseBytes(),s.maxConcurrentRequests(),null,null,s.services());
+                s.connectTimeout(),s.exchangeTimeout(),s.maxResponseBytes(),s.maxConcurrentRequests(),null,null,s.services(),false);
         try(var verifier=new IntrospectionIdentityVerifier(systemTrust,CLOCK)) {
             error(DEPENDENCY_UNAVAILABLE,() -> verifier.verify("fixture"));
             assertThat(auth.authenticatedCalls.get()).isZero();
@@ -91,7 +91,7 @@ class IntrospectionTransportTest {
         var s=auth.settings(Duration.ofSeconds(3));
         var wrong=new IdentitySettings(true,s.endpoint(),s.issuer(),s.audience(),s.clientId(),"wrong-test-secret",
                 s.connectTimeout(),s.exchangeTimeout(),s.maxResponseBytes(),s.maxConcurrentRequests(),
-                s.trustStore(),s.trustStorePassword(),s.services());
+                s.trustStore(),s.trustStorePassword(),s.services(),false);
         try(var verifier=new IntrospectionIdentityVerifier(wrong,CLOCK)) {
             error(DEPENDENCY_UNAVAILABLE,() -> verifier.verify("fixture"));
             assertThat(auth.calls.get()).isEqualTo(1); assertThat(auth.authenticatedCalls.get()).isZero();

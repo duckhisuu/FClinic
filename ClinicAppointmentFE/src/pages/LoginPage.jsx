@@ -9,7 +9,9 @@ import {
   CheckCircle2,
   AlertCircle,
   KeyRound,
-  UserCheck
+  UserCheck,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { authApi } from '../services/authApi';
@@ -21,6 +23,7 @@ export function LoginPage() {
   // Login form state - starts empty as a real web app
   const [loginUsername, setLoginUsername] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
 
   // Register form state
   const [regFullName, setRegFullName] = useState('');
@@ -28,6 +31,7 @@ export function LoginPage() {
   const [regEmail, setRegEmail] = useState('');
   const [regUsername, setRegUsername] = useState('');
   const [regPassword, setRegPassword] = useState('');
+  const [showRegPassword, setShowRegPassword] = useState(false);
 
   // Forgot password modal state
   const [showForgotModal, setShowForgotModal] = useState(false);
@@ -35,6 +39,7 @@ export function LoginPage() {
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotOtp, setForgotOtp] = useState('');
   const [forgotNewPass, setForgotNewPass] = useState('');
+  const [showForgotNewPass, setShowForgotNewPass] = useState(false);
   const [otpSentHint, setOtpSentHint] = useState('');
 
   // UI state
@@ -190,6 +195,7 @@ export function LoginPage() {
                 <label>Mật khẩu</label>
                 <button
                   type="button"
+                  tabIndex={-1}
                   className="link-forgot"
                   onClick={() => { setShowForgotModal(true); setErrorMsg(''); }}
                 >
@@ -199,12 +205,23 @@ export function LoginPage() {
               <div className="input-with-icon">
                 <Lock size={18} className="input-icon" />
                 <input
-                  type="password"
+                  type={showLoginPassword ? 'text' : 'password'}
                   required
                   placeholder="Nhập mật khẩu..."
                   value={loginPassword}
                   onChange={(e) => setLoginPassword(e.target.value)}
+                  className="has-toggle"
                 />
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  className="password-toggle-btn"
+                  onClick={() => setShowLoginPassword((prev) => !prev)}
+                  aria-label={showLoginPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                  title={showLoginPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                >
+                  {showLoginPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
               </div>
             </div>
 
@@ -284,12 +301,23 @@ export function LoginPage() {
                 <div className="input-with-icon">
                   <Lock size={18} className="input-icon" />
                   <input
-                    type="password"
+                    type={showRegPassword ? 'text' : 'password'}
                     required
                     placeholder="Tối thiểu 6 ký tự"
                     value={regPassword}
                     onChange={(e) => setRegPassword(e.target.value)}
+                    className="has-toggle"
                   />
+                  <button
+                    type="button"
+                    tabIndex={-1}
+                    className="password-toggle-btn"
+                    onClick={() => setShowRegPassword((prev) => !prev)}
+                    aria-label={showRegPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                    title={showRegPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                  >
+                    {showRegPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
                 </div>
               </div>
             </div>
@@ -375,12 +403,23 @@ export function LoginPage() {
                   <div className="input-with-icon">
                     <Lock size={18} className="input-icon" />
                     <input
-                      type="password"
+                      type={showForgotNewPass ? 'text' : 'password'}
                       required
                       placeholder="Nhập mật khẩu mới..."
                       value={forgotNewPass}
                       onChange={(e) => setForgotNewPass(e.target.value)}
+                      className="has-toggle"
                     />
+                    <button
+                      type="button"
+                      tabIndex={-1}
+                      className="password-toggle-btn"
+                      onClick={() => setShowForgotNewPass((prev) => !prev)}
+                      aria-label={showForgotNewPass ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                      title={showForgotNewPass ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                    >
+                      {showForgotNewPass ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
                   </div>
                 </div>
                 <div className="modal-actions">
