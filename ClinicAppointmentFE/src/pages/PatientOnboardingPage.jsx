@@ -16,6 +16,14 @@ export function PatientOnboardingPage({ onComplete }) {
   const [busy, setBusy] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+  const [pendingPatient, setPendingPatient] = useState(() => {
+    try {
+      const stored = sessionStorage.getItem('fclinic.pending.patient');
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -34,20 +42,26 @@ export function PatientOnboardingPage({ onComplete }) {
 
     setBusy(true);
     try {
-      // 1. Tạo hồ sơ bệnh nhân mới bên patient-service
-      const payload = {
-        fullName: fullName.trim(),
-        phoneNumber: cleanPhone,
-        dateOfBirth: dateOfBirth,
-        gender: gender,
-        ...(address.trim() ? { address: address.trim() } : {}),
-        ...(user?.email ? { email: user.email.trim() } : {}),
-      };
+      let patient = pendingPatient;
+      if (!patient) {
+        // 1. Tạo hồ sơ bệnh nhân mới bên patient-service
+        const payload = {
+          fullName: fullName.trim(),
+          phoneNumber: cleanPhone,
+          dateOfBirth: dateOfBirth,
+          gender: gender,
+          ...(address.trim() ? { address: address.trim() } : {}),
+          ...(user?.email ? { email: user.email.trim() } : {}),
+        };
 
-      const patient = await patientApi.create(payload);
+        patient = await patientApi.create(payload);
+        setPendingPatient(patient);
+        sessionStorage.setItem('fclinic.pending.patient', JSON.stringify(patient));
+      }
 
       // 2. Liên kết patientId vào tài khoản trong auth-service
       const updatedUser = await authApi.linkPatientProfile(patient.id);
+      sessionStorage.removeItem('fclinic.pending.patient');
 
       // 3. Cập nhật lại session trong AuthContext
       updateUserSession(updatedUser);
@@ -63,6 +77,8 @@ export function PatientOnboardingPage({ onComplete }) {
         setErrorMsg(`Thông tin không hợp lệ ở trường: ${fields}. Vui lòng kiểm tra lại.`);
       } else if (err.code === 'DEPENDENCY_UNAVAILABLE') {
         setErrorMsg('Dịch vụ xác thực danh tính chưa được kết nối (DEPENDENCY_UNAVAILABLE). Vui lòng restart Patient Service.');
+      } else if (err.status === 403) {
+        setErrorMsg('Liên kết cần provisioning tin cậy. Vui lòng thử lại hoặc liên hệ quản trị viên.');
       } else {
         setErrorMsg(err.message || 'Không thể tạo hồ sơ bệnh nhân. Vui lòng kiểm tra lại thông tin.');
       }
