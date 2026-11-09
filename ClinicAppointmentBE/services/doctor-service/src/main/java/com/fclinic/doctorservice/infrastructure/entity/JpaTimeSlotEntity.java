@@ -17,7 +17,6 @@ import java.util.UUID;
 public class JpaTimeSlotEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Column(name = "doctor_id", nullable = false)

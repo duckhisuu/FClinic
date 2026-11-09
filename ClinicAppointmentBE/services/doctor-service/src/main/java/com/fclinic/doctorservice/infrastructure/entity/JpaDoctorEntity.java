@@ -17,7 +17,6 @@ import java.util.UUID;
 public class JpaDoctorEntity extends BaseEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Column(nullable = false)
