@@ -26,7 +26,7 @@ spring:
             - id: appointment-service-route
               uri: lb://appointment-service
               predicates:
-                - Path=/api/v1/appointments/**
+                - Path=/api/v2/appointments/**,/api/v1/appointments/**
             - id: notification-service-route
               uri: lb://notification-service
               predicates:

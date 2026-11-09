@@ -1,6 +1,8 @@
 # UUIDv4 và Patient v3 — chỉ trong Appointment Service
 
-Phạm vi hiện tại: sửa Appointment sau merge main ngày 02/11/2026, giữ cấu trúc use case và đủ các file gốc. Appointment gọi profile Patient v3 và thống nhất business ID là UUIDv4. Không sửa Patient/Doctor/Notification, common, Gateway, FE hoặc cấu hình hạ tầng chung; không thêm security. Có Dockerfile/Compose/env mẫu riêng của Appointment, xem [hướng dẫn Docker](DOCKER.md).
+**09/11/2026:** security và tích hợp Auth/Patient/Gateway đã được cập nhật. Xem [runbook hiện hành](../integration-readiness/09_SECURITY_INTEGRATION.md). Các giới hạn “không thêm security/không sửa service khác” và URI local cũ bên dưới mô tả phạm vi bàn giao trước đây; URI local hiện đã là /api/v2/appointments.
+
+Phạm vi nâng UUID ngày 02/11/2026 (lịch sử): sửa Appointment sau merge main, giữ cấu trúc use case và đủ các file gốc. Appointment gọi profile Patient v3 và thống nhất business ID là UUIDv4. Không sửa Patient/Doctor/Notification, common, Gateway, FE hoặc cấu hình hạ tầng chung; không thêm security. Có Dockerfile/Compose/env mẫu riêng của Appointment, xem [hướng dẫn Docker](DOCKER.md).
 
 ## Các định danh của Appointment
 
@@ -21,7 +23,7 @@ DTO/command/port/domain/JPA/JDBC và API Appointment đã đồng bộ kiểu n�
 
 ## Patient đọc medical-reference
 
-Nhóm đã thống nhất dùng HTTP nội bộ. Collection URI của client Patient trỏ tới `http://<appointment-host>:8083/api/v2/appointments` (host/port theo môi trường), rồi gọi `GET /{appointmentId}/medical-reference` bằng UUIDv4. Không thay đổi security. Client Patient hiện đã dùng version `/2`; URI local mặc định của Patient còn `/internal/v1/appointments`, owner cần đặt lại collection URI và cho phép hostname Docker khi chạy giữa các container.
+Client Patient gọi `GET /api/v2/appointments/{appointmentId}/medical-reference` bằng UUIDv4 và Basic credential riêng; Appointment xác thực credential này, chỉ cấp projection tối thiểu cho patient-service. URI local mặc định đã là `http://localhost:8083/api/v2/appointments`. HTTP chỉ dùng trên loopback; hostname Docker cần HTTPS. Xem runbook security để cấu hình URI/credential và TLS.
 
 Appointment trả đúng một header `X-FClinic-Reference-Contract: patient-appointment-medical-reference/2` trên response của GET endpoint này, bao gồm 200, 404 và các lỗi do Appointment xử lý. Header được đặt trước validation để lỗi UUID hoặc X-Request-Id vẫn có phiên bản contract. Header chỉ mô tả contract, không xác thực hoặc cấp quyền. Không gắn header này cho API detail, reminder, các method khác hay v1 đã ngừng dùng.
 

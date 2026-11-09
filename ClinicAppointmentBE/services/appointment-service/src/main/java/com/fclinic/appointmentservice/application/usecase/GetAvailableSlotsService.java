@@ -7,6 +7,8 @@ import com.fclinic.appointmentservice.application.port.out.*;
 import com.fclinic.appointmentservice.application.result.*;
 import com.fclinic.appointmentservice.domain.aggregate.Appointment;
 import com.fclinic.appointmentservice.domain.event.*;
+import com.fclinic.appointmentservice.application.AppointmentActor;
+import com.fclinic.appointmentservice.application.security.AppointmentPolicy;
 import java.time.*;
 import java.util.*;
 import org.springframework.stereotype.Service;
@@ -16,16 +18,19 @@ public class GetAvailableSlotsService implements GetAvailableSlotsUseCase {
   private final AppointmentRepositoryPort repository;
   private final DoctorReferencePort doctors;
   private final Clock clock;
+  private final AppointmentPolicy policy;
 
   public GetAvailableSlotsService(
-      AppointmentRepositoryPort repository, DoctorReferencePort doctors, Clock clock) {
+      AppointmentRepositoryPort repository, DoctorReferencePort doctors, Clock clock, AppointmentPolicy policy) {
     this.repository = repository;
     this.doctors = doctors;
     this.clock = clock;
+    this.policy = policy;
   }
 
-  public AvailabilityView getAvailableSlots(UUID doctorId, LocalDate date) {
-    long deadline = System.nanoTime() + Duration.ofSeconds(5).toNanos();
+  public AvailabilityView getAvailableSlots(AppointmentActor actor, UUID doctorId, LocalDate date) {
+    policy.availability(actor, doctorId);
+    long deadline = actor.deadlineNanos();
     doctors.doctor(doctorId, deadline);
     var offered = doctors.offered(doctorId, date, deadline);
     var occupied = repository.occupied(doctorId, date);

@@ -8,6 +8,7 @@ import com.fclinic.appointmentservice.application.port.in.*;
 import com.fclinic.appointmentservice.application.port.out.*;
 import com.fclinic.appointmentservice.application.result.*;
 import com.fclinic.appointmentservice.domain.event.*;
+import com.fclinic.appointmentservice.application.security.AppointmentPolicy;
 import java.time.*;
 import java.util.*;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,7 @@ public class CancelAppointmentService implements CancelAppointmentUseCase {
   private final AppointmentEventPublisherPort events;
   private final IdempotentAppointmentOperation operations;
   private final Clock clock;
+  private final AppointmentPolicy policy;
 
   public CancelAppointmentService(
       AppointmentRepositoryPort repository,
@@ -27,16 +29,20 @@ public class CancelAppointmentService implements CancelAppointmentUseCase {
       AppointmentHistoryPort history,
       AppointmentEventPublisherPort events,
       IdempotentAppointmentOperation operations,
-      Clock clock) {
+      Clock clock, AppointmentPolicy policy) {
     this.repository = repository;
     this.transactions = transactions;
     this.history = history;
     this.events = events;
     this.operations = operations;
     this.clock = clock;
+    this.policy = policy;
   }
 
   public AppointmentOperationResult cancelAppointment(CancelAppointmentCommand command) {
+    policy.authenticated(command.actor());
+    var original = repository.findById(command.appointmentId()).orElseThrow(AppointmentNotFoundException::new);
+    policy.mutate(command.actor(), original.getPatientId(), "APPOINTMENT_CANCEL");
     Map<String, Object> body = new TreeMap<>();
     body.put("version", command.version());
     body.put("reason", normalize(command.reason()));
@@ -63,7 +69,7 @@ public class CancelAppointmentService implements CancelAppointmentUseCase {
                       "CANCELLED",
                       normalize(command.reason()),
                       command.actor().subject(),
-                      "SYSTEM",
+                      command.actor().auditRole(),
                       now);
                   events.publish(
                       new AppointmentCancelledDomainEvent(

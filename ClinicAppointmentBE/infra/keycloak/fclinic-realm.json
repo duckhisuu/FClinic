@@ -59,7 +59,7 @@
       },
       {
         "id": "a0000001-0000-4000-8000-000000000006",
-        "name": "SVC_PATIENT_PROFILE_READ",
+        "name": "SVC_PATIENT_READ",
         "description": "Service-to-service capability for reading patient profile metadata",
         "composite": false,
         "clientRole": false
@@ -100,6 +100,18 @@
           "consentRequired": false,
           "config": {
             "included.custom.audience": "auth-service",
+            "id.token.claim": "false",
+            "access.token.claim": "true",
+            "introspection.token.claim": "true"
+          }
+        },
+        {
+          "name": "fclinic-audience-appointment-service",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.custom.audience": "appointment-service",
             "id.token.claim": "false",
             "access.token.claim": "true",
             "introspection.token.claim": "true"
@@ -635,12 +647,12 @@
       }
     },
     {
+      "id": "22222222-2222-4222-8222-222222222205",
       "username": "service-account-appointment-service",
       "enabled": true,
       "serviceAccountClientId": "appointment-service",
       "realmRoles": [
-        "SVC_APPOINTMENT_READ",
-        "SVC_PATIENT_PROFILE_READ"
+        "SVC_PATIENT_READ"
       ]
     }
   ],

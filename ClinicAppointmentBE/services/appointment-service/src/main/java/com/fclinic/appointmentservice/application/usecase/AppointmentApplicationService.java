@@ -9,6 +9,7 @@ import com.fclinic.appointmentservice.application.port.out.*;
 import com.fclinic.appointmentservice.application.result.*;
 import com.fclinic.appointmentservice.domain.aggregate.Appointment;
 import com.fclinic.appointmentservice.domain.event.*;
+import com.fclinic.appointmentservice.application.security.AppointmentPolicy;
 import java.time.*;
 import java.util.*;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,7 @@ public class AppointmentApplicationService implements BookAppointmentUseCase {
   private final Clock clock;
   private final PatientReferencePort patients;
   private final DoctorReferencePort doctors;
+  private final AppointmentPolicy policy;
 
   public AppointmentApplicationService(
       AppointmentRepositoryPort repository,
@@ -32,7 +34,7 @@ public class AppointmentApplicationService implements BookAppointmentUseCase {
       IdempotentAppointmentOperation operations,
       Clock clock,
       PatientReferencePort patients,
-      DoctorReferencePort doctors) {
+      DoctorReferencePort doctors, AppointmentPolicy policy) {
     this.repository = repository;
     this.transactions = transactions;
     this.history = history;
@@ -41,10 +43,12 @@ public class AppointmentApplicationService implements BookAppointmentUseCase {
     this.clock = clock;
     this.patients = patients;
     this.doctors = doctors;
+    this.policy = policy;
   }
 
   /** Original application service is retained as the booking use-case implementation. */
   public AppointmentOperationResult bookAppointment(BookAppointmentCommand command) {
+    policy.mutate(command.actor(), command.patientId(), "APPOINTMENT_CREATE");
     String reason = normalize(command.reasonForVisit());
     Map<String, Object> body = new TreeMap<>();
     body.put("patientId", command.patientId().toString());
@@ -80,7 +84,7 @@ public class AppointmentApplicationService implements BookAppointmentUseCase {
                 var saved = repository.save(current);
                 Instant now = clock.instant();
                 history.record(
-                    saved, null, "CREATED", null, command.actor().subject(), "SYSTEM", now);
+                    saved, null, "CREATED", null, command.actor().subject(), command.actor().auditRole(), now);
                 events.publish(
                     new AppointmentBookedDomainEvent(
                         UUID.randomUUID(), now, AppointmentEventSnapshot.from(saved)));

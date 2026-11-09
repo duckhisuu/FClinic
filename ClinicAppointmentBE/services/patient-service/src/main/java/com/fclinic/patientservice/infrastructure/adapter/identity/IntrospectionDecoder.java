@@ -59,7 +59,7 @@ public final class IntrospectionDecoder {
             }
             check(userId == null && doctorId == null && patientId == null
                     && authorities.stream().allMatch(a -> a.matches("SVC_[A-Z0-9_]{1,80}")));
-            IdentitySettings.ServiceBinding binding = settings.services().get(subject);
+            IdentitySettings.ServiceBinding binding = settings.bindingFor(subject);
             if (binding == null || !binding.authorities().containsAll(authorities) || authorities.isEmpty())
                 throw new PatientError(FORBIDDEN);
             // Exact verified subject lookup; neither wire DTO nor browser controls serviceName.

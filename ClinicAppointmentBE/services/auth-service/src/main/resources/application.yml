@@ -54,12 +54,45 @@ app:
     connect-timeout-ms: ${KEYCLOAK_CONNECT_TIMEOUT_MS:10000}
     read-timeout-ms: ${KEYCLOAK_READ_TIMEOUT_MS:60000}
   introspection:
+    clients:
+      appointment:
+        client-id: ${APPOINTMENT_AUTH_CLIENT_ID:appointment-introspection}
+        client-secret: ${APPOINTMENT_AUTH_CLIENT_SECRET:}
     client-id: ${AUTH_INTROSPECTION_CLIENT_ID:patient-service}
     client-secret: ${AUTH_INTROSPECTION_CLIENT_SECRET:patient-introspection-secret-dev}
     issuer: ${AUTH_INTROSPECTION_ISSUER:${KEYCLOAK_BASE_URL:http://localhost:8180}/realms/${KEYCLOAK_REALM:fclinic}}
     default-audiences:
       - patient-service
       - auth-service
+      - appointment-service
+  authorization:
+    clients:
+      appointment:
+        client-id: ${APPOINTMENT_SCOPE_CLIENT_ID:appointment-scope}
+        secret: ${APPOINTMENT_SCOPE_CLIENT_SECRET:}
+        contract-version: appointment-work-scope/1
+        authority: ADMINISTRATIVE
+      patient-administrative:
+        client-id: ${PATIENT_ADMIN_SCOPE_CLIENT_ID:patient-admin-scope}
+        secret: ${PATIENT_ADMIN_SCOPE_CLIENT_SECRET:}
+        contract-version: patient-work-scope/2
+        authority: ADMINISTRATIVE
+      patient-clinical:
+        client-id: ${PATIENT_CLINICAL_SCOPE_CLIENT_ID:patient-clinical-scope}
+        secret: ${PATIENT_CLINICAL_SCOPE_CLIENT_SECRET:}
+        contract-version: patient-work-scope/2
+        authority: CLINICAL
+    services:
+      appointment:
+        subject: ${APPOINTMENT_SERVICE_SUBJECT:22222222-2222-4222-8222-222222222205}
+        name: appointment-service
+        authorities: [SVC_PATIENT_READ]
+    grants:
+      "44444444-4444-4444-8444-444444444401":
+        subject: ${APPOINTMENT_SERVICE_SUBJECT:22222222-2222-4222-8222-222222222205}
+        operations: [APPOINTMENT_PROFILE_READ]
+        all-patients: true
+        active: true
   auth:
     otp:
       expiration-seconds: ${AUTH_OTP_EXPIRATION_SECONDS:300}

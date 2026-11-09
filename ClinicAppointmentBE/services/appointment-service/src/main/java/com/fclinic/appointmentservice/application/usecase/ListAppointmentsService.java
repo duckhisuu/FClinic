@@ -8,6 +8,8 @@ import com.fclinic.appointmentservice.application.result.*;
 import com.fclinic.appointmentservice.domain.AppointmentError;
 import com.fclinic.appointmentservice.domain.event.*;
 import com.fclinic.appointmentservice.domain.model.AppointmentStatus;
+import com.fclinic.appointmentservice.application.AppointmentActor;
+import com.fclinic.appointmentservice.application.security.AppointmentPolicy;
 import java.time.*;
 import java.util.*;
 import org.springframework.stereotype.Service;
@@ -15,12 +17,14 @@ import org.springframework.stereotype.Service;
 @Service
 public class ListAppointmentsService implements ListAppointmentsUseCase {
   private final AppointmentRepositoryPort repository;
+  private final AppointmentPolicy policy;
 
-  public ListAppointmentsService(AppointmentRepositoryPort repository) {
+  public ListAppointmentsService(AppointmentRepositoryPort repository, AppointmentPolicy policy) {
     this.repository = repository;
+    this.policy = policy;
   }
 
-  public AppointmentPageView listAppointments(AppointmentPageQuery query) {
+  public AppointmentPageView listAppointments(AppointmentActor actor, AppointmentPageQuery query) {
     if (query.page() < 0 || query.size() < 1 || query.size() > 100)
       throw AppointmentError.validation("Phân trang không hợp lệ (size từ 1 đến 100).");
     if (query.status() != null)
@@ -29,6 +33,6 @@ public class ListAppointmentsService implements ListAppointmentsUseCase {
       } catch (IllegalArgumentException e) {
         throw AppointmentError.validation("Trạng thái không hợp lệ.");
       }
-    return repository.page(query);
+    return repository.page(policy.listing(actor, query));
   }
 }

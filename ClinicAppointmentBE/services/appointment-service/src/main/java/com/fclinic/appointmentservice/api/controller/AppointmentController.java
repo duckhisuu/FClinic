@@ -10,7 +10,7 @@ import com.fclinic.appointmentservice.domain.AppointmentError;
 import com.fclinic.appointmentservice.domain.vo.BusinessId;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
-import java.security.Principal;
+
 import java.time.*;
 import java.util.*;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -50,13 +50,13 @@ public class AppointmentController {
 
   @PostMapping
   public ResponseEntity<String> bookAppointment(
-      Principal principal,
+      @RequestAttribute("appointmentActor") AppointmentActor actor,
       @RequestHeader("Idempotency-Key") String key,
       @Valid @RequestBody BookAppointmentRequest body) {
     return result(
         booking.bookAppointment(
             new BookAppointmentCommand(
-                actor(principal),
+                actor,
                 AppointmentRequestMapper.key(key),
                 UUID.fromString(body.patientId()),
                 BusinessId.require(body.doctorId()),
@@ -66,14 +66,14 @@ public class AppointmentController {
 
   @PutMapping("/{id}/cancel")
   public ResponseEntity<String> cancelAppointment(
-      Principal principal,
+      @RequestAttribute("appointmentActor") AppointmentActor actor,
       @RequestHeader("Idempotency-Key") String key,
       @PathVariable UUID id,
       @Valid @RequestBody CancelAppointmentRequest body) {
     return result(
         cancellation.cancelAppointment(
             new CancelAppointmentCommand(
-                actor(principal),
+                actor,
                 AppointmentRequestMapper.key(key),
                 BusinessId.require(id),
                 body.version(),
@@ -82,14 +82,14 @@ public class AppointmentController {
 
   @PutMapping("/{id}/reschedule")
   public ResponseEntity<String> rescheduleAppointment(
-      Principal principal,
+      @RequestAttribute("appointmentActor") AppointmentActor actor,
       @RequestHeader("Idempotency-Key") String key,
       @PathVariable UUID id,
       @Valid @RequestBody RescheduleAppointmentRequest body) {
     return result(
         rescheduling.rescheduleAppointment(
             new RescheduleAppointmentCommand(
-                actor(principal),
+                actor,
                 AppointmentRequestMapper.key(key),
                 BusinessId.require(id),
                 body.version(),
@@ -98,12 +98,13 @@ public class AppointmentController {
   }
 
   @GetMapping("/{id}")
-  public Object getAppointmentById(@PathVariable UUID id) {
-    return wrap(AppointmentResponse.from(detail.getById(BusinessId.require(id))));
+  public Object getAppointmentById(@RequestAttribute("appointmentActor") AppointmentActor actor, @PathVariable UUID id) {
+    return wrap(AppointmentResponse.from(detail.getById(actor, BusinessId.require(id))));
   }
 
   @GetMapping
   public Object getAppointments(
+      @RequestAttribute("appointmentActor") AppointmentActor actor,
       @RequestParam(required = false) UUID patientId,
       @RequestParam(required = false) UUID doctorId,
       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
@@ -116,7 +117,7 @@ public class AppointmentController {
       throw AppointmentError.validation("Tham số truy vấn không được hỗ trợ.");
     return wrap(
         AppointmentPageResponse.from(
-            listing.listAppointments(
+            listing.listAppointments(actor,
                 new AppointmentPageQuery(
                     patientId == null ? null : BusinessId.require(patientId),
                     doctorId == null ? null : BusinessId.require(doctorId), date, status, page, size))));
@@ -124,24 +125,25 @@ public class AppointmentController {
 
   @GetMapping("/available-slots")
   public Object availableSlots(
+      @RequestAttribute("appointmentActor") AppointmentActor actor,
       @RequestParam UUID doctorId,
       @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-    return wrap(AvailabilityResponse.from(availability.getAvailableSlots(BusinessId.require(doctorId), date)));
+    return wrap(AvailabilityResponse.from(availability.getAvailableSlots(actor, BusinessId.require(doctorId), date)));
   }
 
   @GetMapping("/{id}/history")
-  public Object getHistory(@PathVariable UUID id) {
-    return wrap(history.getHistory(BusinessId.require(id)).stream().map(AppointmentHistoryResponse::from).toList());
+  public Object getHistory(@RequestAttribute("appointmentActor") AppointmentActor actor, @PathVariable UUID id) {
+    return wrap(history.getHistory(actor, BusinessId.require(id)).stream().map(AppointmentHistoryResponse::from).toList());
   }
 
   @GetMapping("/{id}/medical-reference")
-  public Object medicalReference(@PathVariable UUID id) {
-    return wrap(references.medicalReference(BusinessId.require(id)));
+  public Object medicalReference(@RequestAttribute("appointmentActor") AppointmentActor actor, @PathVariable UUID id) {
+    return wrap(references.medicalReference(actor, BusinessId.require(id)));
   }
 
   @GetMapping("/{id}/reminder-reference")
-  public Object reminderReference(@PathVariable UUID id) {
-    return wrap(ReminderReferenceResponse.from(references.reminderReference(BusinessId.require(id))));
+  public Object reminderReference(@RequestAttribute("appointmentActor") AppointmentActor actor, @PathVariable UUID id) {
+    return wrap(ReminderReferenceResponse.from(references.reminderReference(actor, BusinessId.require(id))));
   }
 
   private Object wrap(Object data) {
@@ -154,8 +156,4 @@ public class AppointmentController {
         .body(r.body());
   }
 
-  private AppointmentActor actor(Principal p) {
-    return new AppointmentActor(
-        p == null ? "anonymous" : p.getName(), System.nanoTime() + Duration.ofSeconds(5).toNanos());
-  }
 }

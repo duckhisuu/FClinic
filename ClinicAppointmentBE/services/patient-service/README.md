@@ -1,3 +1,5 @@
+**09/11/2026 — Auth/Appointment integration:** profile group `service-integration` enables identity/scope/reference consumers and an explicit SERVICE subject registry. Local Appointment reference URI is `/api/v2/appointments`; Basic credentials are enforced by Appointment and Auth now supplies the compatible scope provider. See [security integration runbook](../appointment-service/docs/integration-readiness/09_SECURITY_INTEGRATION.md). Real deployment still requires credentials, TLS and explicit human assignments.
+
 > HTTP+UUID isolated candidate: see [35 acceptance](docs/integration-readiness/35_PATIENT_HTTP_UUID_ACCEPTANCE.md) and [34 demo runbook](docs/integration-readiness/34_PATIENT_HTTP_UUID_DEMO_RUNBOOK.md). API `/api/v3/patients`, proposed UUID `/2` consumers and fresh `PATIENT_UUID_DB_*` are breaking changes. Historical P-FINAL/v1/provider evidence below does not verify the new target. No GitHub change is made by this candidate.
 
 # Patient Service v2

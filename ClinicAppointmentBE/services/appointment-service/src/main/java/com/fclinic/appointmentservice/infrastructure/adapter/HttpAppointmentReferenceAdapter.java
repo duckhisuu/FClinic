@@ -19,10 +19,13 @@ public class HttpAppointmentReferenceAdapter
 
   private final ProviderHttp http;
   private final AppointmentSettings settings;
+  private final com.fclinic.appointmentservice.infrastructure.security.PatientServiceTokenProvider patientTokens;
 
-  public HttpAppointmentReferenceAdapter(ProviderHttp http, AppointmentSettings settings) {
+  public HttpAppointmentReferenceAdapter(ProviderHttp http, AppointmentSettings settings,
+      com.fclinic.appointmentservice.infrastructure.security.PatientServiceTokenProvider patientTokens) {
     this.http = http;
     this.settings = settings;
+    this.patientTokens = patientTokens;
   }
 
   public PatientReference patient(UUID patient, long deadline) {
@@ -31,7 +34,7 @@ public class HttpAppointmentReferenceAdapter
       n =
           http.get(
               settings.patientUrl() + "/api/v3/patients/" + patient,
-              settings.serviceToken(),
+              patientTokens.token(deadline),
               deadline);
     } catch (ProviderHttp.MissingReference e) {
       throw new AppointmentError(404, "PATIENT_NOT_FOUND", "Không tìm thấy bệnh nhân.");

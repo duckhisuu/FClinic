@@ -1,8 +1,8 @@
 # Appointment v2
 
-**Cập nhật sau merge main 02/11/2026:** Appointment gọi Patient v3, dùng UUIDv4 cho business ID và giữ reference header `/2`. Xem [contract/migration](docs/uuid/README.md) và [Docker riêng Appointment](docs/uuid/DOCKER.md). Không sửa service khác/security/shared config. Các kiểu ID số trong tài liệu/report lịch sử bên dưới được thay bằng contract UUIDv4 hiện hành.
+**Cập nhật sau merge main 02/11/2026:** Appointment gọi Patient v3, dùng UUIDv4 cho business ID và giữ reference header `/2`. Xem [contract/migration](docs/uuid/README.md) và [Docker riêng Appointment](docs/uuid/DOCKER.md). Security liên service được cập nhật ngày 09/11/2026; xem hướng dẫn tích hợp bên dưới. Các kiểu ID số trong tài liệu/report lịch sử bên dưới được thay bằng contract UUIDv4 hiện hành.
 
-Phạm vi: nghiệp vụ Appointment BE và giao diện React trong `ClinicAppointmentFE/src/appointment`. Report được giữ nguyên và dùng làm chuẩn cho nghiệp vụ. Không bổ sung security, không sửa service khác. Hướng dẫn bàn giao đầy đủ: [docs/README.md](docs/README.md).
+Phạm vi: nghiệp vụ Appointment BE và giao diện React trong `ClinicAppointmentFE/src/appointment`. Report được giữ nguyên và dùng làm chuẩn cho nghiệp vụ. Security, Patient reference và Gateway được cập nhật trong đợt tích hợp 09/11/2026. Hướng dẫn bàn giao đầy đủ: [docs/README.md](docs/README.md).
 
 ## Cấu trúc theo bản pull
 
@@ -38,11 +38,13 @@ Create chỉ nhận `{patientId,doctorId,slotId,reasonForVisit?}`. Cancel nhận
 
 List trả `{content,page,size,totalElements,totalPages}`, tối đa 100/trang, sắp xếp ngày/giờ/id giảm dần. History có action/version, giờ cũ/mới, lý do và thời điểm. Medical-reference chỉ trả `id,patientId,doctorId,status`; reminder-reference thêm version, slot, lịch và timezone, không có lý do khám. Đây là các read model bổ sung trong phạm vi Appointment để khép phần DTO còn thiếu của Report.
 
-## Ranh giới security giữ nguyên
+## Security và tích hợp hiện hành
 
-Theo yêu cầu không code thêm security: không có login, Auth introspection, JWT filter, role guard, cấp scope nhân viên hay endpoint session mới. Security và giới hạn truy cập do phần tích hợp hiện có chịu trách nhiệm. Các query filter chỉ lọc dữ liệu nghiệp vụ, không phải phân quyền.
+Mọi API Appointment v2 xác thực caller tại service qua Auth introspection. PATIENT chỉ thao tác lịch của mình; DOCTOR chỉ đọc lịch được gán; STAFF cần scope cụ thể. Authorization chạy trước idempotency replay và list được giới hạn trước phân trang. Không còn anonymous fallback; history ghi subject/role đã xác minh.
 
-Khi container có Principal, tên principal dùng làm namespace idempotency/audit. Khi chưa có, namespace kỹ thuật là `anonymous`; history ghi actorRole SYSTEM, không tự nhận đã xác minh PATIENT/STAFF. Vì vậy kết quả kiểm thử ở đây chỉ chứng minh nghiệp vụ, không chứng minh phần phân quyền theo Report. Không nhận header tự khai danh tính làm principal.
+Patient dùng Basic credential riêng chỉ cho medical-reference; Notification dùng credential khác chỉ cho reminder-reference. Credential dịch vụ không cấp quyền dùng API người dùng. Appointment gọi Patient v3 bằng token machine riêng có thể lấy và làm mới qua client_credentials. Auth/Patient thống nhất SVC_PATIENT_READ và registry subject rõ ràng; Gateway đã có route v2.
+
+Xem [cấu hình, assignment, TLS và kiểm thử](docs/integration-readiness/09_SECURITY_INTEGRATION.md). Thiếu credential/provider fail closed. Tài liệu kiểm chứng nghiệp vụ cũ không thay thế kết quả security mới.
 
 ## Chạy cục bộ
 
@@ -78,7 +80,7 @@ Publish JSON thô schemaVersion 3 với ID UUID tới topic `clinic.events`, que
 
 Dùng lease claim và SKIP LOCKED; retry sau lỗi provider/broker, không mất intent khi khởi động lại. Chỉ ghi PUBLISHED sau publisher ACK và không có mandatory return. Vẫn là at-least-once: consumer cần chống lặp theo eventId. Nhắc lịch có unique appointment/version/due, kiểm tra trạng thái/version/giờ hiện tại trước publish và suppress reminder cũ.
 
-Gateway hiện có vẫn giữ route cũ vì không được sửa file ngoài Appointment. Phía sở hữu Gateway cần nối v2 nếu chạy qua cổng 8080; dev React dùng proxy trực tiếp. Doctor owner triển khai published-slot contract và slot 60 phút theo Report; Appointment không hạ contract để tương thích code/seed 30 phút hiện tại. Notification hiện tại cần consumer tương thích schema v2/queue này; module không sửa consumer hoặc khẳng định đã gửi email.
+Gateway hiện đã route Appointment v2; cần bật Eureka registration tương ứng khi dùng lb://. Dev React dùng proxy trực tiếp. Doctor owner triển khai published-slot contract và slot 60 phút theo Report; Appointment không hạ contract để tương thích code/seed 30 phút hiện tại. Notification hiện tại cần consumer tương thích schema v2/queue này; module không sửa consumer hoặc khẳng định đã gửi email.
 
 ## Kiểm chứng
 

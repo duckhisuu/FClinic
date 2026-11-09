@@ -1,3 +1,5 @@
+**09/11/2026 — Appointment/Patient integration:** Auth supports a distinct Appointment introspection client and a protected `/api/v1/auth/scopes` provider with explicit assignments. Keycloak template and Patient registry use `SVC_PATIENT_READ`; Appointment audience is mapped explicitly. Configuration, TLS, scope grants and verification: [security integration runbook](../appointment-service/docs/integration-readiness/09_SECURITY_INTEGRATION.md).
+
 # FClinic Auth Service (Keycloak OIDC + UUIDv4 + Clean Architecture)
 
 Service xác thực, phân quyền và quản lý tài khoản trung tâm của hệ thống **FClinic Microservices**, xây dựng theo mô hình **Clean Architecture** (`api`, `application`, `domain`, `infrastructure`) và tích hợp **Keycloak Identity Provider** chuẩn OAuth2/OIDC.

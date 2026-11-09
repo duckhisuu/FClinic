@@ -20,11 +20,18 @@ public record IdentitySettings(
         @DefaultValue("32") int maxConcurrentRequests,
         Path trustStore, String trustStorePassword,
         Map<String, ServiceBinding> services) {
-    public record ServiceBinding(String name, Set<String> authorities) {
+    public record ServiceBinding(String name, Set<String> authorities, String subject) {
+        public ServiceBinding(String name, Set<String> authorities) { this(name, authorities, null); }
+        @org.springframework.boot.context.properties.bind.ConstructorBinding
         public ServiceBinding { authorities = authorities == null ? Set.of() : Set.copyOf(authorities); }
     }
     public IdentitySettings { services = services == null ? Map.of() : Map.copyOf(services); }
     @Override public String toString() { return "IdentitySettings[redacted]"; }
+    public ServiceBinding bindingFor(String subject) {
+        ServiceBinding exact = services.get(subject);
+        if (exact != null && (exact.subject() == null || subject.equals(exact.subject()))) return exact;
+        return services.values().stream().filter(binding -> subject.equals(binding.subject())).findFirst().orElse(null);
+    }
 
     public void validateEnabled() {
         require(endpoint != null && "https".equalsIgnoreCase(endpoint.getScheme()) && endpoint.getHost() != null
@@ -47,7 +54,11 @@ public record IdentitySettings(
                     "invalid service name");
             require(!binding.authorities().isEmpty() && binding.authorities().stream()
                     .allMatch(a -> a.matches("SVC_[A-Z0-9_]{1,80}")), "invalid service authority registry");
+            require(binding.subject() == null || (!binding.subject().isBlank() && binding.subject().length() <= 255
+                    && binding.subject().chars().noneMatch(Character::isISOControl)), "invalid registered subject");
         });
+        require(services.entrySet().stream().map(e -> e.getValue().subject() == null ? e.getKey() : e.getValue().subject())
+                .distinct().count() == services.size(), "duplicate service subject");
     }
     private static boolean duration(Duration d) {
         return d != null && d.compareTo(Duration.ofMillis(100)) >= 0 && d.compareTo(Duration.ofSeconds(30)) <= 0;

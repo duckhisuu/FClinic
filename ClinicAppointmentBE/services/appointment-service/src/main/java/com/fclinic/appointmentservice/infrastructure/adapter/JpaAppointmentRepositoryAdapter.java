@@ -80,6 +80,8 @@ public class JpaAppointmentRepositoryAdapter implements AppointmentRepositoryPor
         repository.findAll(
             (r, query, cb) -> {
               List<Predicate> filters = new ArrayList<>();
+              if (q.allowedPatientIds() != null)
+                filters.add(q.allowedPatientIds().isEmpty() ? cb.disjunction() : r.get("patientId").in(q.allowedPatientIds()));
               if (q.patientId() != null) filters.add(cb.equal(r.get("patientId"), q.patientId()));
               if (q.doctorId() != null) filters.add(cb.equal(r.get("doctorId"), q.doctorId()));
               if (q.date() != null) filters.add(cb.equal(r.get("appointmentDate"), q.date()));

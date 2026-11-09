@@ -18,4 +18,9 @@ public final class BusinessId {
     if (!valid(value)) throw AppointmentError.validation("Định danh nghiệp vụ phải là UUIDv4 hợp lệ.");
     return value;
   }
+  public static UUID parse(String value) {
+    if (value == null || !value.matches(PATTERN))
+      throw AppointmentError.validation("Định danh nghiệp vụ phải là UUIDv4 hợp lệ.");
+    return require(UUID.fromString(value));
+  }
 }

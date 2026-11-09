@@ -8,6 +8,7 @@ import com.fclinic.appointmentservice.application.port.in.*;
 import com.fclinic.appointmentservice.application.port.out.*;
 import com.fclinic.appointmentservice.application.result.*;
 import com.fclinic.appointmentservice.domain.event.*;
+import com.fclinic.appointmentservice.application.security.AppointmentPolicy;
 import java.time.*;
 import java.util.*;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,7 @@ public class RescheduleAppointmentService implements RescheduleAppointmentUseCas
   private final IdempotentAppointmentOperation operations;
   private final Clock clock;
   private final DoctorReferencePort doctors;
+  private final AppointmentPolicy policy;
 
   public RescheduleAppointmentService(
       AppointmentRepositoryPort repository,
@@ -29,7 +31,7 @@ public class RescheduleAppointmentService implements RescheduleAppointmentUseCas
       AppointmentEventPublisherPort events,
       IdempotentAppointmentOperation operations,
       Clock clock,
-      DoctorReferencePort doctors) {
+      DoctorReferencePort doctors, AppointmentPolicy policy) {
     this.repository = repository;
     this.transactions = transactions;
     this.history = history;
@@ -37,9 +39,13 @@ public class RescheduleAppointmentService implements RescheduleAppointmentUseCas
     this.operations = operations;
     this.clock = clock;
     this.doctors = doctors;
+    this.policy = policy;
   }
 
   public AppointmentOperationResult rescheduleAppointment(RescheduleAppointmentCommand command) {
+    policy.authenticated(command.actor());
+    var authorized = repository.findById(command.appointmentId()).orElseThrow(AppointmentNotFoundException::new);
+    policy.mutate(command.actor(), authorized.getPatientId(), "APPOINTMENT_RESCHEDULE");
     Map<String, Object> body = new TreeMap<>();
     body.put("version", command.version());
     body.put("slotId", command.slotId());
@@ -77,7 +83,7 @@ public class RescheduleAppointmentService implements RescheduleAppointmentUseCas
                     "RESCHEDULED",
                     normalize(command.reason()),
                     command.actor().subject(),
-                    "SYSTEM",
+                    command.actor().auditRole(),
                     now);
                 events.publish(
                     new AppointmentRescheduledDomainEvent(

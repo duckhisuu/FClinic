@@ -6,6 +6,17 @@
 **/tests/
 **/__tests__/
 
+# Security regression tests belong to the source changes below.
+!/ClinicAppointmentBE/services/appointment-service/src/test/
+/ClinicAppointmentBE/services/appointment-service/src/test/*
+!/ClinicAppointmentBE/services/appointment-service/src/test/java/
+!/ClinicAppointmentBE/services/auth-service/src/test/
+/ClinicAppointmentBE/services/auth-service/src/test/*
+!/ClinicAppointmentBE/services/auth-service/src/test/java/
+!/ClinicAppointmentBE/infra/api-gateway/src/test/
+/ClinicAppointmentBE/infra/api-gateway/src/test/*
+!/ClinicAppointmentBE/infra/api-gateway/src/test/java/
+
 # Compiled class and jar files
 **/target/
 *.class

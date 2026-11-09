@@ -1,5 +1,7 @@
 # Appointment — tài liệu bàn giao
 
+**09/11/2026:** xem [security integration hiện hành](integration-readiness/09_SECURITY_INTEGRATION.md) cho Auth introspection, ownership/scope, credential Patient và Gateway v2. Các mô tả chưa triển khai security dưới đây là lịch sử bàn giao.
+
 **Contract hiện hành: [UUIDv4 và Patient v3 trong Appointment](uuid/README.md); [chạy Docker](uuid/DOCKER.md).** Các service khác/shared config không được sửa; tài liệu/report có ID số dưới đây là nguồn lịch sử để đối chiếu nghiệp vụ.
 
 Cập nhật 27/10/2026. Đọc thư mục này trước khi tích hợp Appointment. Nghiệp vụ lấy Report làm chuẩn; không sửa Patient, Doctor, Notification, Gateway hoặc security để chạy theo implementation hiện tại của từng nhóm.

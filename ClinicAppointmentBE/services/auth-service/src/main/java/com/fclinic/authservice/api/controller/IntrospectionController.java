@@ -72,43 +72,16 @@ public class IntrospectionController {
 
         IntrospectionResult result = introspectTokenUseCase.introspect(tokens.get(0));
         return ResponseEntity.ok()
+                .cacheControl(org.springframework.http.CacheControl.noStore())
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(mapper.toIntrospectionWireResponse(result));
     }
 
     private boolean isAuthorizedClient(String authorizationHeader) {
-        if (authorizationHeader == null || !authorizationHeader.regionMatches(true, 0, "Basic ", 0, 6)) {
-            return false;
-        }
-        String expectedClientId = properties.clientId();
-        String expectedClientSecret = properties.clientSecret();
-        if (expectedClientId == null || expectedClientId.isBlank()
-                || expectedClientSecret == null || expectedClientSecret.isBlank()) {
-            return false;
-        }
-
-        try {
-            byte[] decodedBytes = Base64.getDecoder().decode(authorizationHeader.substring(6).trim());
-            String decoded = new String(decodedBytes, StandardCharsets.UTF_8);
-            int separatorIndex = decoded.indexOf(':');
-            if (separatorIndex <= 0) {
-                return false;
-            }
-            String suppliedId = URLDecoder.decode(decoded.substring(0, separatorIndex), StandardCharsets.UTF_8);
-            String suppliedSecret = URLDecoder.decode(decoded.substring(separatorIndex + 1), StandardCharsets.UTF_8);
-
-            boolean idMatches = MessageDigest.isEqual(
-                    suppliedId.getBytes(StandardCharsets.UTF_8),
-                    expectedClientId.getBytes(StandardCharsets.UTF_8)
-            );
-            boolean secretMatches = MessageDigest.isEqual(
-                    suppliedSecret.getBytes(StandardCharsets.UTF_8),
-                    expectedClientSecret.getBytes(StandardCharsets.UTF_8)
-            );
-            return idMatches && secretMatches;
-        } catch (IllegalArgumentException ex) {
-            return false;
-        }
+        return com.fclinic.authservice.infrastructure.config.ServiceClientCredentials.matches(
+                authorizationHeader, properties.clientId(), properties.clientSecret())
+                || properties.clients().entrySet().stream().anyMatch(entry ->
+                    com.fclinic.authservice.infrastructure.config.ServiceClientCredentials.matches(
+                        authorizationHeader, entry.getValue().clientId(), entry.getValue().clientSecret()));
     }
 }
-

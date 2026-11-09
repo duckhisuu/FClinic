@@ -1,6 +1,11 @@
 server:
   port: 8081
 spring:
+  config:
+    import: "optional:file:.env[.properties],optional:file:../../.env[.properties],optional:file:ClinicAppointmentBE/.env[.properties]"
+  profiles:
+    group:
+      service-integration: [identity-introspection, scope-authority, appointment-reference, auth-registry]
   application:
     name: patient-service
   datasource:

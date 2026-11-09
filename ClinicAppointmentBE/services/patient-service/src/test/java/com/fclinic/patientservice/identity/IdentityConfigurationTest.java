@@ -11,6 +11,19 @@ import static com.fclinic.patientservice.identity.IdentityFixtures.*;
 import static org.assertj.core.api.Assertions.*;
 
 class IdentityConfigurationTest {
+    @Test void integrationRegistryBindsOnlyTheExplicitProvisionedSubject() {
+        new ApplicationContextRunner().withInitializer(new org.springframework.boot.test.context.ConfigDataApplicationContextInitializer())
+                .withUserConfiguration(PatientConfiguration.class,PatientIdentityConfiguration.class)
+                .withPropertyValues("spring.config.location=classpath:application.yml", "spring.profiles.active=auth-registry",
+                        "APPOINTMENT_SERVICE_SUBJECT=explicit-subject")
+                .run(context -> {
+                    assertThat(context).hasNotFailed();
+                    var identity=context.getBean(IdentitySettings.class);
+                    assertThat(identity.bindingFor("explicit-subject").name()).isEqualTo("appointment-service");
+                    assertThat(identity.bindingFor("explicit-subject").authorities()).containsExactly("SVC_PATIENT_READ");
+                    assertThat(identity.bindingFor("service-account-appointment-service")).isNull();
+                });
+    }
     final ApplicationContextRunner runner=new ApplicationContextRunner()
             .withUserConfiguration(PatientConfiguration.class,PatientIdentityConfiguration.class);
     @Test void disabledConfigurationHasExactlyOneFailClosedVerifier() {

@@ -160,29 +160,13 @@ public class TokenVerificationService implements ValidateTokenUseCase, Introspec
         if (claimAudiences != null) {
             claimAudiences.stream().filter(a -> a != null && !a.isBlank()).forEach(merged::add);
         }
-        if (merged.isEmpty() && policy.defaultAudiences() != null) {
-            policy.defaultAudiences().stream().filter(a -> a != null && !a.isBlank()).forEach(merged::add);
-        }
         return List.copyOf(merged);
     }
 
     private Optional<User> resolveUser(KeycloakTokenClaims claims) {
-        if (claims.keycloakUserId() != null) {
-            Optional<User> byKeycloak = userRepository.findByKeycloakId(claims.keycloakUserId());
-            if (byKeycloak.isPresent()) {
-                return byKeycloak;
-            }
-        }
-        if (claims.fclinicUserId() != null) {
-            Optional<User> byId = userRepository.findById(claims.fclinicUserId());
-            if (byId.isPresent()) {
-                return byId;
-            }
-        }
-        if (claims.username() != null && !claims.username().isBlank()) {
-            return userRepository.findByUsername(claims.username().trim().toLowerCase());
-        }
-        return Optional.empty();
+        if (claims.keycloakUserId() == null || !claims.keycloakUserId().toString().equals(claims.subject())) return Optional.empty();
+        // Current mapping comes only from the verified issuer/subject binding, never a username fallback.
+        return userRepository.findByKeycloakId(claims.keycloakUserId());
     }
 
     private static String stripBearerPrefix(String rawToken) {

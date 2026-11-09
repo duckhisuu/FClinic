@@ -1,0 +1,8 @@
+# Exact service subject provisioning; this is not inferred from client-supplied identity headers.
+patient:
+  identity:
+    services:
+      appointment:
+        subject: ${APPOINTMENT_SERVICE_SUBJECT:22222222-2222-4222-8222-222222222205}
+        name: appointment-service
+        authorities: [SVC_PATIENT_READ]
