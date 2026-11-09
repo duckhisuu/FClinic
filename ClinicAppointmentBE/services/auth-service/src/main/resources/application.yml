@@ -42,6 +42,9 @@ spring:
       "[mail.smtp.timeout]": 5000
 
 app:
+  recipients:
+    client-id: ${APPOINTMENT_RECIPIENT_CLIENT_ID:appointment-recipient-accounts}
+    client-secret: ${APPOINTMENT_RECIPIENT_CLIENT_SECRET:}
   keycloak:
     base-url: ${KEYCLOAK_BASE_URL:http://localhost:8180}
     realm: ${KEYCLOAK_REALM:fclinic}

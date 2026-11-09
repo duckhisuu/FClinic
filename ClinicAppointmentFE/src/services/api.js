@@ -101,13 +101,12 @@ const generateMockSlots = (doctorId, dateStr) => {
     return mockDynamicSlots[key];
   }
   const times = [
-    ['08:00:00', '08:30:00', false],
-    ['08:30:00', '09:00:00', false],
-    ['09:00:00', '09:30:00', true],
-    ['10:00:00', '10:30:00', false],
-    ['14:00:00', '14:30:00', false],
-    ['14:30:00', '15:00:00', false],
-    ['15:30:00', '16:00:00', false],
+    ['08:00:00', '09:00:00', false],
+    ['09:00:00', '10:00:00', false],
+    ['10:00:00', '11:00:00', true],
+    ['14:00:00', '15:00:00', false],
+    ['15:00:00', '16:00:00', false],
+    ['16:00:00', '17:00:00', false],
   ];
   const docDigits = String(doctorId).replace(/[^0-9a-fA-F]/g, '').slice(-8).padStart(8, '0');
   const defaultSlots = times.map(([startTime, endTime, isBooked], idx) => ({
@@ -136,7 +135,7 @@ let mockAppointments = [
     slotId: 1,
     appointmentDate: new Date().toISOString().split('T')[0],
     startTime: '08:00:00',
-    endTime: '08:30:00',
+    endTime: '09:00:00',
     reasonForVisit: 'Kiểm tra định kỳ huyết áp và đau thắt ngực',
     consultationFee: 350000,
     status: 'CONFIRMED',
@@ -154,7 +153,7 @@ let mockAppointments = [
     slotId: 2,
     appointmentDate: new Date(Date.now() + 86400000).toISOString().split('T')[0],
     startTime: '14:00:00',
-    endTime: '14:30:00',
+    endTime: '15:00:00',
     reasonForVisit: 'Bé ho sốt kéo dài 2 ngày',
     consultationFee: 300000,
     status: 'PENDING',

@@ -21,7 +21,8 @@ import {
   CalendarDays,
   User,
 } from 'lucide-react';
-import { doctorApi } from '../services/api';
+import { doctorApi } from '../appointment/api';
+import { ErrorNotice } from '../appointment/ui';
 
 const SPECIALTIES = [
   'Tất cả',
@@ -49,6 +50,7 @@ export const DoctorSchedulePage = ({ onSelectSlot, onNotify }) => {
   const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [doctorSlots, setDoctorSlots] = useState({});
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // Modals state
   const [detailDoctor, setDetailDoctor] = useState(null);
@@ -64,9 +66,9 @@ export const DoctorSchedulePage = ({ onSelectSlot, onNotify }) => {
   const [slotTargetDoctor, setSlotTargetDoctor] = useState(null);
   const [addSlotLoading, setAddSlotLoading] = useState(false);
   const [newSlotForm, setNewSlotForm] = useState({
-    slotDate: () => new Date().toISOString().split('T')[0],
+    slotDate: new Date().toISOString().split('T')[0],
     startTime: '08:00',
-    endTime: '08:30',
+    endTime: '09:00',
   });
 
   const notify = (msg, type = 'info') => {
@@ -79,6 +81,7 @@ export const DoctorSchedulePage = ({ onSelectSlot, onNotify }) => {
 
   // Load doctors & slots
   const loadDoctors = async () => {
+    setError(null);
     setLoading(true);
     try {
       const spec = selectedSpecialty === 'Tất cả' ? undefined : selectedSpecialty;
@@ -91,14 +94,12 @@ export const DoctorSchedulePage = ({ onSelectSlot, onNotify }) => {
           try {
             const slots = await doctorApi.getDoctorSlots(doc.id, selectedDate);
             slotsMap[doc.id] = slots || [];
-          } catch {
-            slotsMap[doc.id] = [];
-          }
+          } catch (error) { setError(error); slotsMap[doc.id] = []; }
         })
       );
       setDoctorSlots(slotsMap);
     } catch (err) {
-      notify('Không thể kết nối đến Doctor Service. Sử dụng dữ liệu dự phòng.', 'info');
+      setError(err); setDoctors([]); setDoctorSlots({});
     } finally {
       setLoading(false);
     }
@@ -115,6 +116,7 @@ export const DoctorSchedulePage = ({ onSelectSlot, onNotify }) => {
       const res = await doctorApi.getDoctorSchedule(doctorId, period, anchorDate);
       setScheduleData(res);
     } catch (err) {
+      setError(err);
       notify('Lỗi tải lịch tuần/tháng của bác sĩ.', 'error');
     } finally {
       setScheduleLoading(false);
@@ -152,7 +154,7 @@ export const DoctorSchedulePage = ({ onSelectSlot, onNotify }) => {
     setNewSlotForm({
       slotDate: selectedDate,
       startTime: '08:00',
-      endTime: '08:30',
+      endTime: '09:00',
     });
     setShowAddSlotModal(true);
   };
@@ -890,8 +892,14 @@ export const DoctorSchedulePage = ({ onSelectSlot, onNotify }) => {
                   <input
                     type="time"
                     required
+                    step="3600"
                     value={newSlotForm.startTime}
-                    onChange={(e) => setNewSlotForm({ ...newSlotForm, startTime: e.target.value })}
+                    onChange={(e) => {
+                      const st = e.target.value;
+                      const [h] = st.split(':');
+                      const endH = String((Number(h) + 1) % 24).padStart(2, '0');
+                      setNewSlotForm({ ...newSlotForm, startTime: st, endTime: `${endH}:00` });
+                    }}
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:bg-white"
                   />
                 </div>
@@ -902,6 +910,7 @@ export const DoctorSchedulePage = ({ onSelectSlot, onNotify }) => {
                   <input
                     type="time"
                     required
+                    step="3600"
                     value={newSlotForm.endTime}
                     onChange={(e) => setNewSlotForm({ ...newSlotForm, endTime: e.target.value })}
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:bg-white"
@@ -912,16 +921,16 @@ export const DoctorSchedulePage = ({ onSelectSlot, onNotify }) => {
               {/* Quick Preset Slot Times */}
               <div>
                 <span className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
-                  Chọn mẫu khung giờ 30 phút:
+                  Chọn mẫu khung giờ 60 phút:
                 </span>
                 <div className="grid grid-cols-3 gap-1.5 text-center">
                   {[
-                    ['08:00', '08:30'],
-                    ['08:30', '09:00'],
-                    ['09:00', '09:30'],
-                    ['10:00', '10:30'],
-                    ['14:00', '14:30'],
-                    ['15:00', '15:30'],
+                    ['08:00', '09:00'],
+                    ['09:00', '10:00'],
+                    ['10:00', '11:00'],
+                    ['14:00', '15:00'],
+                    ['15:00', '16:00'],
+                    ['16:00', '17:00'],
                   ].map(([st, et]) => (
                     <button
                       key={st}

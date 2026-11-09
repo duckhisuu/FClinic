@@ -53,6 +53,8 @@ class AppointmentSecurityTcpTest {
     r.add("appointment.security.patient-token-client-secret", () -> "token-secret");
     r.add("appointment.patient-url", AppointmentSecurityTcpTest::upstreamUrl);
     r.add("appointment.doctor-url", AppointmentSecurityTcpTest::upstreamUrl); r.add("appointment.service-token", () -> "machine-token");
+    r.add("appointment.providers.doctor-client-id", () -> "doctor-reference");
+    r.add("appointment.providers.doctor-client-secret", () -> "doctor-secret");
   }
   @BeforeEach void reset() { jdbc.execute("TRUNCATE appointments CASCADE"); STAFF_ALLOWED.set(true); AUTH_DOWN.set(false); PATIENT_READS.set(0); }
   @AfterAll static void close() throws Exception { HTTP.close(); UPSTREAM.stop(0); PG.close(); }
@@ -165,14 +167,17 @@ class AppointmentSecurityTcpTest {
       evidence.put("validFrom", CLOCK.instant().minusSeconds(60)); evidence.put("validUntil", CLOCK.instant().plusSeconds(60)); evidence.put("visitId", null);
       result.put("evidence", STAFF_ALLOWED.get() ? evidence : null); respond(ex, 200, result); return;
     }
-    if (!"Bearer machine-token".equals(ex.getRequestHeaders().getFirst("Authorization"))) { respond(ex, 401, Map.of()); return; }
+    if (path.startsWith("/internal/v1/doctors/")) {
+      ex.getResponseHeaders().set("X-FClinic-Reference-Contract", "appointment-doctor-reference/1");
+      if (!AuthHttpTransport.basic("doctor-reference", "doctor-secret").equals(ex.getRequestHeaders().getFirst("Authorization"))) { respond(ex, 401, Map.of()); return; }
+    } else if (!"Bearer machine-token".equals(ex.getRequestHeaders().getFirst("Authorization"))) { respond(ex, 401, Map.of()); return; }
     Map<String,Object> d = new LinkedHashMap<>();
     if (path.startsWith("/api/v3/patients/")) {
       UUID profileId = UUID.fromString(path.substring(path.lastIndexOf('/') + 1));
       PATIENT_READS.incrementAndGet(); d.put("id", profileId); d.put("patientCode", "PAT-" + profileId); d.put("fullName", "Synthetic"); d.put("phoneNumber", "+84900000001");
       for (String field : List.of("email", "dateOfBirth", "gender", "address", "createdAt", "updatedAt", "createdBy", "updatedBy")) d.put(field, null);
       d.put("status", "ACTIVE"); d.put("version", 0);
-    } else if (path.equals("/api/v1/doctors/" + DOCTOR)) {
+    } else if (path.equals("/internal/v1/doctors/" + DOCTOR)) {
       d.put("id", DOCTOR); d.put("name", "Doctor"); d.put("specialty", "General"); d.put("active", true); d.put("consultationFee", 10);
       for (String field : List.of("department", "qualification", "experienceYears", "roomNumber", "bio", "avatarUrl")) d.put(field, null);
     } else if (path.equals("/internal/v1/doctors/" + DOCTOR + "/slots/" + SLOT) || path.equals("/internal/v1/doctors/" + DOCTOR + "/slots/" + NEXT_SLOT)) {

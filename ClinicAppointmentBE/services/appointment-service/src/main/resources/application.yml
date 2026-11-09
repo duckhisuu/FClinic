@@ -40,6 +40,14 @@ spring:
     template:
       mandatory: true
 appointment:
+  providers:
+    doctor-client-id: ${APPOINTMENT_DOCTOR_CLIENT_ID:appointment-doctor-reference}
+    doctor-client-secret: ${APPOINTMENT_DOCTOR_CLIENT_SECRET:}
+    recipient-client-id: ${APPOINTMENT_RECIPIENT_CLIENT_ID:appointment-recipient-accounts}
+    recipient-client-secret: ${APPOINTMENT_RECIPIENT_CLIENT_SECRET:}
+  tls:
+    trust-store: ${APPOINTMENT_TRUST_STORE:}
+    trust-store-password: ${APPOINTMENT_TRUST_STORE_PASSWORD:}
   security:
     introspection-uri: ${APPOINTMENT_AUTH_INTROSPECTION_URI:http://localhost:8085/api/v1/auth/introspect}
     issuer: ${KEYCLOAK_ISSUER_URI:${KEYCLOAK_BASE_URL:http://localhost:8180}/realms/${KEYCLOAK_REALM:fclinic}}
@@ -60,7 +68,7 @@ appointment:
   patient-url: ${APPOINTMENT_PATIENT_URL:http://localhost:8081}
   doctor-url: ${APPOINTMENT_DOCTOR_URL:http://localhost:8082}
   service-token: ${APPOINTMENT_SERVICE_TOKEN:}
-  recipient-url: ${APPOINTMENT_RECIPIENT_URL:}
+  recipient-url: ${APPOINTMENT_RECIPIENT_URL:http://localhost:8085/api/v1/auth/internal/appointment-recipient-accounts}
   outbox-enabled: ${APPOINTMENT_OUTBOX_ENABLED:true}
   reminder-lead: ${APPOINTMENT_REMINDER_LEAD:}
   outbox-poll-ms: ${APPOINTMENT_OUTBOX_POLL_MS:5000}

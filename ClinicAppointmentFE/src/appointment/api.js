@@ -1,4 +1,5 @@
 import axios from "axios";
+import { refreshSession } from "../services/session";
 
 export class ApiError extends Error {
   constructor(
@@ -24,6 +25,7 @@ apiClient.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  config._sessionUserId ??= JSON.parse(localStorage.getItem("fclinic_user") || "null")?.id;
   return config;
 });
 apiClient.interceptors.response.use(
@@ -42,8 +44,17 @@ apiClient.interceptors.response.use(
       );
     return body.data;
   },
-  (error) => {
+  async (error) => {
     if (axios.isCancel(error)) return Promise.reject(error);
+    if (error.response?.status === 401 && !error.config?._sessionRetried) {
+      const originalToken = error.config?.headers?.Authorization;
+      const sameUser = () => error.config?._sessionUserId && error.config._sessionUserId === JSON.parse(localStorage.getItem("fclinic_user") || "null")?.id;
+      const alreadyRefreshed = () => originalToken !== `Bearer ${localStorage.getItem("fclinic_token")}`;
+      if (sameUser() && (alreadyRefreshed() || await refreshSession(originalToken)) && sameUser()) {
+        error.config._sessionRetried = true;
+        return apiClient.request(error.config);
+      }
+    }
     const body = error.response?.data;
     return Promise.reject(
       new ApiError(
@@ -77,9 +88,13 @@ export const appointmentApi = {
 };
 export const doctorApi = {
   list: (signal) => apiClient.get("/api/v1/doctors", { signal }),
+  getDoctors: (specialty) => apiClient.get("/api/v1/doctors", { params: { specialty } }),
+  getDoctorSlots: (id, date) => apiClient.get(`/api/v1/doctors/${id}/slots`, { params: { date } }),
+  getDoctorSchedule: (id, period, anchorDate) => apiClient.get(`/api/v1/doctors/${id}/schedule`, { params: { period, anchorDate } }),
+  createDoctorSlot: (id, body) => apiClient.post(`/api/v1/doctors/${id}/slots`, body),
 };
 export const patientApi = {
   search: (params, signal) =>
-    apiClient.get("/api/v2/patients", { params, signal }),
-  get: (id, signal) => apiClient.get(`/api/v2/patients/${id}`, { signal }),
+    apiClient.get("/api/v3/patients", { params, signal }),
+  get: (id, signal) => apiClient.get(`/api/v3/patients/${id}`, { signal }),
 };

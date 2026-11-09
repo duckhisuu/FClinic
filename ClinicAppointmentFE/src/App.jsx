@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState, useEffect } from "react";
+import React, { useCallback, useRef, useState, useEffect, useMemo } from "react";
 import {
   HeartPulse,
   CalendarDays,
@@ -57,7 +57,7 @@ function getRoleMenu(role) {
           id: "staff-walkin",
           icon: Building2,
           title: "Tiếp nhận tại quầy",
-          desc: "Tra cứu & tạo bệnh nhân",
+          desc: "Chọn hồ sơ bệnh nhân",
         },
         {
           id: "doctors",
@@ -75,8 +75,9 @@ function getRoleMenu(role) {
           id: "history",
           icon: CalendarDays,
           title: "Quản lý lịch hẹn",
-          desc: "Toàn bộ lịch hẹn phòng khám",
+          desc: "Lịch hẹn trong phạm vi phân công",
         },
+        { id: "patient-records", icon: UsersRound, title: "Quản lý bệnh nhân", desc: "Hồ sơ theo quyền được cấp" },
       ];
 
     case "ROLE_ADMIN":
@@ -134,6 +135,8 @@ function MainApp() {
   const [selection, setSelection] = useState(null);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [walkinPatient, setWalkinPatient] = useState(null);
+  const patientSession = useMemo(() => ({ getAccessToken: () => localStorage.getItem("fclinic_token"),
+    permissions: user?.permissions || {} }), [user?.id, user?.permissions]);
 
   const patientLeave = useRef(null);
   const registerPatientGuard = useCallback((guard) => {
@@ -173,8 +176,8 @@ function MainApp() {
 
   const menu = getRoleMenu(user?.role);
   const roleBadge = getRoleLabel(user?.role);
-  const patientId = walkinPatient?.patientId || user?.patientId || null;
-  const actorSubject = user?.fullName || user?.username || "authenticated-user";
+  const patientId = user?.role === "ROLE_STAFF" ? walkinPatient?.id || null : user?.patientId || null;
+  const actorSubject = user?.id;
 
   return (
     <div className="app">
@@ -283,14 +286,19 @@ function MainApp() {
         </aside>
 
         <main className="main">
+          {user?.role === "ROLE_STAFF" && walkinPatient && ["booking", "history", "doctors"].includes(tab) &&
+            <div className="notice"><span>Hồ sơ đang chọn: {walkinPatient.fullName} · {walkinPatient.patientCode}</span>
+              <button className="text-button" onClick={() => { setWalkinPatient(null); setSelection(null); }}>Bỏ chọn hồ sơ</button></div>}
           {/* ROLE ADMIN VIEW */}
           {tab === "admin-users" ? (
             <AdminUsersPage />
           ) : tab === "staff-walkin" ? (
             /* ROLE STAFF VIEW */
             <StaffWalkinPage
+              onManageProfiles={() => selectTab("patient-records")}
               onSelectPatientForBooking={(selectedPatient) => {
                 setWalkinPatient(selectedPatient);
+                setSelection(null);
                 selectTab("doctors");
               }}
             />
@@ -299,7 +307,7 @@ function MainApp() {
             <DoctorDashboardPage />
           ) : tab === "patient-records" ? (
             /* PATIENT RECORDS VIEW */
-            <PatientModule onBeforeLeave={registerPatientGuard} />
+            <PatientModule session={patientSession} onBeforeLeave={registerPatientGuard} />
           ) : tab === "doctors" ? (
             /* DOCTORS DIRECTORY */
             <DoctorDirectory
@@ -311,6 +319,8 @@ function MainApp() {
           ) : tab === "booking" ? (
             /* BOOKING VIEW */
             <Booking
+              key={patientId || "choose-patient"}
+              role={user?.role}
               actorSubject={actorSubject}
               patientId={patientId}
               selection={selection}
@@ -320,6 +330,8 @@ function MainApp() {
           ) : (
             /* APPOINTMENT HISTORY */
             <AppointmentHistory
+              key={patientId || "assigned-patients"}
+              role={user?.role}
               actorSubject={actorSubject}
               patientId={patientId}
               onSchedule={() => setTab("doctors")}
@@ -345,7 +357,12 @@ function MainApp() {
 export default function App() {
   return (
     <AuthProvider>
-      <MainApp />
+      <SessionApp />
     </AuthProvider>
   );
+}
+
+function SessionApp() {
+  const { user } = useAuth();
+  return <MainApp key={user ? `${user.id}:${user.role}:${user.patientId}:${user.doctorId}` : "signed-out"} />;
 }

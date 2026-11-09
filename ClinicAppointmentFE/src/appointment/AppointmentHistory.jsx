@@ -18,7 +18,7 @@ const actions = {
   COMPLETED: "Hoàn thành",
   NO_SHOW: "Không đến khám",
 };
-export function AppointmentHistory({ actorSubject, patientId, onSchedule }) {
+export function AppointmentHistory({ actorSubject, patientId, doctorId, role, onSchedule }) {
   const [data, setData] = useState(null),
     [error, setError] = useState(null),
     [loading, setLoading] = useState(true),
@@ -39,6 +39,7 @@ export function AppointmentHistory({ actorSubject, patientId, onSchedule }) {
           page,
           size: 10,
           ...(patientId ? { patientId } : {}),
+          ...(doctorId ? { doctorId } : {}),
           ...(status ? { status } : {}),
         },
         c.signal,
@@ -59,7 +60,7 @@ export function AppointmentHistory({ actorSubject, patientId, onSchedule }) {
         if (!c.signal.aborted) setLoading(false);
       });
     return () => c.abort();
-  }, [page, status, revision, patientId]);
+  }, [page, status, revision, patientId, doctorId]);
   const detailRequest = useRef(0);
   const view = async (a) => {
     const request = ++detailRequest.current;
@@ -77,6 +78,7 @@ export function AppointmentHistory({ actorSubject, patientId, onSchedule }) {
     }
   };
   const canChange = (a) =>
+    ["ROLE_PATIENT", "ROLE_STAFF"].includes(role) &&
     a.status === "CONFIRMED" &&
     new Date(`${a.appointmentDate}T${a.startTime}+07:00`).getTime() >
       Date.now();
@@ -126,9 +128,9 @@ export function AppointmentHistory({ actorSubject, patientId, onSchedule }) {
           !error && (
             <Empty title="Chưa có lịch hẹn">
               Khi đặt khám thành công, lịch hẹn sẽ được hiển thị tại đây.
-              <button className="button primary" onClick={onSchedule}>
+              {onSchedule && <button className="button primary" onClick={onSchedule}>
                 Chọn giờ khám
-              </button>
+              </button>}
             </Empty>
           )
         ) : (

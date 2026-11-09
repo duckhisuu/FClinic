@@ -3,7 +3,7 @@ $ErrorActionPreference = 'Stop'
 $backend = Split-Path -Parent $PSScriptRoot
 if (-not $JavaHome) { throw 'Set JAVA_HOME to a JDK 21 installation.' }
 $entries = [Collections.Generic.HashSet[string]]::new()
-foreach ($module in @('auth-service', 'patient-service', 'appointment-service')) {
+foreach ($module in @('auth-service', 'patient-service', 'doctor-service', 'appointment-service')) {
     $modulePath = Join-Path $backend "services/$module"
     $classes = Join-Path $modulePath 'target/classes'
     if (-not (Test-Path -LiteralPath $classes)) { throw "Build and test $module first." }
@@ -17,8 +17,10 @@ foreach ($module in @('auth-service', 'patient-service', 'appointment-service'))
 $argsFile = Join-Path ([IO.Path]::GetTempPath()) ('fclinic-contracts-' + [guid]::NewGuid().ToString('N') + '.args')
 try {
     $cp = ([string[]]$entries) -join [IO.Path]::PathSeparator
-    $source = Join-Path $PSScriptRoot 'VerifyServiceContracts.java'
-    [IO.File]::WriteAllLines($argsFile, @('-cp', ('"' + $cp.Replace('\', '/') + '"'), ('"' + $source.Replace('\', '/') + '"')))
-    & (Join-Path $JavaHome 'bin/java.exe') "@$argsFile"
-    if ($LASTEXITCODE -ne 0) { throw 'Cross-service contract verification failed.' }
+    foreach ($sourceName in @('VerifyServiceContracts.java', 'VerifyProviderContracts.java')) {
+        $source = Join-Path $PSScriptRoot $sourceName
+        [IO.File]::WriteAllLines($argsFile, @('-cp', ('"' + $cp.Replace('\', '/') + '"'), ('"' + $source.Replace('\', '/') + '"')))
+        & (Join-Path $JavaHome 'bin/java.exe') "@$argsFile"
+        if ($LASTEXITCODE -ne 0) { throw "Cross-service contract verification failed: $sourceName" }
+    }
 } finally { Remove-Item -LiteralPath $argsFile -ErrorAction SilentlyContinue }

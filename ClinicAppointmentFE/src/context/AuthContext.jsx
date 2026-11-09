@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { authApi } from '../services/authApi';
+import { SESSION_EVENT } from '../services/session';
 
 const AuthContext = createContext(null);
 
@@ -36,6 +37,15 @@ export function AuthProvider({ children }) {
     setToken(null);
     setUser(null);
   }, []);
+
+  useEffect(() => {
+    const sync = () => {
+      setToken(localStorage.getItem('fclinic_token'));
+      try { setUser(JSON.parse(localStorage.getItem('fclinic_user') || 'null')); } catch { clearSession(); }
+    };
+    window.addEventListener(SESSION_EVENT, sync);
+    return () => window.removeEventListener(SESSION_EVENT, sync);
+  }, [clearSession]);
 
   // Verify initial token on mount
   useEffect(() => {

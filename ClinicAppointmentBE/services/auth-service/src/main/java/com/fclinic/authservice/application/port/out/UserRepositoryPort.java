@@ -32,5 +32,10 @@ public interface UserRepositoryPort {
     List<User> search(String keyword, RoleName roleName, Boolean active);
 
     Optional<User> lookupPatient(String query);
+
+    /** At most two exact active mappings, so callers can reject ambiguity. */
+    List<User> findPatientAccounts(UUID patientId);
+
+    List<User> findDoctorAccounts(UUID doctorId);
 }
 

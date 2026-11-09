@@ -1,0 +1,11 @@
+# Optional private CA and inbound TLS. Directory contains application.yml plus PKCS12 files;
+# secrets live outside the repository. Include after docker-compose.yml.
+services:
+  appointment-service:
+    volumes:
+      - type: bind
+        source: ${APPOINTMENT_TLS_DIRECTORY:?Supply an absolute protected TLS/config directory}
+        target: /run/appointment-config
+        read_only: true
+    environment:
+      SPRING_CONFIG_ADDITIONAL_LOCATION: file:/run/appointment-config/
