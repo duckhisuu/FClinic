@@ -1,16 +1,25 @@
 # Git Ignore Rules for FClinic Monorepo
 
-# Local reports and test directories/files
+# Local reports and tests (keep these ignored after running tests)
 /Report/
-**/src/test/
 **/test/
 **/tests/
 **/__tests__/
-**/*.test.*
-**/*.spec.*
-**/__pycache__/
-*.pyc
 
+# Security regression tests belong to the source changes below.
+!/ClinicAppointmentBE/services/appointment-service/src/test/
+/ClinicAppointmentBE/services/appointment-service/src/test/*
+!/ClinicAppointmentBE/services/appointment-service/src/test/java/
+!/ClinicAppointmentBE/services/auth-service/src/test/
+/ClinicAppointmentBE/services/auth-service/src/test/*
+!/ClinicAppointmentBE/services/auth-service/src/test/java/
+!/ClinicAppointmentBE/infra/api-gateway/src/test/
+/ClinicAppointmentBE/infra/api-gateway/src/test/*
+!/ClinicAppointmentBE/infra/api-gateway/src/test/java/
+!/ClinicAppointmentBE/services/notification-service/src/test/
+/ClinicAppointmentBE/services/notification-service/src/test/*
+!/ClinicAppointmentBE/services/notification-service/src/test/java/
+!/ClinicAppointmentFE/src/notification/__tests__/
 
 # Compiled class and jar files
 **/target/
@@ -53,7 +62,6 @@ Thumbs.db
 # Logs
 **/logs/
 *.log
-/.runtime/
 
 # Docker volume mounts (local)
 pgdata/
@@ -63,9 +71,3 @@ redisdata/
 ### Personal gitignore files
 AGENTS.md
 CLAUDE.md
-
-# Keep reviewed Notification security/recipient regression tests in source control.
-!ClinicAppointmentBE/services/notification-service/src/test/
-!ClinicAppointmentBE/services/notification-service/src/test/**
-!ClinicAppointmentFE/src/notification/__tests__/
-!ClinicAppointmentFE/src/notification/__tests__/**

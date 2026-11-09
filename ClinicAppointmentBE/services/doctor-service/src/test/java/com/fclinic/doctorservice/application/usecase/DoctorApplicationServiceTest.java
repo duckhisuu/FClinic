@@ -118,7 +118,7 @@ class DoctorApplicationServiceTest {
 
         LocalDate date = LocalDate.now().plusDays(1);
         CreateTimeSlotCommand cmd = new CreateTimeSlotCommand(
-                doctorId, date, LocalTime.of(8, 0), LocalTime.of(9, 0)
+                doctorId, date, LocalTime.of(8, 0), LocalTime.of(8, 30)
         );
 
         when(timeSlotRepository.save(any(TimeSlot.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -130,7 +130,7 @@ class DoctorApplicationServiceTest {
         assertEquals(doctorId, view.doctorId());
         assertEquals(date, view.slotDate());
         assertEquals(LocalTime.of(8, 0), view.startTime());
-        assertEquals(LocalTime.of(9, 0), view.endTime());
+        assertEquals(LocalTime.of(8, 30), view.endTime());
         assertFalse(view.isBooked());
         assertTrue(view.published());
     }
@@ -153,29 +153,10 @@ class DoctorApplicationServiceTest {
         when(doctorRepository.findById(doctorId)).thenReturn(Optional.empty());
 
         CreateTimeSlotCommand cmd = new CreateTimeSlotCommand(
-                doctorId, LocalDate.now(), LocalTime.of(8, 0), LocalTime.of(9, 0)
+                doctorId, LocalDate.now(), LocalTime.of(8, 0), LocalTime.of(8, 30)
         );
 
         assertThrows(DoctorNotFoundException.class, () -> service.createTimeSlot(cmd));
-    }
-
-    @Test
-    void shouldThrowExceptionWhenSlotDurationIsNot60MinutesOrNotWholeHour() {
-        Doctor doc = Doctor.createNew("BS. A", "Nhi", "Khoa Nhi", "ThS", 10, 250000.0, "P.102", "Bio", null);
-        doc.setId(doctorId);
-        when(doctorRepository.findById(doctorId)).thenReturn(Optional.of(doc));
-
-        // 30-minute slot: 08:00 - 08:30
-        CreateTimeSlotCommand cmd30Min = new CreateTimeSlotCommand(
-                doctorId, LocalDate.now(), LocalTime.of(8, 0), LocalTime.of(8, 30)
-        );
-        assertThrows(IllegalArgumentException.class, () -> service.createTimeSlot(cmd30Min));
-
-        // Not starting on the hour: 08:30 - 09:30
-        CreateTimeSlotCommand cmdNotWholeHour = new CreateTimeSlotCommand(
-                doctorId, LocalDate.now(), LocalTime.of(8, 30), LocalTime.of(9, 30)
-        );
-        assertThrows(IllegalArgumentException.class, () -> service.createTimeSlot(cmdNotWholeHour));
     }
 
     @Test
@@ -184,7 +165,7 @@ class DoctorApplicationServiceTest {
         doc.setId(doctorId);
         when(doctorRepository.findById(doctorId)).thenReturn(Optional.of(doc));
 
-        TimeSlot slot = new TimeSlot(slotId, doctorId, LocalDate.now(), LocalTime.of(8, 0), LocalTime.of(9, 0), false, true);
+        TimeSlot slot = new TimeSlot(slotId, doctorId, LocalDate.now(), LocalTime.of(8, 0), LocalTime.of(8, 30), false, true);
         when(timeSlotRepository.findByIdAndDoctorId(slotId, doctorId)).thenReturn(Optional.of(slot));
 
         Optional<TimeSlotView> result = service.getPublishedSlot(doctorId, slotId);
@@ -202,7 +183,7 @@ class DoctorApplicationServiceTest {
         when(doctorRepository.findById(doctorId)).thenReturn(Optional.of(doc));
 
         LocalDate anchor = LocalDate.of(2026, 11, 2);
-        TimeSlot slot = new TimeSlot(slotId, doctorId, anchor, LocalTime.of(8, 0), LocalTime.of(9, 0), false, true);
+        TimeSlot slot = new TimeSlot(slotId, doctorId, anchor, LocalTime.of(8, 0), LocalTime.of(8, 30), false, true);
         when(timeSlotRepository.findByDoctorIdAndSlotDateBetweenOrderBySlotDateAscStartTimeAsc(any(), any(), any()))
                 .thenReturn(List.of(slot));
 

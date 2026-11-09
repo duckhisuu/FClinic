@@ -17,21 +17,6 @@ import java.util.UUID;
 public class InternalDoctorController {
 
     private final GetPublishedSlotUseCase getPublishedSlotUseCase;
-    private final com.fclinic.doctorservice.application.port.in.GetDoctorUseCase getDoctorUseCase;
-    private final com.fclinic.doctorservice.application.port.in.ListTimeSlotsUseCase listSlots;
-
-    @GetMapping("/{doctorId}")
-    public ResponseEntity<?> profile(@PathVariable UUID doctorId) {
-        var view = getDoctorUseCase.getById(doctorId).orElseThrow(() -> new DoctorNotFoundException("Không tìm thấy bác sĩ."));
-        return ResponseEntity.ok(ApiResponse.success(com.fclinic.doctorservice.api.mapper.DoctorApiMapper.toResponse(view)));
-    }
-
-    @GetMapping("/{doctorId}/slots")
-    public ResponseEntity<?> offers(@PathVariable UUID doctorId,
-            @RequestParam @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate date) {
-        return ResponseEntity.ok(ApiResponse.success(listSlots.listSlots(doctorId, date).stream()
-                .filter(TimeSlotView::published).map(com.fclinic.doctorservice.api.mapper.DoctorApiMapper::toResponse).toList()));
-    }
 
     @GetMapping("/{doctorId}/slots/{slotId}")
     public ResponseEntity<ApiResponse<PublishedSlotResponse>> getPublishedSlot(

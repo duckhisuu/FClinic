@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState, useEffect, useMemo } from "react";
+import React, { useCallback, useRef, useState, useEffect } from "react";
 import {
   HeartPulse,
   CalendarDays,
@@ -13,7 +13,6 @@ import {
   ShieldCheck,
   LogOut,
   User,
-  UserPlus,
 } from "lucide-react";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { LoginPage } from "./pages/LoginPage";
@@ -25,7 +24,6 @@ import { Booking } from "./appointment/Booking";
 import { AppointmentHistory } from "./appointment/AppointmentHistory";
 import { NotificationDrawer } from "./components/NotificationDrawer";
 import { PatientModule } from "./patient/PatientModule";
-import { PatientOnboardingPage } from "./pages/PatientOnboardingPage";
 
 function getRoleLabel(role) {
   switch (role) {
@@ -41,9 +39,7 @@ function getRoleLabel(role) {
   }
 }
 
-function getRoleMenu(userOrRole) {
-  const role = typeof userOrRole === "string" ? userOrRole : userOrRole?.role;
-  const user = typeof userOrRole === "object" ? userOrRole : null;
+function getRoleMenu(role) {
   switch (role) {
     case "ROLE_DOCTOR":
       return [
@@ -53,6 +49,12 @@ function getRoleMenu(userOrRole) {
           title: "Lịch khám Bác sĩ",
           desc: "Ca trực & danh sách hẹn phụ trách",
         },
+        {
+          id: "patient-records",
+          icon: UsersRound,
+          title: "Hồ sơ bệnh án",
+          desc: "Tra cứu & cập nhật bệnh án",
+        },
       ];
 
     case "ROLE_STAFF":
@@ -61,7 +63,13 @@ function getRoleMenu(userOrRole) {
           id: "staff-walkin",
           icon: Building2,
           title: "Tiếp nhận tại quầy",
-          desc: "Chọn hồ sơ bệnh nhân",
+          desc: "Tra cứu & tạo bệnh nhân",
+        },
+        {
+          id: "patient-records",
+          icon: UsersRound,
+          title: "Hồ sơ bệnh án",
+          desc: "Tra cứu & cập nhật bệnh án",
         },
         {
           id: "doctors",
@@ -79,9 +87,8 @@ function getRoleMenu(userOrRole) {
           id: "history",
           icon: CalendarDays,
           title: "Quản lý lịch hẹn",
-          desc: "Lịch hẹn trong phạm vi phân công",
+          desc: "Toàn bộ lịch hẹn phòng khám",
         },
-        { id: "patient-records", icon: UsersRound, title: "Quản lý bệnh nhân", desc: "Hồ sơ theo quyền được cấp" },
       ];
 
     case "ROLE_ADMIN":
@@ -95,17 +102,8 @@ function getRoleMenu(userOrRole) {
       ];
 
     case "ROLE_PATIENT":
-    default: {
-      const items = [];
-      if (user && !user.patientId) {
-        items.push({
-          id: "patient-onboarding",
-          icon: UserPlus,
-          title: "Khởi tạo hồ sơ",
-          desc: "Hoàn tất hồ sơ để đặt lịch",
-        });
-      }
-      items.push(
+    default:
+      return [
         {
           id: "doctors",
           icon: Stethoscope,
@@ -123,15 +121,12 @@ function getRoleMenu(userOrRole) {
           icon: CalendarDays,
           title: "Lịch hẹn của tôi",
           desc: "Theo dõi, đổi hoặc hủy lịch",
-        }
-      );
-      return items;
-    }
+        },
+      ];
   }
 }
 
-function getDefaultTab(user) {
-  const role = typeof user === "string" ? user : user?.role;
+function getDefaultTab(role) {
   switch (role) {
     case "ROLE_DOCTOR":
       return "doctor-dashboard";
@@ -141,23 +136,16 @@ function getDefaultTab(user) {
       return "admin-users";
     case "ROLE_PATIENT":
     default:
-      return typeof user === "object" && !user?.patientId ? "patient-onboarding" : "doctors";
+      return "doctors";
   }
 }
 
 function MainApp() {
-  const { user, capabilities = {}, isAuthenticated, isLoading, logout } = useAuth();
-  const [tab, setTab] = useState(() => getDefaultTab(user));
+  const { user, token, isAuthenticated, isLoading, logout } = useAuth();
+  const [tab, setTab] = useState("doctors");
   const [selection, setSelection] = useState(null);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [walkinPatient, setWalkinPatient] = useState(null);
-  const patientSession = useMemo(() => ({ getAccessToken: () => localStorage.getItem("fclinic_token"),
-    patientId: user?.patientId, doctorId: user?.doctorId,
-    permissions: { ...capabilities,
-      canUpdatePatient: id => capabilities.updatePatientIds?.includes(id) === true,
-      canCreateRecord: id => capabilities.createRecordPatientIds?.includes(id) === true,
-      canUpdateRecord: id => capabilities.updateRecordPatientIds?.includes(id) === true,
-    } }), [user?.id, user?.patientId, user?.doctorId, capabilities]);
 
   const patientLeave = useRef(null);
   const registerPatientGuard = useCallback((guard) => {
@@ -167,35 +155,16 @@ function MainApp() {
   // Update default tab when user role changes
   useEffect(() => {
     if (user?.role) {
-      const requested = window.location.hash.slice(1).split('?')[0];
-      const allowed = getRoleMenu(user).map(item => item.id);
-      if (user.role === 'ROLE_DOCTOR' || (user.role === 'ROLE_PATIENT' && user.patientId)) allowed.push('patient-records');
-      setTab(allowed.includes(requested) ? requested : getDefaultTab(user));
+      setTab(getDefaultTab(user.role));
     }
-  }, [user?.role, user?.patientId]);
+  }, [user?.role]);
 
   const selectTab = (next) => {
     if (tab !== "patient-records" || !patientLeave.current || patientLeave.current()) {
-      window.history.pushState({}, "", "#" + next);
       setTab(next);
     }
   };
 
-  useEffect(() => {
-    const restore = () => {
-      const requested = window.location.hash.slice(1).split('?')[0];
-      const allowed = getRoleMenu(user).map(item => item.id);
-      if (user?.role === 'ROLE_DOCTOR' || (user?.role === 'ROLE_PATIENT' && user.patientId)) allowed.push('patient-records');
-      if (allowed.includes(requested) && (tab !== "patient-records" || !patientLeave.current || patientLeave.current())) setTab(requested);
-    };
-    window.addEventListener('popstate', restore);
-    return () => window.removeEventListener('popstate', restore);
-  }, [user?.id, user?.role, tab]);
-  const openPatient = id => {
-    if (tab === 'patient-records' && patientLeave.current && !patientLeave.current()) return;
-    window.history.pushState({}, '', '#patient-records?' + new URLSearchParams({ view: 'profile', patientId: id }));
-    setTab('patient-records');
-  };
   // If loading auth session
   if (isLoading) {
     return (
@@ -214,11 +183,18 @@ function MainApp() {
     return <LoginPage />;
   }
 
-  const menu = getRoleMenu(user);
-  if (user?.role === 'ROLE_DOCTOR' || (user?.role === 'ROLE_PATIENT' && user.patientId)) menu.push({ id: 'patient-records', icon: UsersRound, title: 'Hồ sơ & bệnh án', desc: 'Hồ sơ trong phạm vi được cấp' });
+  const menu = getRoleMenu(user?.role);
   const roleBadge = getRoleLabel(user?.role);
-  const patientId = user?.role === "ROLE_STAFF" ? walkinPatient?.id || null : user?.patientId || null;
+  const patientId = (user?.role === "ROLE_STAFF" ? walkinPatient?.id : user?.patientId) || null;
   const actorSubject = user?.id;
+  const patientSession = {
+    user,
+    getAccessToken: () => token,
+    permissions: {
+      createPatient: user?.role === "ROLE_STAFF",
+      canUpdatePatient: () => user?.role === "ROLE_STAFF",
+    },
+  };
 
   return (
     <div className="app">
@@ -228,7 +204,7 @@ function MainApp() {
           href="/"
           onClick={(e) => {
             e.preventDefault();
-            selectTab(getDefaultTab(user));
+            selectTab(getDefaultTab(user?.role));
           }}
         >
           <span>
@@ -281,7 +257,7 @@ function MainApp() {
           <button
             type="button"
             className="btn-logout"
-            onClick={() => { if (tab !== "patient-records" || !patientLeave.current || patientLeave.current()) logout(); }}
+            onClick={logout}
             title="Đăng xuất khỏi hệ thống"
           >
             <LogOut size={15} />
@@ -327,9 +303,6 @@ function MainApp() {
         </aside>
 
         <main className="main">
-          {user?.role === "ROLE_STAFF" && walkinPatient && ["booking", "history", "doctors"].includes(tab) &&
-            <div className="notice"><span>Hồ sơ đang chọn: {walkinPatient.fullName} · {walkinPatient.patientCode}</span>
-              <button className="text-button" onClick={() => { setWalkinPatient(null); setSelection(null); }}>Bỏ chọn hồ sơ</button></div>}
           {/* ROLE ADMIN VIEW */}
           {tab === "admin-users" ? (
             <AdminUsersPage />
@@ -338,49 +311,42 @@ function MainApp() {
             <StaffWalkinPage
               onManageProfiles={() => selectTab("patient-records")}
               onSelectPatientForBooking={(selectedPatient) => {
-                setWalkinPatient(selectedPatient);
                 setSelection(null);
+                setWalkinPatient(selectedPatient);
                 selectTab("doctors");
               }}
             />
           ) : tab === "doctor-dashboard" ? (
             /* ROLE DOCTOR VIEW */
-            <DoctorDashboardPage onOpenPatient={openPatient} />
+            <DoctorDashboardPage />
           ) : tab === "patient-records" ? (
             /* PATIENT RECORDS VIEW */
             <PatientModule session={patientSession} onBeforeLeave={registerPatientGuard} />
-          ) : tab === "patient-onboarding" ? (
-            /* PATIENT ONBOARDING VIEW */
-            <PatientOnboardingPage onComplete={() => selectTab("doctors")} />
           ) : tab === "doctors" ? (
             /* DOCTORS DIRECTORY */
             <DoctorDirectory
               onPick={(doctor, slot) => {
                 setSelection({ doctor, slot });
-                selectTab("booking");
+                setTab("booking");
               }}
             />
           ) : tab === "booking" ? (
             /* BOOKING VIEW */
             <Booking
-              key={patientId || "choose-patient"}
-              role={user?.role}
               actorSubject={actorSubject}
+              role={user?.role}
               patientId={patientId}
               selection={selection}
-              onSchedule={() => selectTab("doctors")}
-              onHistory={() => selectTab("history")}
+              onSchedule={() => setTab("doctors")}
+              onHistory={() => setTab("history")}
             />
           ) : (
             /* APPOINTMENT HISTORY */
             <AppointmentHistory
-              key={patientId || "assigned-patients"}
-              role={user?.role}
               actorSubject={actorSubject}
-              patientId={patientId}
-              onSchedule={() => selectTab("doctors")}
-              onOpenPatient={openPatient}
-              onRequireProfile={() => selectTab("patient-onboarding")}
+              role={user?.role}
+              patientId={user?.role === "ROLE_PATIENT" ? user?.patientId : null}
+              onSchedule={() => setTab("doctors")}
             />
           )}
 
@@ -401,15 +367,16 @@ function MainApp() {
   );
 }
 
+function SessionApp() {
+  const { user, isAuthenticated } = useAuth();
+  // Account changes must discard selections, drafts, dialogs and loaded patient data.
+  return <MainApp key={`${isAuthenticated}:${user?.id}:${user?.role}`} />;
+}
+
 export default function App() {
   return (
     <AuthProvider>
       <SessionApp />
     </AuthProvider>
   );
-}
-
-function SessionApp() {
-  const { user } = useAuth();
-  return <MainApp key={user ? `${user.id}:${user.role}:${user.patientId}:${user.doctorId}` : "signed-out"} />;
 }
