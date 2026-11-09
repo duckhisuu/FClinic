@@ -1,0 +1,29 @@
+{
+  "timestamp": "2026-11-09T14:31:14.035Z",
+  "evidence": [
+    {
+      "label": "login ROLE_STAFF",
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "label": "login ROLE_DOCTOR",
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "label": "Doctor provider outage must not write",
+      "method": "POST",
+      "route": "/api/v3/patients/e897d9f6-98f2-4451-8157-e21f695a0682/medical-records",
+      "expected": 503,
+      "actual": 503,
+      "pass": true
+    }
+  ]
+}

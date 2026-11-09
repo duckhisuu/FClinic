@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { CheckCircle2, FlaskConical, PlugZap, UsersRound } from 'lucide-react';
+import { CheckCircle2, UsersRound } from 'lucide-react';
 import { createPatientApi } from './api/patientApi';
 import { PatientListPage } from './pages/PatientListPage';
 import { PatientDetailPage } from './pages/PatientDetailPage';
@@ -10,24 +10,43 @@ import { MedicalRecordForm } from './components/MedicalRecordForm';
 import { PageHeading, PageState } from './components/Shared';
 import { usePatient } from './hooks/usePatients';
 import './patient.css';
-export const previewRequested = () => import.meta.env.DEV && new URLSearchParams(window.location.search).get('patientPreview') === '1';
-function CreateRecord({ api, route, revision, navigate, finish, preview, setDirty, setBusy }) {
+
+function CreateRecord({ api, session, route, revision, navigate, finish, preview, setDirty, setBusy }) {
   const patient = usePatient(api, route.patientId, revision);
-  return <><PageHeading title="Tạo bệnh án" description="Ghi nhận nội dung khám cho đúng hồ sơ bệnh nhân." onBack={() => navigate({ name: 'records', patientId: route.patientId })} /><PageState resource={patient}>{patient.data && <><PatientContext patient={patient.data} /><MedicalRecordForm patient={patient.data} preview={preview} previewDoctorId={api.syntheticDoctorId} onDirty={setDirty} onBusy={setBusy} onCancel={() => navigate({ name: 'records', patientId: route.patientId })} onReload={() => navigate({ name: 'records', patientId: route.patientId }, true)} onSave={async body => { const saved = await api.createRecord(route.patientId, body); finish({ name: 'record', patientId: route.patientId, recordId: saved.id }, 'Đã tạo bệnh án.'); }} /></>}</PageState></>;
+  return <><PageHeading title="Tạo bệnh án" description="Ghi nhận nội dung khám cho đúng hồ sơ bệnh nhân." onBack={() => navigate({ name: 'records', patientId: route.patientId })} /><PageState resource={patient}>{patient.data && <><PatientContext patient={patient.data} /><MedicalRecordForm patient={patient.data} preview={preview} previewDoctorId={api.syntheticDoctorId} doctorId={session?.doctorId} allowed={session?.permissions?.canCreateRecord?.(route.patientId) === true} onDirty={setDirty} onBusy={setBusy} onCancel={() => navigate({ name: 'records', patientId: route.patientId })} onReload={() => navigate({ name: 'records', patientId: route.patientId }, true)} onSave={async body => { const saved = await api.createRecord(route.patientId, body); finish({ name: 'record', patientId: route.patientId, recordId: saved.id }, 'Đã tạo bệnh án.'); }} /></>}</PageState></>;
 }
-function PatientWorkspace({ api, session, scenario, revision: scenarioRevision, registerGuard, setParentBusy }) {
-  const [route, setRoute] = useState({ name: 'list' }); const [revision, setRevision] = useState(0);
+export function PatientWorkspace({ api, session, scenario, revision: scenarioRevision, registerGuard, setParentBusy }) {
+  const [route, setRoute] = useState(() => {
+    const params = new URLSearchParams(window.location.hash.split('?')[1]);
+    const name = params.get('view'); const patientId = params.get('patientId'); const recordId = params.get('recordId');
+    if (['profile', 'records', 'record'].includes(name) && patientId) return { name, patientId, recordId };
+    return session?.patientId && !session?.permissions?.searchPatients ? { name: 'profile', patientId: session.patientId } : { name: 'list' };
+  }); const [revision, setRevision] = useState(0);
   const [dirty, setDirty] = useState(false); const [busy, setBusyState] = useState(false); const [notice, setNotice] = useState(''); const root = useRef();
   const preview = api.mode === 'preview';
   const setBusy = React.useCallback(value => { setBusyState(value); setParentBusy(value); }, [setParentBusy]);
   const guard = () => !busy && (!dirty || window.confirm('Bạn có thay đổi chưa lưu. Rời màn hình và bỏ các thay đổi này?'));
   useEffect(() => { registerGuard(() => guard); return () => registerGuard(null); }, [dirty, busy, registerGuard]);
   useEffect(() => { root.current?.scrollIntoView?.({ block: 'start' }); root.current?.querySelector('h1')?.focus({ preventScroll: true }); }, [route.name, route.patientId, route.recordId]);
-  const navigate = (next, reload = false) => { if (!guard()) return; setDirty(false); setNotice(''); setRoute(next); if (reload) setRevision(n => n + 1); };
-  const finish = (next, message) => { setDirty(false); setNotice(`${preview ? 'Mô phỏng: ' : ''}${message}`); setRevision(n => n + 1); setRoute(next); };
+  const navigate = (next, reload = false) => { if (!guard()) return; setDirty(false); setNotice(''); setRoute(next); if (!preview) {
+    const params = new URLSearchParams(Object.entries({ view: next.name, patientId: next.patientId, recordId: next.recordId }).filter(([, value]) => value));
+    window.history.pushState({}, '', '#patient-records?' + params);
+  } if (reload) setRevision(n => n + 1); };
+  useEffect(() => {
+    const leave = event => { if (dirty || busy) { event.preventDefault(); event.returnValue = ''; } };
+    const restore = () => {
+      const params = new URLSearchParams(window.location.hash.split('?')[1]);
+      if (window.location.hash.startsWith('#patient-records') && guard()) {
+        setDirty(false); setRoute({ name: params.get('view') || 'list', patientId: params.get('patientId'), recordId: params.get('recordId') });
+      }
+    };
+    window.addEventListener('beforeunload', leave); window.addEventListener('popstate', restore);
+    return () => { window.removeEventListener('beforeunload', leave); window.removeEventListener('popstate', restore); };
+  }, [dirty, busy]);
+  const finish = (next, message) => { setDirty(false); setNotice(`${preview ? 'Mô phỏng: ' : ''}${message}`); setRevision(n => n + 1); setRoute(next); if (!preview) window.history.replaceState({}, '', '#patient-records?' + new URLSearchParams(Object.entries({ view: next.name, patientId: next.patientId, recordId: next.recordId }).filter(([, value]) => value))); };
   const canCreate = preview || session?.permissions?.createPatient === true;
   const canEdit = id => preview || session?.permissions?.canUpdatePatient?.(id) === true;
-  const props = { api, revision: revision + scenarioRevision, navigate, finish, preview, onDirty: setDirty, onBusy: setBusy };
+  const props = { api, session, revision: revision + (scenarioRevision || 0), navigate, finish, preview, onDirty: setDirty, onBusy: setBusy };
   let page;
   if (route.name === 'list') page = <PatientListPage {...props} canCreate={canCreate} />;
   else if (route.name === 'createPatient') page = <><PageHeading title="Tạo hồ sơ bệnh nhân" description="Thông tin hành chính được lưu tách biệt với bệnh án." onBack={() => navigate({ name: 'list' })} /><PatientForm allowed={canCreate} preview={preview} onDirty={setDirty} onBusy={setBusy} onCancel={() => navigate({ name: 'list' })} onReload={() => navigate({ name: 'list' }, true)} onSave={async body => { const saved = await api.createPatient(body); finish({ name: 'profile', patientId: saved.id }, 'Đã tạo hồ sơ bệnh nhân.'); }} /></>;
@@ -39,19 +58,9 @@ function PatientWorkspace({ api, session, scenario, revision: scenarioRevision, 
 }
 // Session is supplied by the verified host integration, never synthesized by this module.
 export function PatientModule({ session = null, onBeforeLeave }) {
-  const [mode, setMode] = useState(previewRequested() ? 'preview' : 'live'); const [previewApi, setPreviewApi] = useState(null);
-  const [scenario, setScenario] = useState('normal'); const [revision, setRevision] = useState(0); const [busy, setBusy] = useState(false); const [guard, registerGuard] = useState(null);
-  const liveApi = useMemo(() => createPatientApi({ getAccessToken: () => session?.getAccessToken?.() }), [session]);
-  useEffect(() => {
-    if (mode !== 'preview' || !import.meta.env.DEV || previewApi) return;
-    let current = true;
-    import('./preview/previewAdapter').then(({ createPreviewAdapter }) => { if (current) setPreviewApi(createPreviewAdapter()); });
-    return () => { current = false; };
-  }, [mode, previewApi]);
-  useEffect(() => { onBeforeLeave?.(guard); return () => onBeforeLeave?.(null); }, [guard, onBeforeLeave]);
-  const changeMode = next => { if (busy || (guard && !guard())) return; setMode(next); setScenario('normal'); previewApi?.setScenario('normal'); setRevision(n => n + 1); };
-  return <section className="pt-module" aria-label="Module quản lý bệnh nhân">
-    <div className={`pt-mode-bar ${mode === 'preview' ? 'pt-preview-bar' : ''}`}><div>{mode === 'preview' ? <FlaskConical size={19} /> : <PlugZap size={19} />}<span>{mode === 'preview' ? 'UI Preview — Dữ liệu minh họa, không lưu vào hệ thống thật.' : 'Live API — Dữ liệu từ hệ thống thật'}{mode === 'live' && !session && <small>Chưa kết nối phiên đăng nhập được xác minh.</small>}</span></div><div className="pt-mode-actions">{mode === 'preview' && <select aria-label="Tình huống Preview" disabled={busy} value={scenario} onChange={e => { if (guard && !guard()) return; setScenario(e.target.value); previewApi?.setScenario(e.target.value); setRevision(n => n + 1); }}><option value="normal">Bình thường</option><option value="empty">Danh sách trống</option><option value="error">Lỗi dịch vụ</option><option value="slow">Tải chậm</option><option value="conflict">Xung đột khi lưu</option></select>}{import.meta.env.DEV && <div className="pt-mode-switch" aria-label="Chế độ dữ liệu"><button aria-pressed={mode === 'preview'} disabled={busy} onClick={() => changeMode('preview')}>UI Preview</button><button aria-pressed={mode === 'live'} disabled={busy} onClick={() => changeMode('live')}>Live API</button></div>}</div></div>
-    {mode === 'preview' && !previewApi ? <div className="pt-empty" role="status">Đang chuẩn bị dữ liệu minh họa…</div> : <PatientWorkspace key={mode} api={mode === 'preview' ? previewApi : liveApi} session={session} scenario={scenario} revision={revision} registerGuard={registerGuard} setParentBusy={setBusy} />}
-  </section>;
+ const [guard, registerGuard] = useState(null);
+ const api = useMemo(() => createPatientApi({ getAccessToken: () => session?.getAccessToken?.() }), [session]);
+ useEffect(() => { onBeforeLeave?.(guard); return () => onBeforeLeave?.(null); }, [guard, onBeforeLeave]);
+ return <section className="pt-module" aria-label="Module quản lý bệnh nhân"><PatientWorkspace api={api} session={session} revision={0} registerGuard={registerGuard} setParentBusy={ignoreBusy} /></section>;
 }
+const ignoreBusy = () => {};

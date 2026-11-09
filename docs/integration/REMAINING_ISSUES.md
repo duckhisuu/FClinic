@@ -1,0 +1,10 @@
+# Remaining issues
+
+**FINAL: PARTIAL — chưa đủ điều kiện FClinic LOCAL READY.**
+
+1. **Trusted onboarding assignment**: WorkScope hiện là deployment-owned configuration, chưa có API trusted để tự gắn Patient UUID vừa tạo cho STAFF. React create đã lưu thật nhưng đọc/sửa hồ sơ mới cần explicit finite assignment. Acceptance đã cấp đúng hai UUID tổng hợp, không human wildcard. Cần Auth/Patient owner chốt workflow cấp/thu hồi assignment để đóng liền mạch flow create → detail mà không thao tác provisioning.
+2. **Notification UUID/schema/security**: Appointment phát UUID schema3; consumer DTO/persistence vẫn Long/BIGINT. Runtime broker đã có InvalidFormatException Long ← UUID từ event thật; notification.appointment.dlq có 3 messages (xem notification-broker-evidence.json). REST Notification chưa có owner/admin authorization và /me nhận userId numeric tự khai. Reminder delivery chưa xác minh reference mới nhất trước send/retry. Drawer đã ngừng fallback và trả lỗi/Retry; chưa thể nối target navigation an toàn trước khi có UUID ownership contract và migration bảo toàn numeric rows nếu có.
+3. **Doctor user-write authorization**: các internal profile/published-slot references có service credential thật; public create Doctor/create slot hiện chưa enforce user/Doctor owner authorization. Không mở thêm các action quản trị này trong navigation để che thiếu security. Cần owner chốt policy trước khi đánh dấu full product ready.
+4. **Phạm vi chưa verify**: browser JWT expiration theo đồng hồ, Cancel branch của unsaved dialog, browser Admin CRUD/register và booking wizard; runtime missing Doctor/Appointment resource cases. Regression/contract tests và HTTP booking đã PASS nhưng không được coi là browser evidence cho các bước chưa chạy.
+
+Đã giải quyết: main sync; runtime mock success; Auth capability wiring; Patient/Doctor UUID; real Patient APIs; Medical Record create/update với VALID_VISIT; Gateway hostname; TLS/trust; real Appointment booking/reschedule/cancel; provider outage; unauthorized-write database preservation. Không còn blocker Docker Engine/dependency/build.

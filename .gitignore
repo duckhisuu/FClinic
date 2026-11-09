@@ -53,6 +53,7 @@ Thumbs.db
 # Logs
 **/logs/
 *.log
+/.runtime/
 
 # Docker volume mounts (local)
 pgdata/

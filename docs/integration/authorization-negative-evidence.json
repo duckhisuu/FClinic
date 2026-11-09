@@ -1,0 +1,61 @@
+{
+  "timestamp": "2026-11-09T14:36:44.879Z",
+  "evidence": [
+    {
+      "label": "login ROLE_STAFF",
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "label": "login ROLE_DOCTOR",
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "label": "baseline profile",
+      "method": "GET",
+      "route": "/api/v3/patients/e897d9f6-98f2-4451-8157-e21f695a0682",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "label": "missing exact Patient scope",
+      "method": "GET",
+      "route": "/api/v3/patients/bd95762c-b14e-4a33-825b-400b58788b2e",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "label": "unauthorized profile write",
+      "method": "PUT",
+      "route": "/api/v3/patients/e897d9f6-98f2-4451-8157-e21f695a0682",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "label": "Doctor cannot create profile",
+      "method": "POST",
+      "route": "/api/v3/patients",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "label": "Doctor reference requires machine credentials",
+      "method": "GET",
+      "route": "/internal/v1/doctors/c6f4f54e-1d05-4c6e-8392-9da5092ea4d7",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    }
+  ]
+}

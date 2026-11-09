@@ -46,7 +46,7 @@ apiClient.interceptors.response.use(
   },
   async (error) => {
     if (axios.isCancel(error)) return Promise.reject(error);
-    if (error.response?.status === 401 && !error.config?._sessionRetried) {
+    if (error.response?.status === 401 && !error.config?._sessionRetried && !/\/(login|register|refresh|logout|google|oauth2\/token)$/.test(error.config?.url || '')) {
       const originalToken = error.config?.headers?.Authorization;
       const sameUser = () => error.config?._sessionUserId && error.config._sessionUserId === JSON.parse(localStorage.getItem("fclinic_user") || "null")?.id;
       const alreadyRefreshed = () => originalToken !== `Bearer ${localStorage.getItem("fclinic_token")}`;

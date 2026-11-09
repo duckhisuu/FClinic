@@ -1,0 +1,93 @@
+{
+  "timestamp": "2026-11-09T14:26:10.301Z",
+  "evidence": [
+    {
+      "label": "login ROLE_STAFF",
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "label": "login ROLE_DOCTOR",
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "label": "login ROLE_PATIENT",
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "label": "publish real 60-minute slot",
+      "method": "POST",
+      "route": "/api/v1/doctors/c6f4f54e-1d05-4c6e-8392-9da5092ea4d7/slots",
+      "expected": 201,
+      "actual": 201,
+      "pass": true
+    },
+    {
+      "label": "publish real 60-minute slot",
+      "method": "POST",
+      "route": "/api/v1/doctors/c6f4f54e-1d05-4c6e-8392-9da5092ea4d7/slots",
+      "expected": 201,
+      "actual": 201,
+      "pass": true
+    },
+    {
+      "label": "availability through real Doctor provider",
+      "method": "GET",
+      "route": "/api/v2/appointments/available-slots?doctorId=c6f4f54e-1d05-4c6e-8392-9da5092ea4d7&date=2026-11-10",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "label": "Staff booking through Patient M2M lookup",
+      "method": "POST",
+      "route": "/api/v2/appointments",
+      "expected": 201,
+      "actual": 201,
+      "pass": true
+    },
+    {
+      "label": "Doctor schedule Patient association",
+      "method": "GET",
+      "route": "/api/v2/appointments?doctorId=c6f4f54e-1d05-4c6e-8392-9da5092ea4d7&page=0&size=10",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "label": "Patient reads own booking",
+      "method": "GET",
+      "route": "/api/v2/appointments/4575376f-9d37-4bfe-81d9-10269890aab9",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "label": "reschedule exact UUID/version",
+      "method": "PUT",
+      "route": "/api/v2/appointments/4575376f-9d37-4bfe-81d9-10269890aab9/reschedule",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "label": "cancel exact UUID/version",
+      "method": "PUT",
+      "route": "/api/v2/appointments/4575376f-9d37-4bfe-81d9-10269890aab9/cancel",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    }
+  ]
+}

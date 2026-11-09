@@ -1,41 +1,7 @@
-import axios from 'axios';
-
-const API_BASE_URL = import.meta.env.VITE_API_GATEWAY_URL || '';
-
-const authClient = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 90000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-authClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('fclinic_token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
-authClient.interceptors.response.use(
-  (response) => {
-    if (response.data && response.data.data !== undefined) {
-      return response.data.data;
-    }
-    return response.data;
-  },
-  (error) => {
-    const errorMsg =
-      error.response?.data?.message ||
-      error.response?.data?.error ||
-      error.message ||
-      'Không thể kết nối đến máy chủ xác thực';
-    return Promise.reject(new Error(errorMsg));
-  }
-);
+import { apiClient as authClient } from '../appointment/api';
 
 export const authApi = {
+  getPatientCapabilities: () => authClient.get('/api/v1/auth/me/patient-capabilities'),
   login: async (username, password) => {
     return await authClient.post('/api/v1/auth/login', { username, password });
   },

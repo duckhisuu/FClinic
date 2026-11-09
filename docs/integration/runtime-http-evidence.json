@@ -1,0 +1,197 @@
+{
+  "timestamp": "2026-11-09T14:30:49.503Z",
+  "evidence": [
+    {
+      "label": "login ROLE_STAFF",
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "label": "login ROLE_DOCTOR",
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "label": "login ROLE_PATIENT",
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "label": "verified user profile",
+      "method": "GET",
+      "route": "/api/v1/auth/me",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "label": "backend capabilities",
+      "method": "GET",
+      "route": "/api/v1/auth/me/patient-capabilities",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "label": "missing token",
+      "method": "GET",
+      "route": "/api/v3/patients",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "label": "invalid token",
+      "method": "GET",
+      "route": "/api/v3/patients",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "label": "patient cannot search",
+      "method": "GET",
+      "route": "/api/v3/patients",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "label": "wrong patient",
+      "method": "GET",
+      "route": "/api/v3/patients/0cc1d6cf-a84b-4232-a717-a7609d951e7e",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "label": "invalid UUID",
+      "method": "GET",
+      "route": "/api/v3/patients/not-a-uuid",
+      "expected": 400,
+      "actual": 400,
+      "pass": true
+    },
+    {
+      "label": "search and pagination",
+      "method": "GET",
+      "route": "/api/v3/patients?keyword=Acceptance&page=0&size=1",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "label": "read profile",
+      "method": "GET",
+      "route": "/api/v3/patients/e897d9f6-98f2-4451-8157-e21f695a0682",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "label": "replace profile",
+      "method": "PUT",
+      "route": "/api/v3/patients/e897d9f6-98f2-4451-8157-e21f695a0682",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "label": "stale profile version",
+      "method": "PUT",
+      "route": "/api/v3/patients/e897d9f6-98f2-4451-8157-e21f695a0682",
+      "expected": 409,
+      "actual": 409,
+      "pass": true
+    },
+    {
+      "label": "wrong doctor",
+      "method": "POST",
+      "route": "/api/v3/patients/e897d9f6-98f2-4451-8157-e21f695a0682/medical-records",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "label": "unauthorized clinical write",
+      "method": "POST",
+      "route": "/api/v3/patients/e897d9f6-98f2-4451-8157-e21f695a0682/medical-records",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "label": "list records",
+      "method": "GET",
+      "route": "/api/v3/patients/e897d9f6-98f2-4451-8157-e21f695a0682/medical-records?page=0&size=1",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "label": "read medical record",
+      "method": "GET",
+      "route": "/api/v3/patients/e897d9f6-98f2-4451-8157-e21f695a0682/medical-records/9e3b7c6c-47bc-4362-97b5-42b23024fd5c",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "label": "replace medical record",
+      "method": "PUT",
+      "route": "/api/v3/patients/e897d9f6-98f2-4451-8157-e21f695a0682/medical-records/9e3b7c6c-47bc-4362-97b5-42b23024fd5c",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "label": "stale record version",
+      "method": "PUT",
+      "route": "/api/v3/patients/e897d9f6-98f2-4451-8157-e21f695a0682/medical-records/9e3b7c6c-47bc-4362-97b5-42b23024fd5c",
+      "expected": 409,
+      "actual": 409,
+      "pass": true
+    },
+    {
+      "label": "patient reads own record",
+      "method": "GET",
+      "route": "/api/v3/patients/e897d9f6-98f2-4451-8157-e21f695a0682/medical-records/9e3b7c6c-47bc-4362-97b5-42b23024fd5c",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "label": "refresh rotation",
+      "method": "POST",
+      "route": "/api/v1/auth/refresh",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "label": "logout",
+      "method": "POST",
+      "route": "/api/v1/auth/logout",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "label": "revoked token rejected",
+      "method": "GET",
+      "route": "/api/v3/patients/e897d9f6-98f2-4451-8157-e21f695a0682",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    }
+  ]
+}

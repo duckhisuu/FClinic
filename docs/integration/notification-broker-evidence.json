@@ -1,0 +1,22 @@
+{
+  "timestamp": "2026-11-09T14:41:41.522Z",
+  "consumerError": "InvalidFormatException: cannot deserialize java.lang.Long from an Appointment UUID string",
+  "queues": [
+    {
+      "name": "notification.appointment.dlq",
+      "ready": 3,
+      "unacknowledged": 0
+    },
+    {
+      "name": "fclinic.appointment.notifications",
+      "ready": 3,
+      "unacknowledged": 0
+    },
+    {
+      "name": "notification.appointment.q",
+      "ready": 0,
+      "unacknowledged": 0
+    }
+  ],
+  "action": "Read-only inspection; no queue purge or message deletion"
+}

@@ -99,8 +99,8 @@ app:
   auth:
     otp:
       expiration-seconds: ${AUTH_OTP_EXPIRATION_SECONDS:300}
-      expose-in-response: ${AUTH_OTP_EXPOSE_IN_RESPONSE:true}
-      mail-enabled: ${AUTH_OTP_MAIL_ENABLED:false}
+      expose-in-response: ${AUTH_OTP_EXPOSE_IN_RESPONSE:false}
+      mail-enabled: ${AUTH_OTP_MAIL_ENABLED:true}
       from-address: ${MAIL_FROM_ADDRESS:no-reply@fclinic.local}
 
 eureka:
