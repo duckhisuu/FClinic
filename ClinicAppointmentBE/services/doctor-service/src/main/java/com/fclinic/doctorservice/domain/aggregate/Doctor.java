@@ -1,10 +1,11 @@
 package com.fclinic.doctorservice.domain.aggregate;
 
 import java.time.Instant;
+import java.util.UUID;
 
 public class Doctor {
 
-    private Long id;
+    private UUID id;
     private String name;
     private String specialty;
     private String department;
@@ -19,7 +20,7 @@ public class Doctor {
     private Instant updatedAt;
 
     public Doctor(
-            Long id,
+            UUID id,
             String name,
             String specialty,
             String department,
@@ -33,7 +34,7 @@ public class Doctor {
             Instant createdAt,
             Instant updatedAt
     ) {
-        this.id = id;
+        this.id = id != null ? id : UUID.randomUUID();
         this.name = name;
         this.specialty = specialty;
         this.department = department;
@@ -44,8 +45,8 @@ public class Doctor {
         this.bio = bio;
         this.avatarUrl = avatarUrl;
         this.active = active;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
+        this.createdAt = createdAt != null ? createdAt : Instant.now();
+        this.updatedAt = updatedAt != null ? updatedAt : Instant.now();
     }
 
     public static Doctor createNew(
@@ -61,7 +62,7 @@ public class Doctor {
     ) {
         Instant now = Instant.now();
         return new Doctor(
-                null,
+                UUID.randomUUID(),
                 name,
                 specialty,
                 department,
@@ -83,8 +84,8 @@ public class Doctor {
     }
 
     // Getters and Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
     public String getName() { return name; }
     public String getSpecialty() { return specialty; }
     public String getDepartment() { return department; }

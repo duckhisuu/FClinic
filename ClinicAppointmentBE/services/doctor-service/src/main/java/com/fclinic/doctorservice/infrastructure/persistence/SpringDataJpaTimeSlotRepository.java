@@ -6,11 +6,14 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Repository
-public interface SpringDataJpaTimeSlotRepository extends JpaRepository<JpaTimeSlotEntity, Long> {
-    List<JpaTimeSlotEntity> findByDoctorIdAndSlotDateOrderByStartTimeAsc(Long doctorId, LocalDate slotDate);
-    List<JpaTimeSlotEntity> findByDoctorIdAndSlotDateGreaterThanEqualOrderBySlotDateAscStartTimeAsc(Long doctorId, LocalDate slotDate);
+public interface SpringDataJpaTimeSlotRepository extends JpaRepository<JpaTimeSlotEntity, UUID> {
+    List<JpaTimeSlotEntity> findByDoctorIdAndSlotDateOrderByStartTimeAsc(UUID doctorId, LocalDate slotDate);
+    List<JpaTimeSlotEntity> findByDoctorIdAndSlotDateGreaterThanEqualOrderBySlotDateAscStartTimeAsc(UUID doctorId, LocalDate slotDate);
     List<JpaTimeSlotEntity> findByDoctorIdAndSlotDateBetweenOrderBySlotDateAscStartTimeAsc(
-            Long doctorId, LocalDate fromDate, LocalDate toDate);
+            UUID doctorId, LocalDate fromDate, LocalDate toDate);
+    Optional<JpaTimeSlotEntity> findByIdAndDoctorId(UUID id, UUID doctorId);
 }

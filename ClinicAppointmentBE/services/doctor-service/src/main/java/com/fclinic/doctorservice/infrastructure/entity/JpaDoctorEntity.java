@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @Entity
 @Table(name = "doctors")
@@ -16,8 +17,8 @@ import java.time.Instant;
 public class JpaDoctorEntity extends BaseEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Column(nullable = false)
     private String name;
@@ -49,7 +50,7 @@ public class JpaDoctorEntity extends BaseEntity {
     private boolean active;
 
     public JpaDoctorEntity(
-            Long id,
+            UUID id,
             String name,
             String specialty,
             String department,
