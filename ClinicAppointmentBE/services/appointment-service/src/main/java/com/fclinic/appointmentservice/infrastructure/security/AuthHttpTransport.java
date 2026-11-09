@@ -21,8 +21,10 @@ public class AuthHttpTransport implements AutoCloseable {
   public static final JsonMapper JSON = JsonMapper.builder(JsonFactory.builder()
       .enable(StreamReadFeature.STRICT_DUPLICATE_DETECTION).build())
       .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS).findAndAddModules().build();
-  private final HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(1))
-      .followRedirects(HttpClient.Redirect.NEVER).build();
+  private final HttpClient client;
+  public AuthHttpTransport() { client = com.fclinic.appointmentservice.infrastructure.ProviderTls.client(null); }
+  @org.springframework.beans.factory.annotation.Autowired
+  public AuthHttpTransport(org.springframework.core.env.Environment env) { client = com.fclinic.appointmentservice.infrastructure.ProviderTls.client(env); }
   private final Semaphore capacity = new Semaphore(32);
   public static String encode(String value) { return URLEncoder.encode(value, StandardCharsets.UTF_8); }
   public static String basic(String id, String secret) {

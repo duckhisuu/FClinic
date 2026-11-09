@@ -5,6 +5,7 @@ import static com.fclinic.appointmentservice.infrastructure.AppointmentJson.*;
 import com.fclinic.appointmentservice.application.port.out.*;
 import com.fclinic.appointmentservice.application.result.*;
 import com.fclinic.appointmentservice.config.AppointmentSettings;
+import com.fclinic.appointmentservice.config.ProviderCredentials;
 import com.fclinic.appointmentservice.domain.*;
 import com.fclinic.appointmentservice.infrastructure.*;
 import java.math.BigDecimal;
@@ -19,16 +20,24 @@ public class HttpAppointmentReferenceAdapter
 
   private final ProviderHttp http;
   private final AppointmentSettings settings;
+  private final ProviderCredentials credentials;
   private final com.fclinic.appointmentservice.infrastructure.security.PatientServiceTokenProvider patientTokens;
 
   public HttpAppointmentReferenceAdapter(ProviderHttp http, AppointmentSettings settings,
-      com.fclinic.appointmentservice.infrastructure.security.PatientServiceTokenProvider patientTokens) {
+      com.fclinic.appointmentservice.infrastructure.security.PatientServiceTokenProvider patientTokens,
+      ProviderCredentials credentials) {
     this.http = http;
     this.settings = settings;
     this.patientTokens = patientTokens;
+    this.credentials = credentials;
   }
 
   public PatientReference patient(UUID patient, long deadline) {
+    JsonNode n = patientProfile(patient, deadline, true);
+    return new PatientReference(patient, text(n.path("fullName"), 255), text(n.path("phoneNumber"), 16));
+  }
+
+  private JsonNode patientProfile(UUID patient, long deadline, boolean requireActive) {
     JsonNode n;
     try {
       n =
@@ -63,21 +72,19 @@ public class HttpAppointmentReferenceAdapter
             && ("PAT-" + patient).equals(text(n.path("patientCode"), 40)));
     String status = text(n.path("status"), 16);
     require(Set.of("ACTIVE", "INACTIVE").contains(status));
-    if (!status.equals("ACTIVE"))
+    if (requireActive && !status.equals("ACTIVE"))
       throw AppointmentError.conflict("PATIENT_INACTIVE", "Hồ sơ bệnh nhân đang ngừng hoạt động.");
     String phone = text(n.path("phoneNumber"), 16);
     require(phone.matches("\\+[1-9][0-9]{7,14}"));
-    return new PatientReference(patient, text(n.path("fullName"), 255), phone);
+    return n;
   }
 
   public DoctorReference doctor(UUID doctor, long deadline) {
     JsonNode n;
     try {
       n =
-          http.get(
-              settings.doctorUrl() + "/api/v1/doctors/" + doctor,
-              settings.serviceToken(),
-              deadline);
+          http.getBasic(settings.doctorUrl() + "/internal/v1/doctors/" + doctor,
+              credentials.doctorClientId(), credentials.doctorClientSecret(), deadline, "appointment-doctor-reference/1");
     } catch (ProviderHttp.MissingReference e) {
       throw new AppointmentError(404, "DOCTOR_NOT_FOUND", "Không tìm thấy bác sĩ.");
     }
@@ -115,10 +122,9 @@ public class HttpAppointmentReferenceAdapter
   public Slot slot(UUID doctor, UUID slot, long deadline) {
     try {
       JsonNode n =
-          http.get(
+          http.getBasic(
               settings.doctorUrl() + "/internal/v1/doctors/" + doctor + "/slots/" + slot,
-              settings.serviceToken(),
-              deadline);
+              credentials.doctorClientId(), credentials.doctorClientSecret(), deadline, "appointment-doctor-reference/1");
       require(n.isObject() && id(n.path("id")).equals(slot) && n.path("published").isBoolean());
       return parseSlot(n, n.path("published").asBoolean());
     } catch (ProviderHttp.MissingReference e) {
@@ -136,15 +142,14 @@ public class HttpAppointmentReferenceAdapter
   public List<Slot> offered(UUID doctor, LocalDate date, long deadline) {
     try {
       JsonNode array =
-          http.get(
-              settings.doctorUrl() + "/api/v1/doctors/" + doctor + "/slots?date=" + date,
-              settings.serviceToken(),
-              deadline);
+          http.getBasic(settings.doctorUrl() + "/internal/v1/doctors/" + doctor + "/slots?date=" + date,
+              credentials.doctorClientId(), credentials.doctorClientSecret(), deadline, "appointment-doctor-reference/1");
       require(array.isArray() && array.size() <= 1000);
       List<Slot> result = new ArrayList<>();
       Set<UUID> ids = new HashSet<>();
       for (JsonNode n : array) {
-        Slot s = parseSlot(n, true);
+        require(n.path("published").isBoolean());
+        Slot s = parseSlot(n, n.path("published").asBoolean());
         require(s.doctorId().equals(doctor) && s.date().equals(date) && ids.add(s.id()));
         result.add(s);
       }
@@ -173,37 +178,35 @@ public class HttpAppointmentReferenceAdapter
   }
 
   /**
-   * Endpoint supplied by Auth/Doctor owner. No guessed address, account, phone linking or mock
-   * fallback.
+   * Account IDs come only from Auth's exact business mappings. Patient contacts come from Patient.
    */
   public List<Recipient> recipients(UUID patientId, UUID doctorId) {
     String url = settings.value("recipient-url");
     if (url.isEmpty()) throw AppointmentError.unavailable();
+    long deadline = ProviderHttp.deadline();
+    JsonNode profile = patientProfile(patientId, deadline, false);
     JsonNode n;
     try {
       n =
-          http.post(
-              url,
-              settings.serviceToken(),
+          http.postBasic(url, credentials.recipientClientId(), credentials.recipientClientSecret(),
               Map.of("patientId", patientId.toString(), "doctorId", doctorId),
-              ProviderHttp.deadline());
+              deadline, "appointment-recipient-accounts/1");
     } catch (ProviderHttp.MissingReference e) {
       throw AppointmentError.unavailable();
     }
-    require(n.isArray() && n.size() == 2);
-    Set<String> types = new HashSet<>();
-    List<Recipient> result = new ArrayList<>();
-    for (JsonNode r : n) {
-      String type = text(r.path("recipientType"), 16);
-      require(Set.of("PATIENT", "DOCTOR").contains(type) && types.add(type));
-      require(r.has("userId") && r.has("email"));
-      UUID account = r.path("userId").isNull() ? null : id(r.path("userId"));
-      require(type.equals("PATIENT") || account != null);
-      String name = text(r.path("name"), 255);
-      String email = r.path("email").isNull() ? null : text(r.path("email"), 320);
-      require(email == null || email.matches("[^\\s@]+@[^\\s@]+\\.[^\\s@]+"));
-      result.add(new Recipient(type, account, name, email));
-    }
+    require(n.isObject() && n.propertyNames().equals(Set.of("patientId", "doctorId", "patientUserId", "doctor")));
+    require(id(n.path("patientId")).equals(patientId) && id(n.path("doctorId")).equals(doctorId));
+    UUID patientAccount = n.path("patientUserId").isNull() ? null : id(n.path("patientUserId"));
+    JsonNode doctor = n.path("doctor");
+    require(doctor.isObject() && doctor.propertyNames().equals(Set.of("userId", "name", "email")));
+    return List.of(new Recipient("PATIENT", patientAccount, text(profile.path("fullName"), 255), email(profile.path("email"))),
+        new Recipient("DOCTOR", id(doctor.path("userId")), text(doctor.path("name"), 255), email(doctor.path("email"))));
+  }
+
+  private String email(JsonNode value) {
+    if (value.isNull()) return null;
+    String result = text(value, 320);
+    require(result.matches("[^\\s@]+@[^\\s@]+\\.[^\\s@]+"));
     return result;
   }
 }

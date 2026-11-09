@@ -1,0 +1,40 @@
+{
+  "timestamp": "2026-11-09T14:38:38.775Z",
+  "results": [
+    {
+      "port": 8761,
+      "http": 200,
+      "status": "UP"
+    },
+    {
+      "port": 8085,
+      "http": 200,
+      "status": "UP"
+    },
+    {
+      "port": 8082,
+      "http": 200,
+      "status": "UP"
+    },
+    {
+      "port": 8081,
+      "http": 200,
+      "status": "UP"
+    },
+    {
+      "port": 8083,
+      "http": 200,
+      "status": "UP"
+    },
+    {
+      "port": 8084,
+      "http": 200,
+      "status": "UP"
+    },
+    {
+      "port": 8080,
+      "http": 200,
+      "status": "UP"
+    }
+  ]
+}

@@ -1,5 +1,9 @@
 # Rà soát tích hợp sau đợt sửa security — 09/11/2026
 
+> Trạng thái mới nhất: [review 16bcd7e](<C:/Fall 2026/MSS301/clinic-appointment-system/docs/reviews/2026-11-09-current-16bcd7e-review.md>). Doctor startup/JPA đã sửa; xem báo cáo mới để lấy backlog, owner và kết quả kiểm thử hiện tại.
+
+> Cập nhật: [review bản 1399d80](<C:/Fall 2026/MSS301/clinic-appointment-system/docs/reviews/2026-11-09-current-1399d80-review.md>) thay thế trạng thái Doctor/A02 và kết quả kiểm thử bên dưới. Các nội dung dưới đây được giữ làm bằng chứng lịch sử.
+
 Kết luận: phần Appointment/Auth/Patient vừa sửa đã có regression và contract checks, nhưng toàn hệ thống vẫn chưa ghép thông. Các blocker chính còn ở Docker wiring, Doctor UUID/published-slot, nguồn recipient, Notification schema3, FE API binding và onboarding tài khoản ↔ hồ sơ.
 
 Lượt này chỉ review và thêm báo cáo; không tự sửa tiếp production code hoặc gửi thông báo cho thành viên. Ownership được ghi theo service vì tài liệu nhóm chưa gán cá nhân. Nếu bạn giữ Appointment, ưu tiên A01/A03/A12 và phối hợp các owner bên dưới.

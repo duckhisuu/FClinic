@@ -44,6 +44,16 @@ public class JpaUserRepositoryAdapter implements UserRepositoryPort {
         return mapper.toDomain(userRepository.save(entity));
     }
 
+    @Override public List<User> findPatientAccounts(UUID patientId) {
+        return userRepository.findTop2ByPatientIdAndActiveTrueAndRole_RoleName(patientId, "ROLE_PATIENT")
+                .stream().map(mapper::toDomain).toList();
+    }
+
+    @Override public List<User> findDoctorAccounts(UUID doctorId) {
+        return userRepository.findTop2ByDoctorIdAndActiveTrueAndRole_RoleName(doctorId, "ROLE_DOCTOR")
+                .stream().map(mapper::toDomain).toList();
+    }
+
     @Override
     public Optional<User> findById(UUID id) {
         return userRepository.findById(id).map(mapper::toDomain);

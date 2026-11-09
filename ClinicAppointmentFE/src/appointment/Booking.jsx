@@ -22,6 +22,7 @@ import {
 } from "./ui";
 export function Booking({
   actorSubject,
+  role,
   patientId,
   selection,
   onSchedule,
@@ -152,6 +153,7 @@ export function Booking({
       <div className="booking-layout">
         <div>
           <PatientSelection
+            canSearch={role === "ROLE_STAFF"}
             patientId={patientId}
             selectedPatient={patient}
             onSelect={setPatient}

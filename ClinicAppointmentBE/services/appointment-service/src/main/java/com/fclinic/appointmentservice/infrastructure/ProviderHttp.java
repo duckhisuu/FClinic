@@ -14,29 +14,42 @@ import org.springframework.stereotype.Component;
 import tools.jackson.databind.JsonNode;
 
 @Component
-public class ProviderHttp {
-  private final HttpClient client =
-      HttpClient.newBuilder()
-          .connectTimeout(Duration.ofSeconds(1))
-          .followRedirects(HttpClient.Redirect.NEVER)
-          .build();
+public class ProviderHttp implements AutoCloseable {
+  private final HttpClient client;
+  public ProviderHttp() { client = ProviderTls.client(null); }
+  @org.springframework.beans.factory.annotation.Autowired
+  public ProviderHttp(org.springframework.core.env.Environment env) { client = ProviderTls.client(env); }
+  public void close() { client.shutdownNow(); }
 
   public static long deadline() {
     return System.nanoTime() + Duration.ofSeconds(5).toNanos();
   }
 
   public JsonNode get(String url, String token, long deadline) {
-    return exchange(url, token, null, deadline);
+    return exchange(url, bearer(token), null, deadline, null);
   }
 
   public JsonNode post(String url, String token, Object body, long deadline) {
-    return exchange(url, token, body, deadline);
+    return exchange(url, bearer(token), body, deadline, null);
   }
 
-  private JsonNode exchange(String url, String token, Object body, long deadline) {
+  private static String bearer(String token) {
+    if (token == null || token.isBlank()) throw AppointmentError.unavailable();
+    return "Bearer " + token;
+  }
+
+  public JsonNode getBasic(String url, String clientId, String secret, long deadline, String contract) {
+    return exchange(url, com.fclinic.appointmentservice.infrastructure.security.AuthHttpTransport.basic(clientId, secret), null, deadline, contract);
+  }
+
+  public JsonNode postBasic(String url, String clientId, String secret, Object body, long deadline, String contract) {
+    return exchange(url, com.fclinic.appointmentservice.infrastructure.security.AuthHttpTransport.basic(clientId, secret), body, deadline, contract);
+  }
+
+  private JsonNode exchange(String url, String authorization, Object body, long deadline, String contract) {
     CompletableFuture<HttpResponse<byte[]>> pending = null;
     try {
-      if (url == null || url.isBlank() || token == null || token.isBlank())
+      if (url == null || url.isBlank())
         throw AppointmentError.unavailable();
       URI uri = URI.create(url);
       String host = uri.getHost();
@@ -44,14 +57,15 @@ public class ProviderHttp {
           host != null
               && uri.getUserInfo() == null
               && uri.getFragment() == null
-              && Set.of("http", "https").contains(uri.getScheme()));
+              && ("https".equals(uri.getScheme()) || ("http".equals(uri.getScheme())
+                  && Set.of("localhost", "127.0.0.1", "[::1]").contains(host))));
       long left = deadline - System.nanoTime();
       if (left <= 0) throw AppointmentError.unavailable();
       Duration timeout = Duration.ofNanos(Math.min(left, Duration.ofSeconds(2).toNanos()));
       var builder =
           HttpRequest.newBuilder(uri)
               .timeout(timeout)
-              .header("Authorization", "Bearer " + token)
+              .header("Authorization", authorization)
               .header("Accept", "application/json");
       if (body == null) builder.GET();
       else
@@ -60,6 +74,7 @@ public class ProviderHttp {
             .POST(HttpRequest.BodyPublishers.ofString(write(body)));
       pending = client.sendAsync(builder.build(), info -> new LimitedBody());
       var response = pending.get(timeout.toNanos(), TimeUnit.NANOSECONDS);
+      if (contract != null) require(response.headers().allValues("X-FClinic-Reference-Contract").equals(List.of(contract)));
       if (response.statusCode() == 404) throw new MissingReference();
       require(
           response.statusCode() == 200

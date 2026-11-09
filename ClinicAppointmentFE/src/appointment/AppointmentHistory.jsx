@@ -18,7 +18,7 @@ const actions = {
   COMPLETED: "Hoàn thành",
   NO_SHOW: "Không đến khám",
 };
-export function AppointmentHistory({ actorSubject, patientId, onSchedule }) {
+export function AppointmentHistory({ actorSubject, patientId, doctorId, role, onSchedule, onOpenPatient, onRequireProfile }) {
   const [data, setData] = useState(null),
     [error, setError] = useState(null),
     [loading, setLoading] = useState(true),
@@ -29,6 +29,11 @@ export function AppointmentHistory({ actorSubject, patientId, onSchedule }) {
     [details, setDetails] = useState(null),
     [detailsError, setDetailsError] = useState(null);
   useEffect(() => {
+    if (role === "ROLE_PATIENT" && !patientId) {
+      setData({ content: [], totalElements: 0, totalPages: 0 });
+      setLoading(false);
+      return;
+    }
     const c = new AbortController();
     setData(null);
     setError(null);
@@ -39,6 +44,7 @@ export function AppointmentHistory({ actorSubject, patientId, onSchedule }) {
           page,
           size: 10,
           ...(patientId ? { patientId } : {}),
+          ...(doctorId ? { doctorId } : {}),
           ...(status ? { status } : {}),
         },
         c.signal,
@@ -59,7 +65,7 @@ export function AppointmentHistory({ actorSubject, patientId, onSchedule }) {
         if (!c.signal.aborted) setLoading(false);
       });
     return () => c.abort();
-  }, [page, status, revision, patientId]);
+  }, [page, status, revision, patientId, doctorId, role]);
   const detailRequest = useRef(0);
   const view = async (a) => {
     const request = ++detailRequest.current;
@@ -77,6 +83,7 @@ export function AppointmentHistory({ actorSubject, patientId, onSchedule }) {
     }
   };
   const canChange = (a) =>
+    ["ROLE_PATIENT", "ROLE_STAFF"].includes(role) &&
     a.status === "CONFIRMED" &&
     new Date(`${a.appointmentDate}T${a.startTime}+07:00`).getTime() >
       Date.now();
@@ -124,11 +131,19 @@ export function AppointmentHistory({ actorSubject, patientId, onSchedule }) {
           <Busy />
         ) : !data?.content.length ? (
           !error && (
-            <Empty title="Chưa có lịch hẹn">
-              Khi đặt khám thành công, lịch hẹn sẽ được hiển thị tại đây.
-              <button className="button primary" onClick={onSchedule}>
-                Chọn giờ khám
-              </button>
+            <Empty title={!patientId && role === "ROLE_PATIENT" ? "Chưa liên kết hồ sơ bệnh nhân" : "Chưa có lịch hẹn"}>
+              {!patientId && role === "ROLE_PATIENT"
+                ? "Tài khoản của bạn chưa hoàn tất hồ sơ bệnh nhân. Vui lòng tạo hồ sơ để xem và quản lý lịch hẹn."
+                : "Khi đặt khám thành công, lịch hẹn sẽ được hiển thị tại đây."}
+              {!patientId && role === "ROLE_PATIENT" && onRequireProfile ? (
+                <button className="button primary" onClick={onRequireProfile}>
+                  Khởi tạo hồ sơ bệnh nhân
+                </button>
+              ) : onSchedule ? (
+                <button className="button primary" onClick={onSchedule}>
+                  Chọn giờ khám
+                </button>
+              ) : null}
             </Empty>
           )
         ) : (
@@ -156,6 +171,7 @@ export function AppointmentHistory({ actorSubject, patientId, onSchedule }) {
                     {a.endTime.slice(0, 5)} · {money(a.consultationFee)}
                   </small>
                   <div className="appointment-actions">
+                    {onOpenPatient && a.patientId && <button className="text-button" onClick={() => onOpenPatient(a.patientId)}>Hồ sơ bệnh nhân</button>}
                     <button className="text-button" onClick={() => view(a)}>
                       <History size={15} />
                       Chi tiết & lịch sử

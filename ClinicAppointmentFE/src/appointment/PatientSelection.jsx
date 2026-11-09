@@ -4,7 +4,7 @@ import { patientApi } from "./api";
 import { ErrorNotice, Busy } from "./ui";
 
 // Reads existing Patient profiles only. Does not create accounts, profiles, or permissions.
-export function PatientSelection({ patientId, selectedPatient, onSelect }) {
+export function PatientSelection({ patientId, selectedPatient, onSelect, canSearch = false }) {
   const [patient, setPatient] = useState(selectedPatient || null),
     [query, setQuery] = useState(""),
     [candidates, setCandidates] = useState(null),
@@ -75,7 +75,8 @@ export function PatientSelection({ patientId, selectedPatient, onSelect }) {
           </div>
         </div>
       )}
-      {!patientId && (
+      {!patientId && !canSearch && <p role="alert">Tài khoản chưa liên kết hồ sơ bệnh nhân. Vui lòng liên hệ quầy tiếp nhận để liên kết đúng hồ sơ.</p>}
+      {!patientId && canSearch && (
         <>
           <form className="inline-form" onSubmit={search}>
             <input

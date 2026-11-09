@@ -38,7 +38,7 @@ public class PatientConfiguration {
             public boolean profile(TrustedCaller c, UUID p) { return false; }
             public boolean clinical(TrustedCaller c, UUID p) { return false; }
             public boolean validVisit(TrustedCaller c, UUID p, UUID a, Instant v) { return false; }
-            public boolean appointmentProfileLookup(TrustedCaller c, UUID p) { return false; }
+            public boolean appointmentProfileLookup(TrustedCaller c, UUID p) { return true; }
             public SearchScope search(TrustedCaller c) { return null; }
         };
     }

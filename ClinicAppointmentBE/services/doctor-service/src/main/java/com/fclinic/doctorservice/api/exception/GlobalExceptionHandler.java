@@ -18,11 +18,13 @@ import java.util.stream.Collectors;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(DoctorNotFoundException.class)
-    public ResponseEntity<ApiResponse<Void>> handleNotFound(DoctorNotFoundException ex) {
+    public ResponseEntity<ReferenceError> handleNotFound(DoctorNotFoundException ex) {
         log.warn("[NotFound] {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(ApiResponse.failure(HttpStatus.NOT_FOUND.value(), ErrorCode.NOT_FOUND, ex.getMessage()));
+                .body(new ReferenceError(404, ex.getMessage(), null, "DOCTOR_NOT_FOUND", java.util.List.of()));
     }
+
+    public record ReferenceError(int status, String message, Object data, String code, java.util.List<?> fieldErrors) { }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Void>> handleValidation(MethodArgumentNotValidException ex) {

@@ -42,6 +42,9 @@ spring:
       "[mail.smtp.timeout]": 5000
 
 app:
+  recipients:
+    client-id: ${APPOINTMENT_RECIPIENT_CLIENT_ID:appointment-recipient-accounts}
+    client-secret: ${APPOINTMENT_RECIPIENT_CLIENT_SECRET:appointment-recipient-secret-dev}
   keycloak:
     base-url: ${KEYCLOAK_BASE_URL:http://localhost:8180}
     realm: ${KEYCLOAK_REALM:fclinic}
@@ -57,7 +60,7 @@ app:
     clients:
       appointment:
         client-id: ${APPOINTMENT_AUTH_CLIENT_ID:appointment-introspection}
-        client-secret: ${APPOINTMENT_AUTH_CLIENT_SECRET:}
+        client-secret: ${APPOINTMENT_AUTH_CLIENT_SECRET:appointment-introspection-secret-dev}
     client-id: ${AUTH_INTROSPECTION_CLIENT_ID:patient-service}
     client-secret: ${AUTH_INTROSPECTION_CLIENT_SECRET:patient-introspection-secret-dev}
     issuer: ${AUTH_INTROSPECTION_ISSUER:${KEYCLOAK_BASE_URL:http://localhost:8180}/realms/${KEYCLOAK_REALM:fclinic}}
@@ -69,17 +72,17 @@ app:
     clients:
       appointment:
         client-id: ${APPOINTMENT_SCOPE_CLIENT_ID:appointment-scope}
-        secret: ${APPOINTMENT_SCOPE_CLIENT_SECRET:}
+        secret: ${APPOINTMENT_SCOPE_CLIENT_SECRET:appointment-scope-secret-dev}
         contract-version: appointment-work-scope/1
         authority: ADMINISTRATIVE
       patient-administrative:
         client-id: ${PATIENT_ADMIN_SCOPE_CLIENT_ID:patient-admin-scope}
-        secret: ${PATIENT_ADMIN_SCOPE_CLIENT_SECRET:}
+        secret: ${PATIENT_ADMIN_SCOPE_CLIENT_SECRET:patient-admin-scope-secret-dev}
         contract-version: patient-work-scope/2
         authority: ADMINISTRATIVE
       patient-clinical:
         client-id: ${PATIENT_CLINICAL_SCOPE_CLIENT_ID:patient-clinical-scope}
-        secret: ${PATIENT_CLINICAL_SCOPE_CLIENT_SECRET:}
+        secret: ${PATIENT_CLINICAL_SCOPE_CLIENT_SECRET:patient-clinical-scope-secret-dev}
         contract-version: patient-work-scope/2
         authority: CLINICAL
     services:
@@ -96,8 +99,8 @@ app:
   auth:
     otp:
       expiration-seconds: ${AUTH_OTP_EXPIRATION_SECONDS:300}
-      expose-in-response: ${AUTH_OTP_EXPOSE_IN_RESPONSE:true}
-      mail-enabled: ${AUTH_OTP_MAIL_ENABLED:false}
+      expose-in-response: ${AUTH_OTP_EXPOSE_IN_RESPONSE:false}
+      mail-enabled: ${AUTH_OTP_MAIL_ENABLED:true}
       from-address: ${MAIL_FROM_ADDRESS:no-reply@fclinic.local}
 
 eureka:

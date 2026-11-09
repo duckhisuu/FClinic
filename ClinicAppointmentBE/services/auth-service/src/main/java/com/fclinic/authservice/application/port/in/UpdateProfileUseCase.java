@@ -8,5 +8,7 @@ import java.util.UUID;
 public interface UpdateProfileUseCase {
 
     User updateProfile(UUID userId, UpdateProfileCommand command);
+
+    User linkPatientProfile(UUID userId, UUID patientId);
 }
 

@@ -75,7 +75,7 @@ public class AuthApplicationService implements
                 command.email(),
                 command.phoneNumber(),
                 RoleName.ROLE_PATIENT,
-                command.patientId(),
+                null,
                 null,
                 null
         );
@@ -131,42 +131,7 @@ public class AuthApplicationService implements
             ));
         }
 
-        if (command.email() == null || command.email().isBlank() || command.googleId() == null || command.googleId().isBlank()) {
-            throw new AuthValidationException("Cần cung cấp authorizationCode hoặc email + googleId để đăng nhập Google");
-        }
-
-        String email = command.email().trim().toLowerCase();
-        String googleId = command.googleId().trim();
-        String displayName = (command.name() != null && !command.name().isBlank())
-                ? command.name().trim()
-                : email.substring(0, email.indexOf('@'));
-
-        User user = userRepository.findByGoogleId(googleId)
-                .or(() -> userRepository.findByEmail(email))
-                .orElseGet(() -> provisioningSupport.provisionNewUser(
-                        deriveGoogleUsername(email),
-                        generateInternalSecret(),
-                        displayName,
-                        email,
-                        null,
-                        RoleName.ROLE_PATIENT,
-                        null,
-                        null,
-                        googleId
-                ));
-
-        if (!user.isActive()) {
-            throw new AccountDisabledException("Tài khoản đã bị vô hiệu hóa");
-        }
-
-        if (user.getGoogleId() == null || !googleId.equals(user.getGoogleId())) {
-            user.linkGoogleId(googleId);
-            user = userRepository.save(user);
-            keycloakIdentityPort.linkFederatedGoogleIdentity(user.getKeycloakId(), googleId, email);
-        }
-
-        KeycloakTokenPair tokens = keycloakIdentityPort.issueTokenForFederatedUser(user.getKeycloakId(), user.getUsername());
-        return toAuthResult(tokens, user);
+        throw new AuthValidationException("Verified OIDC authorizationCode is required");
     }
 
     @Override
@@ -233,6 +198,20 @@ public class AuthApplicationService implements
                 saved.getDoctorId()
         );
         return saved;
+    }
+
+    @Override
+    @Transactional
+    public User linkPatientProfile(UUID userId, UUID patientId) {
+        User user = getCurrentUser(userId);
+        // Browser UUID possession is not proof of Patient ownership. Until a
+        // trusted provisioning contract exists, only acknowledge an existing
+        // identical binding; never claim/rebind a profile through this route.
+        if (user.getRoleName() != RoleName.ROLE_PATIENT || user.getPatientId() == null
+                || !user.getPatientId().equals(patientId)) {
+            throw new org.springframework.security.access.AccessDeniedException("Trusted Patient provisioning required");
+        }
+        return user;
     }
 
     @Override

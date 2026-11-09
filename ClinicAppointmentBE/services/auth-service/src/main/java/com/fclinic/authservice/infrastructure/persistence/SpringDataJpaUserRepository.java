@@ -11,6 +11,10 @@ import java.util.UUID;
 
 public interface SpringDataJpaUserRepository extends JpaRepository<JpaUserEntity, UUID>, JpaSpecificationExecutor<JpaUserEntity> {
 
+    java.util.List<JpaUserEntity> findTop2ByPatientIdAndActiveTrueAndRole_RoleName(UUID patientId, String roleName);
+
+    java.util.List<JpaUserEntity> findTop2ByDoctorIdAndActiveTrueAndRole_RoleName(UUID doctorId, String roleName);
+
     Optional<JpaUserEntity> findByKeycloakId(UUID keycloakId);
 
     Optional<JpaUserEntity> findByUsernameIgnoreCase(String username);

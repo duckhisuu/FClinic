@@ -36,11 +36,13 @@ public final class IntrospectionIdentityVerifier implements IdentityVerifierPort
         try {
             var builder = HttpClient.newBuilder().connectTimeout(settings.connectTimeout())
                     .followRedirects(HttpClient.Redirect.NEVER).version(HttpClient.Version.HTTP_1_1);
-            var tls = new SSLParameters();
-            tls.setProtocols(new String[]{"TLSv1.3", "TLSv1.2"});
-            tls.setEndpointIdentificationAlgorithm("HTTPS");
-            builder.sslParameters(tls);
-            if (settings.trustStore() != null) builder.sslContext(trustContext(settings));
+            if ("https".equalsIgnoreCase(settings.endpoint().getScheme())) {
+                var tls = new SSLParameters();
+                tls.setProtocols(new String[]{"TLSv1.3", "TLSv1.2"});
+                tls.setEndpointIdentificationAlgorithm("HTTPS");
+                builder.sslParameters(tls);
+                if (settings.trustStore() != null) builder.sslContext(trustContext(settings));
+            }
             client = builder.build();
         } catch (Exception error) {
             // No URLs, paths, secrets or provider exception text in startup errors.

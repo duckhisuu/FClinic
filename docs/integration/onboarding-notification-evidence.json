@@ -1,0 +1,379 @@
+{
+  "timestamp": "2026-11-09T16:20:55.307Z",
+  "selfServiceLinking": "BLOCKED: no trusted ownership contract; fail-closed guard",
+  "trustedOperatorProvisioning": true,
+  "evidence": [
+    {
+      "label": "Real login",
+      "pass": true,
+      "expected": 200,
+      "actual": 200,
+      "method": "POST",
+      "route": "/api/v1/auth/login"
+    },
+    {
+      "label": "Real login",
+      "pass": true,
+      "expected": 200,
+      "actual": 200,
+      "method": "POST",
+      "route": "/api/v1/auth/login"
+    },
+    {
+      "label": "Real login",
+      "pass": true,
+      "expected": 200,
+      "actual": 200,
+      "method": "POST",
+      "route": "/api/v1/auth/login"
+    },
+    {
+      "label": "Register synthetic Patient b",
+      "pass": true,
+      "expected": 201,
+      "actual": 201,
+      "method": "POST",
+      "route": "/api/v1/auth/register"
+    },
+    {
+      "label": "Real login",
+      "pass": true,
+      "expected": 200,
+      "actual": 200,
+      "method": "POST",
+      "route": "/api/v1/auth/login"
+    },
+    {
+      "label": "Real login",
+      "pass": true,
+      "expected": 200,
+      "actual": 200,
+      "method": "POST",
+      "route": "/api/v1/auth/login"
+    },
+    {
+      "label": "Initial account is unlinked",
+      "pass": true
+    },
+    {
+      "label": "Unlinked Patient cannot book",
+      "pass": true,
+      "expected": 403,
+      "actual": 403,
+      "method": "POST",
+      "route": "/api/v2/appointments"
+    },
+    {
+      "label": "Patient creates initial profile",
+      "pass": true,
+      "expected": 201,
+      "actual": 201,
+      "method": "POST",
+      "route": "/api/v3/patients"
+    },
+    {
+      "label": "No MedicalRecord before booking",
+      "pass": true
+    },
+    {
+      "label": "Operator verifies exact profile creation owner and active state",
+      "pass": true
+    },
+    {
+      "label": "Other account cannot claim Patient A",
+      "pass": true,
+      "expected": 403,
+      "actual": 403,
+      "method": "PUT",
+      "route": "/api/v1/auth/me/patient-profile"
+    },
+    {
+      "label": "Nonexistent/unproven self-link refused",
+      "pass": true,
+      "expected": 403,
+      "actual": 403,
+      "method": "PUT",
+      "route": "/api/v1/auth/me/patient-profile"
+    },
+    {
+      "label": "STAFF cannot use Patient self-link",
+      "pass": true,
+      "expected": 403,
+      "actual": 403,
+      "method": "PUT",
+      "route": "/api/v1/auth/me/patient-profile"
+    },
+    {
+      "label": "Public arbitrary linking fails closed",
+      "pass": true,
+      "expected": 403,
+      "actual": 403,
+      "method": "PUT",
+      "route": "/api/v1/auth/me/patient-profile"
+    },
+    {
+      "label": "No existing account claims this new profile",
+      "pass": true
+    },
+    {
+      "label": "Trusted operator provisions verified synthetic Patient",
+      "pass": true,
+      "expected": 200,
+      "actual": 200,
+      "method": "PUT",
+      "route": "/api/v1/auth/admin/users/cd25a6b6-855f-49b0-bb66-6f99956a3cc2"
+    },
+    {
+      "label": "Me after provisioning",
+      "pass": true,
+      "expected": 200,
+      "actual": 200,
+      "method": "GET",
+      "route": "/api/v1/auth/me"
+    },
+    {
+      "label": "Me uses linked Patient UUID",
+      "pass": true
+    },
+    {
+      "label": "Same trusted binding is idempotent",
+      "pass": true,
+      "expected": 200,
+      "actual": 200,
+      "method": "PUT",
+      "route": "/api/v1/auth/me/patient-profile"
+    },
+    {
+      "label": "Verified binding cannot be replaced by caller",
+      "pass": true,
+      "expected": 403,
+      "actual": 403,
+      "method": "PUT",
+      "route": "/api/v1/auth/me/patient-profile"
+    },
+    {
+      "label": "Real login",
+      "pass": true,
+      "expected": 200,
+      "actual": 200,
+      "method": "POST",
+      "route": "/api/v1/auth/login"
+    },
+    {
+      "label": "Re-login preserves identity binding",
+      "pass": true
+    },
+    {
+      "label": "Refresh real token",
+      "pass": true,
+      "expected": 200,
+      "actual": 200,
+      "method": "POST",
+      "route": "/api/v1/auth/refresh"
+    },
+    {
+      "label": "Refresh preserves binding",
+      "pass": true
+    },
+    {
+      "label": "Publish synthetic future Doctor offer",
+      "pass": true,
+      "expected": 201,
+      "actual": 201,
+      "method": "POST",
+      "route": "/api/v1/doctors/c6f4f54e-1d05-4c6e-8392-9da5092ea4d7/slots"
+    },
+    {
+      "label": "Publish synthetic future Doctor offer",
+      "pass": true,
+      "expected": 201,
+      "actual": 201,
+      "method": "POST",
+      "route": "/api/v1/doctors/c6f4f54e-1d05-4c6e-8392-9da5092ea4d7/slots"
+    },
+    {
+      "label": "Real provider availability",
+      "pass": true,
+      "expected": 200,
+      "actual": 200,
+      "method": "GET",
+      "route": "/api/v2/appointments/available-slots?doctorId=c6f4f54e-1d05-4c6e-8392-9da5092ea4d7&date=2026-11-11"
+    },
+    {
+      "label": "Cannot book for another Patient",
+      "pass": true,
+      "expected": 403,
+      "actual": 403,
+      "method": "POST",
+      "route": "/api/v2/appointments"
+    },
+    {
+      "label": "Self booking without MedicalRecord",
+      "pass": true,
+      "expected": 201,
+      "actual": 201,
+      "method": "POST",
+      "route": "/api/v2/appointments"
+    },
+    {
+      "label": "Idempotent booking replay",
+      "pass": true,
+      "expected": 201,
+      "actual": 201,
+      "method": "POST",
+      "route": "/api/v2/appointments"
+    },
+    {
+      "label": "Replay returns same Appointment UUID",
+      "pass": true
+    },
+    {
+      "label": "Confirmed booking persisted once",
+      "pass": true
+    },
+    {
+      "label": "Read own booking",
+      "pass": true,
+      "expected": 200,
+      "actual": 200,
+      "method": "GET",
+      "route": "/api/v2/appointments/d15f448c-a878-4373-915a-8df8905525f9"
+    },
+    {
+      "label": "Duplicate occupied slot refused",
+      "pass": true,
+      "expected": 409,
+      "actual": 409,
+      "method": "POST",
+      "route": "/api/v2/appointments"
+    },
+    {
+      "label": "Stale booking version rejected",
+      "pass": true,
+      "expected": 409,
+      "actual": 409,
+      "method": "PUT",
+      "route": "/api/v2/appointments/d15f448c-a878-4373-915a-8df8905525f9/cancel"
+    },
+    {
+      "label": "Owner reschedules",
+      "pass": true,
+      "expected": 200,
+      "actual": 200,
+      "method": "PUT",
+      "route": "/api/v2/appointments/d15f448c-a878-4373-915a-8df8905525f9/reschedule"
+    },
+    {
+      "label": "Owner cancels",
+      "pass": true,
+      "expected": 200,
+      "actual": 200,
+      "method": "PUT",
+      "route": "/api/v2/appointments/d15f448c-a878-4373-915a-8df8905525f9/cancel"
+    },
+    {
+      "label": "Read persisted booking history",
+      "pass": true,
+      "expected": 200,
+      "actual": 200,
+      "method": "GET",
+      "route": "/api/v2/appointments/d15f448c-a878-4373-915a-8df8905525f9/history"
+    },
+    {
+      "label": "History includes create/reschedule/cancel",
+      "pass": true
+    },
+    {
+      "label": "Still no MedicalRecord after booking lifecycle",
+      "pass": true
+    },
+    {
+      "label": "JWT authenticated inbox",
+      "pass": true,
+      "expected": 200,
+      "actual": 200,
+      "method": "GET",
+      "route": "/api/v1/notifications/me?size=100"
+    },
+    {
+      "label": "GET /api/v1/notifications/me?size=100",
+      "pass": true,
+      "expected": 200,
+      "actual": 200,
+      "method": "GET",
+      "route": "/api/v1/notifications/me?size=100"
+    },
+    {
+      "label": "GET /api/v1/notifications/me?size=100",
+      "pass": true,
+      "expected": 200,
+      "actual": 200,
+      "method": "GET",
+      "route": "/api/v1/notifications/me?size=100"
+    },
+    {
+      "label": "Real booking event reached Notification inbox",
+      "pass": true
+    },
+    {
+      "label": "Every returned notification belongs to verified caller",
+      "pass": true
+    },
+    {
+      "label": "Forged inbox userId ignored",
+      "pass": true,
+      "expected": 200,
+      "actual": 200,
+      "method": "GET",
+      "route": "/api/v1/notifications/me?userId=cd25a6b6-855f-49b0-bb66-6f99956a3cc2"
+    },
+    {
+      "label": "User B sees no User A rows",
+      "pass": true
+    },
+    {
+      "label": "Cross-user detail denied",
+      "pass": true,
+      "expected": 404,
+      "actual": 404,
+      "method": "GET",
+      "route": "/api/v1/notifications/5837cdd8-443a-4a87-8e3d-2a6730933607"
+    },
+    {
+      "label": "Patient cannot query admin inbox",
+      "pass": true,
+      "expected": 403,
+      "actual": 403,
+      "method": "GET",
+      "route": "/api/v1/admin/notifications"
+    },
+    {
+      "label": "Other user cannot retry",
+      "pass": true,
+      "expected": 403,
+      "actual": 403,
+      "method": "POST",
+      "route": "/api/v1/admin/notifications/5837cdd8-443a-4a87-8e3d-2a6730933607/retry"
+    },
+    {
+      "label": "Notification missing token",
+      "pass": true,
+      "expected": 401,
+      "actual": 401,
+      "method": "GET",
+      "route": "/api/v1/notifications/me"
+    },
+    {
+      "label": "Notification invalid token",
+      "pass": true,
+      "expected": 401,
+      "actual": 401,
+      "method": "GET",
+      "route": "/api/v1/notifications/me"
+    },
+    {
+      "label": "UUID rows persisted in Notification PostgreSQL",
+      "pass": true
+    }
+  ]
+}

@@ -1,3 +1,4 @@
+import { refreshSession } from '../../services/session';
 import { UUID } from '../model';
 const ROOT = '/api/v3/patients';
 const messages = { 400: 'Thông tin chưa hợp lệ. Vui lòng kiểm tra các trường được đánh dấu.', 401: 'Phiên đăng nhập chưa có hoặc đã hết hạn.', 403: 'Bạn chưa được cấp quyền cho thao tác này.', 404: 'Không tìm thấy hồ sơ yêu cầu.', 409: 'Dữ liệu đã thay đổi hoặc không thể cập nhật ở trạng thái hiện tại.', 422: 'Thông tin tham chiếu hoặc lần khám không hợp lệ.', 503: 'Dịch vụ phụ thuộc chưa sẵn sàng. Vui lòng thử lại sau.' };
@@ -36,7 +37,7 @@ function page(value, medical) {
 const id = value => { if (!UUID.test(value)) throw new PatientApiError(400, 'INVALID_UUID'); return value; };
 // The host owns authentication. No token input/storage, role simulation, cookies-as-Bearer or mock fallback.
 export function createPatientApi({ getAccessToken, fetchImpl = (...args) => fetch(...args), baseUrl = import.meta.env.VITE_API_GATEWAY_URL || '' } = {}) {
-  async function request(method, path, body, signal) {
+  async function request(method, path, body, signal, retried = false) {
     let token;
     try { token = await getAccessToken?.(); } catch { throw new PatientApiError(503, 'SESSION_UNAVAILABLE'); }
     signal?.throwIfAborted();
@@ -47,6 +48,9 @@ export function createPatientApi({ getAccessToken, fetchImpl = (...args) => fetc
     let acknowledged = false;
     try {
       const response = await fetchImpl(`${baseUrl}${path}`, { method, signal: controller.signal, credentials: 'same-origin', headers: { Accept: 'application/json', Authorization: `Bearer ${token}`, ...(body ? { 'Content-Type': 'application/json' } : {}) }, ...(body ? { body: JSON.stringify(body) } : {}) });
+      if (response.status === 401 && !retried && await refreshSession('Bearer ' + token)) {
+        return request(method, path, body, signal, true);
+      }
       acknowledged = response.status >= 200 && response.status < 300;
       if (!(response.headers.get('content-type') || '').toLowerCase().includes('application/json')) throw new PatientApiError(response.status >= 400 ? response.status : 503, 'INVALID_CONTENT_TYPE');
       let payload; try { payload = await response.json(); } catch { throw new PatientApiError(response.status >= 400 ? response.status : 503, 'INVALID_JSON'); }

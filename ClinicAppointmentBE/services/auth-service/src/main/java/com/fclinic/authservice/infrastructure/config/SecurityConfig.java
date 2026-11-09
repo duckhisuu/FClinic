@@ -40,7 +40,8 @@ public class SecurityConfig {
     @Order(1)
     public SecurityFilterChain publicTokenInspectionFilterChain(HttpSecurity http) throws Exception {
         http
-                .securityMatcher("/api/v1/auth/introspect", "/api/v1/auth/validate", "/api/v1/auth/scopes")
+                .securityMatcher("/api/v1/auth/introspect", "/api/v1/auth/validate", "/api/v1/auth/scopes",
+                        com.fclinic.authservice.api.controller.AppointmentRecipientController.PATH)
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -94,7 +95,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:3000", "http://localhost:8080"));
+        config.setAllowedOrigins(List.of("http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:3000", "http://localhost:8080"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);

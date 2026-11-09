@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.*;
 
 @Configuration
-@EnableConfigurationProperties(AppointmentSecuritySettings.class)
+@EnableConfigurationProperties({AppointmentSecuritySettings.class, ProviderCredentials.class})
 public class AppointmentWebSecurityConfiguration implements WebMvcConfigurer {
   private final AppointmentAuthentication authentication;
   public AppointmentWebSecurityConfiguration(AppointmentAuthentication authentication) { this.authentication = authentication; }
