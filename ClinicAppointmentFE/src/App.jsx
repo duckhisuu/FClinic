@@ -13,6 +13,7 @@ import {
   ShieldCheck,
   LogOut,
   User,
+  UserPlus,
 } from "lucide-react";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { LoginPage } from "./pages/LoginPage";
@@ -24,6 +25,7 @@ import { Booking } from "./appointment/Booking";
 import { AppointmentHistory } from "./appointment/AppointmentHistory";
 import { NotificationDrawer } from "./components/NotificationDrawer";
 import { PatientModule } from "./patient/PatientModule";
+import { PatientOnboardingPage } from "./pages/PatientOnboardingPage";
 
 function getRoleLabel(role) {
   switch (role) {
@@ -39,7 +41,9 @@ function getRoleLabel(role) {
   }
 }
 
-function getRoleMenu(role) {
+function getRoleMenu(userOrRole) {
+  const role = typeof userOrRole === "string" ? userOrRole : userOrRole?.role;
+  const user = typeof userOrRole === "object" ? userOrRole : null;
   switch (role) {
     case "ROLE_DOCTOR":
       return [
@@ -91,8 +95,17 @@ function getRoleMenu(role) {
       ];
 
     case "ROLE_PATIENT":
-    default:
-      return [
+    default: {
+      const items = [];
+      if (user && !user.patientId) {
+        items.push({
+          id: "patient-onboarding",
+          icon: UserPlus,
+          title: "Khởi tạo hồ sơ",
+          desc: "Hoàn tất hồ sơ để đặt lịch",
+        });
+      }
+      items.push(
         {
           id: "doctors",
           icon: Stethoscope,
@@ -110,12 +123,15 @@ function getRoleMenu(role) {
           icon: CalendarDays,
           title: "Lịch hẹn của tôi",
           desc: "Theo dõi, đổi hoặc hủy lịch",
-        },
-      ];
+        }
+      );
+      return items;
+    }
   }
 }
 
-function getDefaultTab(role) {
+function getDefaultTab(user) {
+  const role = typeof user === "string" ? user : user?.role;
   switch (role) {
     case "ROLE_DOCTOR":
       return "doctor-dashboard";
@@ -125,13 +141,13 @@ function getDefaultTab(role) {
       return "admin-users";
     case "ROLE_PATIENT":
     default:
-      return "doctors";
+      return typeof user === "object" && !user?.patientId ? "patient-onboarding" : "doctors";
   }
 }
 
 function MainApp() {
   const { user, capabilities = {}, isAuthenticated, isLoading, logout } = useAuth();
-  const [tab, setTab] = useState("doctors");
+  const [tab, setTab] = useState(() => getDefaultTab(user));
   const [selection, setSelection] = useState(null);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [walkinPatient, setWalkinPatient] = useState(null);
@@ -152,11 +168,11 @@ function MainApp() {
   useEffect(() => {
     if (user?.role) {
       const requested = window.location.hash.slice(1).split('?')[0];
-      const allowed = getRoleMenu(user.role).map(item => item.id);
+      const allowed = getRoleMenu(user).map(item => item.id);
       if (user.role === 'ROLE_DOCTOR' || (user.role === 'ROLE_PATIENT' && user.patientId)) allowed.push('patient-records');
-      setTab(allowed.includes(requested) ? requested : getDefaultTab(user.role));
+      setTab(allowed.includes(requested) ? requested : getDefaultTab(user));
     }
-  }, [user?.role]);
+  }, [user?.role, user?.patientId]);
 
   const selectTab = (next) => {
     if (tab !== "patient-records" || !patientLeave.current || patientLeave.current()) {
@@ -168,7 +184,7 @@ function MainApp() {
   useEffect(() => {
     const restore = () => {
       const requested = window.location.hash.slice(1).split('?')[0];
-      const allowed = getRoleMenu(user?.role).map(item => item.id);
+      const allowed = getRoleMenu(user).map(item => item.id);
       if (user?.role === 'ROLE_DOCTOR' || (user?.role === 'ROLE_PATIENT' && user.patientId)) allowed.push('patient-records');
       if (allowed.includes(requested) && (tab !== "patient-records" || !patientLeave.current || patientLeave.current())) setTab(requested);
     };
@@ -198,7 +214,7 @@ function MainApp() {
     return <LoginPage />;
   }
 
-  const menu = getRoleMenu(user?.role);
+  const menu = getRoleMenu(user);
   if (user?.role === 'ROLE_DOCTOR' || (user?.role === 'ROLE_PATIENT' && user.patientId)) menu.push({ id: 'patient-records', icon: UsersRound, title: 'Hồ sơ & bệnh án', desc: 'Hồ sơ trong phạm vi được cấp' });
   const roleBadge = getRoleLabel(user?.role);
   const patientId = user?.role === "ROLE_STAFF" ? walkinPatient?.id || null : user?.patientId || null;
@@ -212,7 +228,7 @@ function MainApp() {
           href="/"
           onClick={(e) => {
             e.preventDefault();
-            selectTab(getDefaultTab(user?.role));
+            selectTab(getDefaultTab(user));
           }}
         >
           <span>
@@ -333,6 +349,9 @@ function MainApp() {
           ) : tab === "patient-records" ? (
             /* PATIENT RECORDS VIEW */
             <PatientModule session={patientSession} onBeforeLeave={registerPatientGuard} />
+          ) : tab === "patient-onboarding" ? (
+            /* PATIENT ONBOARDING VIEW */
+            <PatientOnboardingPage onComplete={() => selectTab("doctors")} />
           ) : tab === "doctors" ? (
             /* DOCTORS DIRECTORY */
             <DoctorDirectory
@@ -361,6 +380,7 @@ function MainApp() {
               patientId={patientId}
               onSchedule={() => selectTab("doctors")}
               onOpenPatient={openPatient}
+              onRequireProfile={() => selectTab("patient-onboarding")}
             />
           )}
 

@@ -105,6 +105,11 @@ export function AuthProvider({ children }) {
     return user.role === roles;
   }, [user]);
 
+  const updateUserSession = useCallback((newUser) => {
+    localStorage.setItem('fclinic_user', JSON.stringify(newUser));
+    setUser(newUser);
+  }, []);
+
   return (
     <AuthContext.Provider
       value={{
@@ -117,6 +122,7 @@ export function AuthProvider({ children }) {
         register,
         logout,
         hasRole,
+        updateUserSession,
       }}
     >
       {children}

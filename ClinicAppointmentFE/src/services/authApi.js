@@ -14,6 +14,10 @@ export const authApi = {
     return await authClient.get('/api/v1/auth/me');
   },
 
+  linkPatientProfile: async (patientId) => {
+    return await authClient.put('/api/v1/auth/me/patient-profile', { patientId });
+  },
+
   refresh: async (refreshToken) => {
     return await authClient.post('/api/v1/auth/refresh', { refreshToken });
   },

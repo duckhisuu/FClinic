@@ -202,6 +202,29 @@ public class AuthApplicationService implements
 
     @Override
     @Transactional
+    public User linkPatientProfile(UUID userId, UUID patientId) {
+        User user = getCurrentUser(userId);
+        if (user.getRoleName() != RoleName.ROLE_PATIENT) {
+            throw new AuthValidationException("Chỉ tài khoản bệnh nhân mới có thể liên kết hồ sơ bệnh nhân");
+        }
+        if (user.getPatientId() != null && !user.getPatientId().equals(patientId)) {
+            throw new AuthValidationException("Tài khoản đã được liên kết với một hồ sơ bệnh nhân khác");
+        }
+        user.linkPatientId(patientId);
+        User saved = userRepository.save(user);
+        keycloakIdentityPort.updateUserProfile(
+                saved.getKeycloakId(),
+                saved.getEmail(),
+                saved.getFullName(),
+                saved.getPhoneNumber(),
+                saved.getPatientId(),
+                saved.getDoctorId()
+        );
+        return saved;
+    }
+
+    @Override
+    @Transactional
     public void changePassword(UUID userId, ChangePasswordCommand command) {
         User user = getCurrentUser(userId);
         if (command.oldPassword().equals(command.newPassword())) {

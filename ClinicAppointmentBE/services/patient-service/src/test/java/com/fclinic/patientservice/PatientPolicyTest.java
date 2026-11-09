@@ -23,6 +23,10 @@ class PatientPolicyTest {
         denied(() -> policy.createProfile(c)); denied(() -> policy.search(c));
         denied(() -> policy.replaceProfile(c,a)); denied(() -> policy.editMedical(c,a));
     }
+    @Test void unlinkedPatientCanCreateInitialProfile() {
+        var unlinked = user("ROLE_PATIENT", null, null);
+        policy.createProfile(unlinked);
+    }
     @Test void tc35_doctorRoleAloneGrantsNoScope() {
         var c=user("ROLE_DOCTOR",null,fixture(12));
         denied(() -> policy.readMedical(c,a)); denied(() -> policy.readProfile(c,a));
