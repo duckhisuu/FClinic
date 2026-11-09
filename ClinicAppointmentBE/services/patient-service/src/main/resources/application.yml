@@ -46,7 +46,6 @@ logging:
 
 patient:
   identity:
-    allow-insecure-http: true
     enabled: ${PATIENT_IDENTITY_ENABLED:true}
     endpoint: ${PATIENT_AUTH_INTROSPECTION_URI:http://localhost:8085/api/v1/auth/introspect}
     issuer: ${PATIENT_AUTH_ISSUER:http://localhost:8180/realms/fclinic}

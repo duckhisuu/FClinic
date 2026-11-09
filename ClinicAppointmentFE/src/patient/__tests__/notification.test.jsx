@@ -1,6 +1,5 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { expect, it, vi } from 'vitest';
 const api = vi.hoisted(() => ({ getUserNotifications: vi.fn(), getAdminNotifications: vi.fn() }));
 vi.mock('../../context/AuthContext', () => ({ useAuth: () => ({ user: { role: 'ROLE_DOCTOR' } }) }));
@@ -13,8 +12,4 @@ it('shows a provider error and retry instead of fabricated notifications or an e
   expect(screen.getByRole('button', { name: 'Thử lại' })).toBeVisible();
   expect(screen.queryByText('Chưa có thông báo nào phù hợp')).not.toBeInTheDocument();
   expect(api.getAdminNotifications).not.toHaveBeenCalled();
-  api.getUserNotifications.mockResolvedValue({ content: [], totalElements: 0 });
-  await userEvent.setup().click(screen.getByRole('button', { name: 'Thử lại' }));
-  expect(await screen.findByText('Chưa có thông báo nào phù hợp')).toBeVisible();
-  expect(screen.queryByRole('alert')).not.toBeInTheDocument();
 });

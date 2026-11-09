@@ -185,8 +185,8 @@ function MainApp() {
 
   const menu = getRoleMenu(user?.role);
   const roleBadge = getRoleLabel(user?.role);
-  const patientId = (user?.role === "ROLE_STAFF" ? walkinPatient?.id : user?.patientId) || null;
-  const actorSubject = user?.id;
+  const patientId = walkinPatient?.patientId || user?.patientId || null;
+  const actorSubject = user?.fullName || user?.username || "authenticated-user";
   const patientSession = {
     user,
     getAccessToken: () => token,
@@ -309,9 +309,7 @@ function MainApp() {
           ) : tab === "staff-walkin" ? (
             /* ROLE STAFF VIEW */
             <StaffWalkinPage
-              onManageProfiles={() => selectTab("patient-records")}
               onSelectPatientForBooking={(selectedPatient) => {
-                setSelection(null);
                 setWalkinPatient(selectedPatient);
                 selectTab("doctors");
               }}
@@ -334,7 +332,6 @@ function MainApp() {
             /* BOOKING VIEW */
             <Booking
               actorSubject={actorSubject}
-              role={user?.role}
               patientId={patientId}
               selection={selection}
               onSchedule={() => setTab("doctors")}
@@ -344,8 +341,7 @@ function MainApp() {
             /* APPOINTMENT HISTORY */
             <AppointmentHistory
               actorSubject={actorSubject}
-              role={user?.role}
-              patientId={user?.role === "ROLE_PATIENT" ? user?.patientId : null}
+              patientId={patientId}
               onSchedule={() => setTab("doctors")}
             />
           )}
@@ -367,16 +363,10 @@ function MainApp() {
   );
 }
 
-function SessionApp() {
-  const { user, isAuthenticated } = useAuth();
-  // Account changes must discard selections, drafts, dialogs and loaded patient data.
-  return <MainApp key={`${isAuthenticated}:${user?.id}:${user?.role}`} />;
-}
-
 export default function App() {
   return (
     <AuthProvider>
-      <SessionApp />
+      <MainApp />
     </AuthProvider>
   );
 }
