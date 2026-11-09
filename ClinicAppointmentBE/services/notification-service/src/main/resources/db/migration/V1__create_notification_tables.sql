@@ -20,6 +20,7 @@ CREATE TABLE notifications (
     created_at TIMESTAMPTZ NOT NULL,
     updated_at TIMESTAMPTZ NOT NULL,
     version BIGINT NOT NULL DEFAULT 0,
+
     CONSTRAINT uk_notification_event_recipient_type_channel
         UNIQUE (event_id, recipient_email, notification_type, channel)
 );
@@ -42,6 +43,7 @@ CREATE TABLE notification_templates (
     active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMPTZ NOT NULL,
     updated_at TIMESTAMPTZ NOT NULL,
+
     CONSTRAINT uk_template_type_recipient_channel
         UNIQUE (notification_type, recipient_type, channel)
 );
