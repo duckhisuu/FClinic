@@ -60,7 +60,7 @@ MSS301_FA26_GroupProject/
 | **Doctor Service** | Spring Boot + JPA | `8082` | Quản lý bác sĩ & khung giờ |
 | **Appointment Service** | Spring Boot + Redisson | `8083` | Đặt lịch khám & Khóa phân tán |
 | **Notification Service** | Spring Boot + RabbitMQ + JavaMail | `8084` | Nhận sự kiện lịch hẹn, gửi email (retry, DLQ), lịch sử thông báo |
-| **PostgreSQL (Patient)** | PostgreSQL 16 | `5433` | Database `patient_db` |
+| **PostgreSQL (Patient)** | PostgreSQL 16 | `5443` | Database `patient_db` and isolated UUID database `patient_uuid` |
 | **PostgreSQL (Doctor)** | PostgreSQL 16 | `5434` | Database `doctor_db` |
 | **PostgreSQL (Appointment)** | PostgreSQL 16 | `5435` | Database `appointment_db` |
 | **PostgreSQL (Notification)** | PostgreSQL 16 | `5436` | Database `notification_db` |

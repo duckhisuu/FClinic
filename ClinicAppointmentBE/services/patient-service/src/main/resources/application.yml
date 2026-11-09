@@ -10,7 +10,7 @@ spring:
     name: patient-service
   datasource:
     # Target must explicitly select a prepared fresh UUID database. No fallback to the legacy datasource.
-    url: ${PATIENT_UUID_DB_URL:jdbc:postgresql://localhost:5433/patient_uuid}
+    url: ${PATIENT_UUID_DB_URL:jdbc:postgresql://localhost:5443/patient_uuid}
     username: ${PATIENT_UUID_DB_USERNAME:fclinic_admin}
     password: ${PATIENT_UUID_DB_PASSWORD:fclinic_secret}
   jpa:
