@@ -264,8 +264,16 @@ export const NotificationDrawer = ({ isOpen, onClose, onNotify }) => {
 
           {/* List */}
           <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50/50">
-            {error && <p role="alert" className="text-sm text-rose-700">{error}</p>}
-            {displayedNotifications.length === 0 ? (
+            {error ? (
+              <div className="text-center py-8 space-y-3">
+                <p role="alert" className="text-sm text-rose-700">{error}</p>
+                <button type="button" className="button secondary" onClick={fetchNotifications} disabled={loading}>
+                  Thử lại
+                </button>
+              </div>
+            ) : loading && notifications.length === 0 ? (
+              <p role="status" className="text-center py-8 text-sm text-slate-500">Đang tải thông báo…</p>
+            ) : displayedNotifications.length === 0 ? (
               <div className="text-center py-16 text-slate-400">
                 <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-3 text-slate-400">
                   <Mail className="w-7 h-7" />

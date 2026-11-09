@@ -158,6 +158,8 @@ function createMockAuthResponse(user) {
 }
 
 export const authApi = {
+  getPatientCapabilities: () => authClient.get('/api/v1/auth/me/patient-capabilities'),
+
   login: async (username, password) => {
     try {
       return await authClient.post('/api/v1/auth/login', { username, password });
