@@ -1,0 +1,39 @@
+{
+  "timestamp": "2026-11-09T16:22:45.301Z",
+  "selfServiceLinking": "BLOCKED: no trusted ownership contract; fail-closed guard",
+  "trustedOperatorProvisioning": true,
+  "evidence": [
+    {
+      "label": "Real booking produced distinct Patient and Doctor rows",
+      "pass": true
+    },
+    {
+      "label": "Fresh booking event redelivery was routed",
+      "pass": true
+    },
+    {
+      "label": "Redelivery creates no duplicate notifications",
+      "pass": true
+    },
+    {
+      "label": "Confirmation/reschedule/cancel SMTP delivery confirmed for both recipients",
+      "pass": true,
+      "sent": 6
+    },
+    {
+      "label": "Malformed event isolated in DLQ; old messages retained",
+      "pass": true,
+      "before": 3,
+      "after": 4
+    },
+    {
+      "label": "Malformed event writes no notification",
+      "pass": true
+    },
+    {
+      "label": "MailHog received synthetic Patient emails",
+      "pass": true,
+      "messages": 3
+    }
+  ]
+}

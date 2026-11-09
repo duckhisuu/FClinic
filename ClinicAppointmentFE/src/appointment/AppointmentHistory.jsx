@@ -18,7 +18,7 @@ const actions = {
   COMPLETED: "Hoàn thành",
   NO_SHOW: "Không đến khám",
 };
-export function AppointmentHistory({ actorSubject, patientId, doctorId, role, onSchedule, onRequireProfile }) {
+export function AppointmentHistory({ actorSubject, patientId, doctorId, role, onSchedule, onOpenPatient, onRequireProfile }) {
   const [data, setData] = useState(null),
     [error, setError] = useState(null),
     [loading, setLoading] = useState(true),
@@ -171,6 +171,7 @@ export function AppointmentHistory({ actorSubject, patientId, doctorId, role, on
                     {a.endTime.slice(0, 5)} · {money(a.consultationFee)}
                   </small>
                   <div className="appointment-actions">
+                    {onOpenPatient && a.patientId && <button className="text-button" onClick={() => onOpenPatient(a.patientId)}>Hồ sơ bệnh nhân</button>}
                     <button className="text-button" onClick={() => view(a)}>
                       <History size={15} />
                       Chi tiết & lịch sử

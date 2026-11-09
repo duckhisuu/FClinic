@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @Entity
 @Table(name = "notification_templates", uniqueConstraints = @UniqueConstraint(
@@ -18,8 +19,8 @@ import java.time.Instant;
 public class JpaNotificationTemplateEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "notification_type", nullable = false, length = 50)

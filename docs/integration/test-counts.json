@@ -1,0 +1,38 @@
+{
+  "infra/api-gateway": {
+    "failures": 0,
+    "skipped": 0,
+    "errors": 0,
+    "tests": 1
+  },
+  "services/auth-service": {
+    "failures": 0,
+    "skipped": 0,
+    "errors": 0,
+    "tests": 15
+  },
+  "services/patient-service": {
+    "failures": 0,
+    "skipped": 0,
+    "errors": 0,
+    "tests": 295
+  },
+  "services/doctor-service": {
+    "failures": 0,
+    "skipped": 0,
+    "errors": 0,
+    "tests": 9
+  },
+  "services/appointment-service": {
+    "failures": 0,
+    "skipped": 0,
+    "errors": 0,
+    "tests": 29
+  },
+  "services/notification-service": {
+    "failures": 0,
+    "skipped": 0,
+    "errors": 0,
+    "tests": 30
+  }
+}

@@ -34,6 +34,7 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('fclinic_token');
     localStorage.removeItem('fclinic_refresh');
     localStorage.removeItem('fclinic_user');
+  for (const key of Object.keys(sessionStorage)) if (key.startsWith('fclinic.pending.')) sessionStorage.removeItem(key);
     setToken(null);
     setUser(null);
   }, []);
@@ -57,21 +58,13 @@ export function AuthProvider({ children }) {
       }
       try {
         const currentUser = await authApi.getMe();
+        const currentToken = localStorage.getItem('fclinic_token');
+        const currentIdentity = JSON.parse(localStorage.getItem('fclinic_user') || 'null');
+        if (!currentToken || (currentIdentity?.id && currentIdentity.id !== currentUser.id)) return;
         setUser(currentUser);
         localStorage.setItem('fclinic_user', JSON.stringify(currentUser));
       } catch (err) {
-        // Try refreshing if token expired
-        const refreshToken = localStorage.getItem('fclinic_refresh');
-        if (refreshToken) {
-          try {
-            const refreshData = await authApi.refresh(refreshToken);
-            saveSession(refreshData);
-          } catch {
-            clearSession();
-          }
-        } else {
-          clearSession();
-        }
+        clearSession();
       } finally {
         setIsLoading(false);
       }
@@ -94,12 +87,16 @@ export function AuthProvider({ children }) {
 
   const logout = async () => {
     const refreshToken = localStorage.getItem('fclinic_refresh');
-    if (refreshToken) {
-      await authApi.logout(refreshToken);
-    }
     clearSession();
+    if (refreshToken) await authApi.logout(refreshToken);
   };
 
+  const [capabilities, setCapabilities] = useState({});
+  useEffect(() => {
+    let current = true; setCapabilities({});
+    if (token && user?.id) authApi.getPatientCapabilities().then(value => { if (current) setCapabilities(value); }).catch(() => {});
+    return () => { current = false; };
+  }, [token, user?.id, user?.patientId]);
   const hasRole = useCallback((roles) => {
     if (!user || !user.role) return false;
     if (Array.isArray(roles)) {
@@ -109,14 +106,18 @@ export function AuthProvider({ children }) {
   }, [user]);
 
   const updateUserSession = useCallback((newUser) => {
+    const current = JSON.parse(localStorage.getItem('fclinic_user') || 'null');
+    if (!localStorage.getItem('fclinic_token') || current?.id !== newUser?.id) return false;
     localStorage.setItem('fclinic_user', JSON.stringify(newUser));
     setUser(newUser);
+    return true;
   }, []);
 
   return (
     <AuthContext.Provider
       value={{
         user,
+        capabilities,
         token,
         isAuthenticated: !!user && !!token,
         isLoading,

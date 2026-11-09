@@ -17,7 +17,7 @@ import java.util.UUID;
 
 /**
  * Inbound event contract published by the appointment lifecycle producer.
- * Supports both nested V1 schema and flattened V2 schema (with schemaVersion and recipients array).
+ * Consumes UUID identities from appointment schema version 3. No inferred recipient accounts.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record AppointmentNotificationEvent(
@@ -30,30 +30,34 @@ public record AppointmentNotificationEvent(
         RecipientDto doctor,
         PreviousAppointmentSlotDto previousSlot,
 
-        // Flattened V2 schema fields
+        // Flattened schema version 3 fields
         Integer schemaVersion,
-        Long appointmentId,
+        UUID appointmentId,
         Long aggregateVersion,
         String bookingCode,
         String patientId,
         String patientName,
         String patientPhone,
-        Long doctorId,
+        UUID doctorId,
         String doctorName,
         String doctorSpecialty,
-        Long slotId,
+        UUID slotId,
         LocalDate appointmentDate,
         LocalTime startTime,
         LocalTime endTime,
         String timezone,
         List<EventRecipientDto> recipients,
-        Long previousSlotId,
+        UUID previousSlotId,
         LocalDate previousAppointmentDate,
         LocalTime previousStartTime,
         LocalTime previousEndTime,
         Instant reminderDueAt
 ) {
-    /** V1 8-parameter canonical constructor for backward compatibility and unit tests. */
+    public boolean hasNestedRecipients() {
+        return patient != null || doctor != null;
+    }
+
+    /** Convenience constructor for a UUID notification snapshot. */
     public AppointmentNotificationEvent(
             UUID eventId,
             AppointmentEventType eventType,
@@ -65,10 +69,10 @@ public record AppointmentNotificationEvent(
             PreviousAppointmentSlotDto previousSlot
     ) {
         this(eventId, eventType, occurredAt, source, appointment, patient, doctor, previousSlot,
-                null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+                3, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
     }
 
-    /** Resolves appointment snapshot from either V1 nested DTO or V2 flat fields. */
+    /** Resolves the appointment snapshot without changing its identity. */
     public AppointmentSnapshotDto appointment() {
         if (appointment != null) {
             return appointment;
@@ -88,7 +92,7 @@ public record AppointmentNotificationEvent(
         return null;
     }
 
-    /** Resolves patient recipient from either V1 nested DTO or V2 recipients array / flat fields. */
+    /** A walk-in patient may have no account; never substitute another user's ID. */
     public RecipientDto patient() {
         if (patient != null) {
             return patient;
@@ -96,20 +100,17 @@ public record AppointmentNotificationEvent(
         if (recipients != null) {
             for (var r : recipients) {
                 if ("PATIENT".equalsIgnoreCase(r.recipientType())) {
-                    Long uid = r.userId() != null ? r.userId() : 1L;
+                    UUID uid = r.userId();
                     String email = r.email() != null ? r.email() : "";
                     String name = r.name() != null ? r.name() : (patientName != null ? patientName : "Bệnh nhân");
                     return new RecipientDto(uid, RecipientType.PATIENT, name, email);
                 }
             }
         }
-        if (patientName != null) {
-            return new RecipientDto(1L, RecipientType.PATIENT, patientName, "");
-        }
         return null;
     }
 
-    /** Resolves doctor recipient from either V1 nested DTO or V2 recipients array / flat fields. */
+    /** The doctor account must be supplied explicitly by the producer. */
     public RecipientDto doctor() {
         if (doctor != null) {
             return doctor;
@@ -117,20 +118,17 @@ public record AppointmentNotificationEvent(
         if (recipients != null) {
             for (var r : recipients) {
                 if ("DOCTOR".equalsIgnoreCase(r.recipientType())) {
-                    Long uid = r.userId() != null ? r.userId() : (doctorId != null ? doctorId : 2L);
+                    UUID uid = r.userId();
                     String email = r.email() != null ? r.email() : "";
                     String name = r.name() != null ? r.name() : (doctorName != null ? doctorName : "Bác sĩ");
                     return new RecipientDto(uid, RecipientType.DOCTOR, name, email);
                 }
             }
         }
-        if (doctorName != null) {
-            return new RecipientDto(doctorId != null ? doctorId : 2L, RecipientType.DOCTOR, doctorName, "");
-        }
         return null;
     }
 
-    /** Resolves previous appointment slot from either V1 nested DTO or V2 flat fields. */
+    /** Resolves the previous slot for rescheduling messages. */
     public PreviousAppointmentSlotDto previousSlot() {
         if (previousSlot != null) {
             return previousSlot;

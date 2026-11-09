@@ -21,10 +21,10 @@ public class Notification {
 
     public static final String RECOVERED_STUCK_CODE = "RECOVERED_STUCK_PROCESSING";
 
-    private final Long id;
+    private final UUID id;
     private final UUID eventId;
-    private final Long appointmentId;
-    private final Long recipientUserId;
+    private final UUID appointmentId;
+    private final UUID recipientUserId;
     private final RecipientType recipientType;
     private final String recipientName;
     private final String recipientEmail;
@@ -43,7 +43,7 @@ public class Notification {
     private Instant updatedAt;
     private final long version;
 
-    public static Notification pending(UUID eventId, Long appointmentId, Long recipientUserId,
+    public static Notification pending(UUID eventId, UUID appointmentId, UUID recipientUserId,
                                        RecipientType recipientType, String recipientName, String recipientEmail,
                                        NotificationType type, String subject, String htmlBody, Instant now) {
         return Notification.builder()

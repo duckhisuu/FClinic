@@ -4,11 +4,12 @@ import com.fclinic.notificationservice.domain.model.RecipientType;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import java.util.UUID;
 
 public record RecipientDto(
-        @NotNull Long userId,
+        UUID userId,
         @NotNull RecipientType recipientType,
         @NotBlank String displayName,
-        @NotBlank @Email String email
+        @Email String email
 ) {
 }

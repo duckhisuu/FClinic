@@ -1,0 +1,25 @@
+import React from 'react';
+import {it,expect,vi,beforeEach} from 'vitest';
+import {render,screen,fireEvent,waitFor} from '@testing-library/react';
+import {PatientOnboardingPage} from '../../pages/PatientOnboardingPage';
+import {patientApi} from '../api';
+import {authApi} from '../../services/authApi';
+vi.mock('../api',()=>({patientApi:{create:vi.fn()}}));
+vi.mock('../../services/authApi',()=>({authApi:{linkPatientProfile:vi.fn(),getMe:vi.fn()}}));
+vi.mock('../../context/AuthContext',()=>({useAuth:()=>({user:{id:'account-a',email:'a@example.test'},updateUserSession:()=>true})}));
+beforeEach(()=>{sessionStorage.clear();vi.resetAllMocks()});
+it('retries the confirmed Patient UUID after linking fails, without creating another profile',async()=>{
+ patientApi.create.mockResolvedValue({id:'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',patientCode:'PAT-synthetic'});
+ authApi.linkPatientProfile.mockRejectedValue(Object.assign(new Error('Forbidden'),{status:403}));
+ const {container}=render(<PatientOnboardingPage/>);
+ fireEvent.change(screen.getByPlaceholderText('Ví dụ: Nguyễn Văn An'),{target:{value:'Synthetic Patient'}});
+ fireEvent.change(screen.getByPlaceholderText('0900000001'),{target:{value:'+84900000001'}});
+ fireEvent.change(container.querySelector('input[type="date"]'),{target:{value:'1995-01-01'}});
+ fireEvent.click(screen.getByRole('button',{name:/Lưu & Tiếp tục/}));
+ await screen.findByText(/Liên kết cần provisioning tin cậy/);
+ fireEvent.click(screen.getByRole('button',{name:/Lưu & Tiếp tục/}));
+ await waitFor(()=>expect(authApi.linkPatientProfile).toHaveBeenCalledTimes(2));
+ expect(patientApi.create).toHaveBeenCalledTimes(1);
+ expect(authApi.linkPatientProfile).toHaveBeenNthCalledWith(2,'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa');
+ expect(authApi.getMe).not.toHaveBeenCalled();
+});

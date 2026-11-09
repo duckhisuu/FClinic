@@ -2,7 +2,7 @@ import React from 'react';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { PatientModule } from '../PatientModule';
+import { PatientModule } from './PreviewHarness';
 import { PatientForm } from '../components/PatientForm';
 import { MedicalRecordForm } from '../components/MedicalRecordForm';
 import { PatientApiError } from '../api/patientApi';

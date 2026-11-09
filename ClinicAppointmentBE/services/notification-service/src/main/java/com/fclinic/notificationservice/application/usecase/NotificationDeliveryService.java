@@ -1,4 +1,5 @@
 package com.fclinic.notificationservice.application.usecase;
+import java.util.UUID;
 
 import com.fclinic.notificationservice.application.port.in.DeliverNotificationUseCase;
 import com.fclinic.notificationservice.application.port.out.EmailSenderPort;
@@ -25,7 +26,7 @@ public class NotificationDeliveryService implements DeliverNotificationUseCase {
 
     @Override
     public void processDueNotifications() {
-        for (Long id : stateService.findDueIds()) {
+        for (UUID id : stateService.findDueIds()) {
             try {
                 deliver(id);
             } catch (RuntimeException ex) {
@@ -35,7 +36,7 @@ public class NotificationDeliveryService implements DeliverNotificationUseCase {
     }
 
     @Override
-    public void deliver(Long id) {
+    public void deliver(UUID id) {
         if (!stateService.claim(id)) {
             return;
         }

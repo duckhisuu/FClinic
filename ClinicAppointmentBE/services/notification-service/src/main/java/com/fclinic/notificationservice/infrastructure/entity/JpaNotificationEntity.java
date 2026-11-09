@@ -15,24 +15,24 @@ import java.util.UUID;
 @Entity
 @Table(name = "notifications", uniqueConstraints = @UniqueConstraint(
         name = "uk_notification_event_recipient_type_channel",
-        columnNames = {"event_id", "recipient_email", "notification_type", "channel"}))
+        columnNames = {"event_id", "recipient_type", "notification_type", "channel"}))
 @Getter
 @Setter
 @NoArgsConstructor
 public class JpaNotificationEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Column(name = "event_id", nullable = false)
     private UUID eventId;
 
     @Column(name = "appointment_id", nullable = false)
-    private Long appointmentId;
+    private UUID appointmentId;
 
-    @Column(name = "recipient_user_id", nullable = false)
-    private Long recipientUserId;
+    @Column(name = "recipient_user_id")
+    private UUID recipientUserId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "recipient_type", nullable = false, length = 20)

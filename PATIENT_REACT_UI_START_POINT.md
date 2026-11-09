@@ -1,3 +1,5 @@
+> Local integration 09/11/2026: xem [runbook hiện hành](docs/integration/LOCAL_RUNBOOK.md), [nghiệm thu Patient](docs/integration/PATIENT_ACCEPTANCE_TESTS.md) và [các gate còn mở](docs/integration/REMAINING_ISSUES.md). Patient Preview chỉ còn trong test harness; ứng dụng chính dùng Auth/API thật. Trạng thái toàn sản phẩm: PARTIAL.
+
 # Patient React UI — start point
 
 **READY FOR REACT DEVELOPMENT: YES — dùng primary mới dưới đây.**

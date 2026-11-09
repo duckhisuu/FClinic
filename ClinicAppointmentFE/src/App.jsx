@@ -146,13 +146,18 @@ function getDefaultTab(user) {
 }
 
 function MainApp() {
-  const { user, isAuthenticated, isLoading, logout } = useAuth();
+  const { user, capabilities = {}, isAuthenticated, isLoading, logout } = useAuth();
   const [tab, setTab] = useState(() => getDefaultTab(user));
   const [selection, setSelection] = useState(null);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [walkinPatient, setWalkinPatient] = useState(null);
   const patientSession = useMemo(() => ({ getAccessToken: () => localStorage.getItem("fclinic_token"),
-    permissions: user?.permissions || {} }), [user?.id, user?.permissions]);
+    patientId: user?.patientId, doctorId: user?.doctorId,
+    permissions: { ...capabilities,
+      canUpdatePatient: id => capabilities.updatePatientIds?.includes(id) === true,
+      canCreateRecord: id => capabilities.createRecordPatientIds?.includes(id) === true,
+      canUpdateRecord: id => capabilities.updateRecordPatientIds?.includes(id) === true,
+    } }), [user?.id, user?.patientId, user?.doctorId, capabilities]);
 
   const patientLeave = useRef(null);
   const registerPatientGuard = useCallback((guard) => {
@@ -162,16 +167,35 @@ function MainApp() {
   // Update default tab when user role changes
   useEffect(() => {
     if (user?.role) {
-      setTab(getDefaultTab(user));
+      const requested = window.location.hash.slice(1).split('?')[0];
+      const allowed = getRoleMenu(user).map(item => item.id);
+      if (user.role === 'ROLE_DOCTOR' || (user.role === 'ROLE_PATIENT' && user.patientId)) allowed.push('patient-records');
+      setTab(allowed.includes(requested) ? requested : getDefaultTab(user));
     }
   }, [user?.role, user?.patientId]);
 
   const selectTab = (next) => {
     if (tab !== "patient-records" || !patientLeave.current || patientLeave.current()) {
+      window.history.pushState({}, "", "#" + next);
       setTab(next);
     }
   };
 
+  useEffect(() => {
+    const restore = () => {
+      const requested = window.location.hash.slice(1).split('?')[0];
+      const allowed = getRoleMenu(user).map(item => item.id);
+      if (user?.role === 'ROLE_DOCTOR' || (user?.role === 'ROLE_PATIENT' && user.patientId)) allowed.push('patient-records');
+      if (allowed.includes(requested) && (tab !== "patient-records" || !patientLeave.current || patientLeave.current())) setTab(requested);
+    };
+    window.addEventListener('popstate', restore);
+    return () => window.removeEventListener('popstate', restore);
+  }, [user?.id, user?.role, tab]);
+  const openPatient = id => {
+    if (tab === 'patient-records' && patientLeave.current && !patientLeave.current()) return;
+    window.history.pushState({}, '', '#patient-records?' + new URLSearchParams({ view: 'profile', patientId: id }));
+    setTab('patient-records');
+  };
   // If loading auth session
   if (isLoading) {
     return (
@@ -191,6 +215,7 @@ function MainApp() {
   }
 
   const menu = getRoleMenu(user);
+  if (user?.role === 'ROLE_DOCTOR' || (user?.role === 'ROLE_PATIENT' && user.patientId)) menu.push({ id: 'patient-records', icon: UsersRound, title: 'Hồ sơ & bệnh án', desc: 'Hồ sơ trong phạm vi được cấp' });
   const roleBadge = getRoleLabel(user?.role);
   const patientId = user?.role === "ROLE_STAFF" ? walkinPatient?.id || null : user?.patientId || null;
   const actorSubject = user?.id;
@@ -256,7 +281,7 @@ function MainApp() {
           <button
             type="button"
             className="btn-logout"
-            onClick={logout}
+            onClick={() => { if (tab !== "patient-records" || !patientLeave.current || patientLeave.current()) logout(); }}
             title="Đăng xuất khỏi hệ thống"
           >
             <LogOut size={15} />
@@ -320,7 +345,7 @@ function MainApp() {
             />
           ) : tab === "doctor-dashboard" ? (
             /* ROLE DOCTOR VIEW */
-            <DoctorDashboardPage />
+            <DoctorDashboardPage onOpenPatient={openPatient} />
           ) : tab === "patient-records" ? (
             /* PATIENT RECORDS VIEW */
             <PatientModule session={patientSession} onBeforeLeave={registerPatientGuard} />
@@ -332,7 +357,7 @@ function MainApp() {
             <DoctorDirectory
               onPick={(doctor, slot) => {
                 setSelection({ doctor, slot });
-                setTab("booking");
+                selectTab("booking");
               }}
             />
           ) : tab === "booking" ? (
@@ -343,8 +368,8 @@ function MainApp() {
               actorSubject={actorSubject}
               patientId={patientId}
               selection={selection}
-              onSchedule={() => setTab("doctors")}
-              onHistory={() => setTab("history")}
+              onSchedule={() => selectTab("doctors")}
+              onHistory={() => selectTab("history")}
             />
           ) : (
             /* APPOINTMENT HISTORY */
@@ -353,7 +378,8 @@ function MainApp() {
               role={user?.role}
               actorSubject={actorSubject}
               patientId={patientId}
-              onSchedule={() => setTab("doctors")}
+              onSchedule={() => selectTab("doctors")}
+              onOpenPatient={openPatient}
               onRequireProfile={() => selectTab("patient-onboarding")}
             />
           )}

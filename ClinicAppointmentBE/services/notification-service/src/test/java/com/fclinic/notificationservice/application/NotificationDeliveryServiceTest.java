@@ -20,6 +20,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class NotificationDeliveryServiceTest {
+    private static final UUID ID = UUID.randomUUID();
 
     private NotificationStateService stateService;
     private EmailSenderPort emailSender;
@@ -30,34 +31,34 @@ class NotificationDeliveryServiceTest {
         stateService = mock(NotificationStateService.class);
         emailSender = mock(EmailSenderPort.class);
         service = new NotificationDeliveryService(stateService, emailSender);
-        Notification n = Notification.builder().id(1L).eventId(UUID.randomUUID()).appointmentId(5L)
-                .recipientUserId(2L).recipientType(RecipientType.PATIENT).recipientName("A")
+        Notification n = Notification.builder().id(ID).eventId(UUID.randomUUID()).appointmentId(UUID.randomUUID())
+                .recipientUserId(UUID.randomUUID()).recipientType(RecipientType.PATIENT).recipientName("A")
                 .recipientEmail("a@x.com").subject("s").htmlBody("b")
                 .type(NotificationType.APPOINTMENT_CONFIRMATION).build();
-        when(stateService.getRequired(1L)).thenReturn(n);
+        when(stateService.getRequired(ID)).thenReturn(n);
     }
 
     @Test
     void doesNotSendWhenClaimLost() {
-        when(stateService.claim(1L)).thenReturn(false);
-        service.deliver(1L);
+        when(stateService.claim(ID)).thenReturn(false);
+        service.deliver(ID);
         verify(emailSender, never()).sendHtml(any(), any(), any(), any());
     }
 
     @Test
     void marksSentOnSuccess() {
-        when(stateService.claim(1L)).thenReturn(true);
+        when(stateService.claim(ID)).thenReturn(true);
         when(emailSender.sendHtml(any(), any(), any(), any())).thenReturn(DeliveryResult.success("id"));
-        service.deliver(1L);
-        verify(stateService).markSent(1L);
+        service.deliver(ID);
+        verify(stateService).markSent(ID);
     }
 
     @Test
     void recordsFailureOnSmtpError() {
-        when(stateService.claim(1L)).thenReturn(true);
+        when(stateService.claim(ID)).thenReturn(true);
         when(emailSender.sendHtml(any(), any(), any(), any())).thenReturn(DeliveryResult.failure("SMTP_CONNECTION_ERROR", "down"));
-        service.deliver(1L);
-        verify(stateService).recordFailure(eq(1L), eq("SMTP_CONNECTION_ERROR"), eq("down"));
+        service.deliver(ID);
+        verify(stateService).recordFailure(eq(ID), eq("SMTP_CONNECTION_ERROR"), eq("down"));
         verify(stateService, never()).markSent(any());
     }
 }

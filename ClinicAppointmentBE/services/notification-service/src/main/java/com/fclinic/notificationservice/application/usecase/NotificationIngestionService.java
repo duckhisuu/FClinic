@@ -124,11 +124,11 @@ public class NotificationIngestionService implements IngestAppointmentEventUseCa
 
         Notification saved = notificationRepository.save(Notification.pending(
                 event.eventId(),
-                appt != null ? appt.appointmentId() : 0L,
+                appt.appointmentId(),
                 recipient.userId(),
                 recipient.recipientType(),
                 recipient.displayName(),
-                recipient.email().trim().toLowerCase(),
+                recipient.email().trim().toLowerCase(java.util.Locale.ROOT),
                 type,
                 rendered.subject(),
                 rendered.htmlBody(),
@@ -141,6 +141,18 @@ public class NotificationIngestionService implements IngestAppointmentEventUseCa
     private void validate(AppointmentNotificationEvent event) {
         if (event == null) {
             throw new InvalidNotificationEventException("Event payload is null");
+        }
+        if (!Integer.valueOf(3).equals(event.schemaVersion()) || !"appointment-service".equals(event.source())) {
+            throw new InvalidNotificationEventException("Expected appointment-service schemaVersion 3");
+        }
+        if (event.recipients() != null && (event.recipients().size() != 2
+                || event.recipients().stream().anyMatch(java.util.Objects::isNull)
+                || event.recipients().stream().filter(r -> "PATIENT".equals(r.recipientType())).count() != 1
+                || event.recipients().stream().filter(r -> "DOCTOR".equals(r.recipientType())).count() != 1)) {
+            throw new InvalidNotificationEventException("Expected one PATIENT and one DOCTOR recipient");
+        }
+        if (event.recipients() != null && event.hasNestedRecipients()) {
+            throw new InvalidNotificationEventException("Ambiguous recipient representations");
         }
         Set<ConstraintViolation<AppointmentNotificationEvent>> violations = validator.validate(event);
         if (!violations.isEmpty()) {
@@ -159,6 +171,15 @@ public class NotificationIngestionService implements IngestAppointmentEventUseCa
         }
         if (event.appointment() == null) {
             throw new InvalidNotificationEventException("appointment details are missing");
+        }
+        if (!validator.validate(patient).isEmpty() || !validator.validate(doctor).isEmpty()
+                || !validator.validate(event.appointment()).isEmpty() || doctor.userId() == null) {
+            throw new InvalidNotificationEventException("Invalid appointment or recipient identity");
+        }
+        if (event.appointment().appointmentId().version() != 4
+                || (patient.userId() != null && patient.userId().version() != 4)
+                || doctor.userId().version() != 4) {
+            throw new InvalidNotificationEventException("UUIDv4 identity required");
         }
         if (event.eventType() == AppointmentEventType.APPOINTMENT_RESCHEDULED && event.previousSlot() == null) {
             throw new InvalidNotificationEventException("previousSlot is required for APPOINTMENT_RESCHEDULED");

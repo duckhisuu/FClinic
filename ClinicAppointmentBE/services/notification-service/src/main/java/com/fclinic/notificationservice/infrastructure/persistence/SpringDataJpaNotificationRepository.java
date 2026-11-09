@@ -12,10 +12,14 @@ import org.springframework.data.repository.query.Param;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
+import java.util.Optional;
 
-public interface SpringDataJpaNotificationRepository extends JpaRepository<JpaNotificationEntity, Long> {
+public interface SpringDataJpaNotificationRepository extends JpaRepository<JpaNotificationEntity, UUID> {
 
-    Page<JpaNotificationEntity> findByRecipientUserId(Long recipientUserId, Pageable pageable);
+    Page<JpaNotificationEntity> findByRecipientUserId(UUID recipientUserId, Pageable pageable);
+
+    Optional<JpaNotificationEntity> findByIdAndRecipientUserId(UUID id, UUID recipientUserId);
 
     Page<JpaNotificationEntity> findByStatus(NotificationStatus status, Pageable pageable);
 
@@ -24,7 +28,7 @@ public interface SpringDataJpaNotificationRepository extends JpaRepository<JpaNo
              where n.status in :statuses and n.nextAttemptAt <= :now
              order by n.createdAt asc
             """)
-    List<Long> findDueIds(@Param("statuses") Collection<NotificationStatus> statuses,
+    List<UUID> findDueIds(@Param("statuses") Collection<NotificationStatus> statuses,
                           @Param("now") Instant now, Pageable limit);
 
     @Query("""
@@ -44,6 +48,6 @@ public interface SpringDataJpaNotificationRepository extends JpaRepository<JpaNo
                    n.version = n.version + 1
              where n.id = :id and n.status in :claimable
             """)
-    int claim(@Param("id") Long id, @Param("claimable") Collection<NotificationStatus> claimable,
+    int claim(@Param("id") UUID id, @Param("claimable") Collection<NotificationStatus> claimable,
               @Param("processing") NotificationStatus processing, @Param("now") Instant now);
 }
