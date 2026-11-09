@@ -16,12 +16,13 @@ import {
   XCircle,
   Calendar,
 } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
 import { notificationApi } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 export const NotificationDrawer = ({ isOpen, onClose, onNotify }) => {
   const { user } = useAuth();
-  const [error, setError] = useState('');
+  const isAdmin = user?.role === 'ROLE_ADMIN';
+  const [error, setError] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [totalElements, setTotalElements] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -30,20 +31,22 @@ export const NotificationDrawer = ({ isOpen, onClose, onNotify }) => {
   const [retryingId, setRetryingId] = useState(null);
 
   const fetchNotifications = useCallback(async () => {
-    setLoading(true); setError('');
+    setLoading(true);
     try {
+      setError(null);
       const res = await notificationApi.getUserNotifications({
-        status: statusFilter === 'ALL' ? undefined : statusFilter,
         size: 50,
       });
       setNotifications(res?.content || []);
       setTotalElements(res?.totalElements || 0);
     } catch (err) {
-      setNotifications([]); setTotalElements(0); setError(err.message || 'Không tải được thông báo.');
+      setNotifications([]);
+      setTotalElements(0);
+      setError(err.message || 'Không thể tải thông báo của bạn.');
     } finally {
       setLoading(false);
     }
-  }, [statusFilter]);
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -81,7 +84,7 @@ export const NotificationDrawer = ({ isOpen, onClose, onNotify }) => {
   // Filter in-memory for recipient type if selected
   const displayedNotifications = notifications.filter((item) => {
     if (statusFilter === 'FAILED' && !['FAILED', 'PERMANENT_FAILURE'].includes(item.status)) return false;
-    if (!['ALL', 'FAILED'].includes(statusFilter) && item.status !== statusFilter) return false;
+    if (statusFilter !== 'ALL' && statusFilter !== 'FAILED' && item.status !== statusFilter) return false;
     if (recipientFilter === 'ALL') return true;
     return item.recipientType === recipientFilter;
   });
@@ -168,7 +171,7 @@ export const NotificationDrawer = ({ isOpen, onClose, onNotify }) => {
                 </div>
                 <div>
                   <h2 id="notification-drawer-title" className="font-extrabold text-base tracking-tight">Trung tâm Thông báo</h2>
-                  <p className="text-xs text-teal-200">Email & Tin nhắn hệ thống (MailHog / SMTP)</p>
+                  <p className="text-xs text-teal-200">Thông báo dành riêng cho bạn</p>
                 </div>
               </div>
 
@@ -261,7 +264,8 @@ export const NotificationDrawer = ({ isOpen, onClose, onNotify }) => {
 
           {/* List */}
           <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50/50">
-            {error ? <div role="alert">{error}<button onClick={fetchNotifications}>Thử lại</button></div> : displayedNotifications.length === 0 ? (
+            {error && <p role="alert" className="text-sm text-rose-700">{error}</p>}
+            {displayedNotifications.length === 0 ? (
               <div className="text-center py-16 text-slate-400">
                 <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-3 text-slate-400">
                   <Mail className="w-7 h-7" />
@@ -336,7 +340,7 @@ export const NotificationDrawer = ({ isOpen, onClose, onNotify }) => {
                       </span>
 
                       {/* Retry Button if Failed */}
-                      {isFailed && user?.role === "ROLE_ADMIN" && (
+                      {isFailed && isAdmin && (
                         <button
                           onClick={() => handleRetry(item)}
                           disabled={isRetrying}
@@ -369,7 +373,7 @@ export const NotificationDrawer = ({ isOpen, onClose, onNotify }) => {
           <div className="p-3.5 border-t border-slate-200/80 bg-white text-center">
             <p className="text-[11px] text-slate-500 flex items-center justify-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              Trạng thái thông báo chỉ cập nhật khi dịch vụ xác nhận.
+              Chỉ hiển thị thông báo của tài khoản đang đăng nhập.
             </p>
           </div>
         </div>

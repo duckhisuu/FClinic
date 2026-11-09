@@ -3,7 +3,7 @@ import { HeartPulse, Bell, PhoneCall, ShieldCheck } from 'lucide-react';
 import { notificationApi } from '../services/api';
 
 export const Navbar = ({ onOpenNotifications }) => {
-  const [unreadCount, setUnreadCount] = useState(2);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
