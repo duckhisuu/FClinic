@@ -22,7 +22,11 @@ public class PatientPolicy {
         authenticated(c);
         allow(c.userRole("ROLE_STAFF") && scope(() -> scopes.receptionist(c,action)));
     }
-    public void createProfile(TrustedCaller c) { administrative(c,AdministrativeAction.CREATE); }
+    public void createProfile(TrustedCaller c) {
+        authenticated(c);
+        allow((c.userRole("ROLE_STAFF") && scope(() -> scopes.receptionist(c, AdministrativeAction.CREATE)))
+                || (c.userRole("ROLE_PATIENT") && c.patientId() == null));
+    }
     public void replaceProfile(TrustedCaller c, UUID id) {
         administrative(c,AdministrativeAction.UPDATE);
         allow(scope(() -> scopes.profile(c,id,ProfileAction.ADMIN_UPDATE)));

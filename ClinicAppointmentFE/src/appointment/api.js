@@ -97,4 +97,5 @@ export const patientApi = {
   search: (params, signal) =>
     apiClient.get("/api/v3/patients", { params, signal }),
   get: (id, signal) => apiClient.get(`/api/v3/patients/${id}`, { signal }),
+  create: (body) => apiClient.post("/api/v3/patients", body),
 };

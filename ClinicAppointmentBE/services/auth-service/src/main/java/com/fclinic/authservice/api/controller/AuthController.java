@@ -3,6 +3,7 @@ package com.fclinic.authservice.api.controller;
 import com.fclinic.authservice.api.dto.request.ChangePasswordRequest;
 import com.fclinic.authservice.api.dto.request.ForgotPasswordRequest;
 import com.fclinic.authservice.api.dto.request.GoogleLoginRequest;
+import com.fclinic.authservice.api.dto.request.LinkPatientProfileRequest;
 import com.fclinic.authservice.api.dto.request.LoginRequest;
 import com.fclinic.authservice.api.dto.request.LogoutRequest;
 import com.fclinic.authservice.api.dto.request.OAuth2TokenRequest;
@@ -176,6 +177,16 @@ public class AuthController {
         UUID userId = requireCallerId(caller);
         UserResponse response = mapper.toResponse(updateProfileUseCase.updateProfile(userId, mapper.toCommand(request)));
         return ResponseEntity.ok(ApiResponse.success("Cập nhật hồ sơ cá nhân thành công", response));
+    }
+
+    @PutMapping("/me/patient-profile")
+    public ResponseEntity<ApiResponse<UserResponse>> linkPatientProfile(
+            @AuthenticationPrincipal AuthenticatedCaller caller,
+            @Valid @RequestBody LinkPatientProfileRequest request
+    ) {
+        UUID userId = requireCallerId(caller);
+        UserResponse response = mapper.toResponse(updateProfileUseCase.linkPatientProfile(userId, request.patientId()));
+        return ResponseEntity.ok(ApiResponse.success("Liên kết hồ sơ bệnh nhân thành công", response));
     }
 
     @PostMapping("/change-password")

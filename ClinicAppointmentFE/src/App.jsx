@@ -13,6 +13,7 @@ import {
   ShieldCheck,
   LogOut,
   User,
+  UserPlus,
 } from "lucide-react";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { LoginPage } from "./pages/LoginPage";
@@ -24,6 +25,7 @@ import { Booking } from "./appointment/Booking";
 import { AppointmentHistory } from "./appointment/AppointmentHistory";
 import { NotificationDrawer } from "./components/NotificationDrawer";
 import { PatientModule } from "./patient/PatientModule";
+import { PatientOnboardingPage } from "./pages/PatientOnboardingPage";
 
 function getRoleLabel(role) {
   switch (role) {
@@ -39,7 +41,9 @@ function getRoleLabel(role) {
   }
 }
 
-function getRoleMenu(role) {
+function getRoleMenu(userOrRole) {
+  const role = typeof userOrRole === "string" ? userOrRole : userOrRole?.role;
+  const user = typeof userOrRole === "object" ? userOrRole : null;
   switch (role) {
     case "ROLE_DOCTOR":
       return [
@@ -91,8 +95,17 @@ function getRoleMenu(role) {
       ];
 
     case "ROLE_PATIENT":
-    default:
-      return [
+    default: {
+      const items = [];
+      if (user && !user.patientId) {
+        items.push({
+          id: "patient-onboarding",
+          icon: UserPlus,
+          title: "Khởi tạo hồ sơ",
+          desc: "Hoàn tất hồ sơ để đặt lịch",
+        });
+      }
+      items.push(
         {
           id: "doctors",
           icon: Stethoscope,
@@ -110,12 +123,15 @@ function getRoleMenu(role) {
           icon: CalendarDays,
           title: "Lịch hẹn của tôi",
           desc: "Theo dõi, đổi hoặc hủy lịch",
-        },
-      ];
+        }
+      );
+      return items;
+    }
   }
 }
 
-function getDefaultTab(role) {
+function getDefaultTab(user) {
+  const role = typeof user === "string" ? user : user?.role;
   switch (role) {
     case "ROLE_DOCTOR":
       return "doctor-dashboard";
@@ -125,13 +141,13 @@ function getDefaultTab(role) {
       return "admin-users";
     case "ROLE_PATIENT":
     default:
-      return "doctors";
+      return typeof user === "object" && !user?.patientId ? "patient-onboarding" : "doctors";
   }
 }
 
 function MainApp() {
   const { user, isAuthenticated, isLoading, logout } = useAuth();
-  const [tab, setTab] = useState("doctors");
+  const [tab, setTab] = useState(() => getDefaultTab(user));
   const [selection, setSelection] = useState(null);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [walkinPatient, setWalkinPatient] = useState(null);
@@ -146,9 +162,9 @@ function MainApp() {
   // Update default tab when user role changes
   useEffect(() => {
     if (user?.role) {
-      setTab(getDefaultTab(user.role));
+      setTab(getDefaultTab(user));
     }
-  }, [user?.role]);
+  }, [user?.role, user?.patientId]);
 
   const selectTab = (next) => {
     if (tab !== "patient-records" || !patientLeave.current || patientLeave.current()) {
@@ -174,7 +190,7 @@ function MainApp() {
     return <LoginPage />;
   }
 
-  const menu = getRoleMenu(user?.role);
+  const menu = getRoleMenu(user);
   const roleBadge = getRoleLabel(user?.role);
   const patientId = user?.role === "ROLE_STAFF" ? walkinPatient?.id || null : user?.patientId || null;
   const actorSubject = user?.id;
@@ -187,7 +203,7 @@ function MainApp() {
           href="/"
           onClick={(e) => {
             e.preventDefault();
-            selectTab(getDefaultTab(user?.role));
+            selectTab(getDefaultTab(user));
           }}
         >
           <span>
@@ -308,6 +324,9 @@ function MainApp() {
           ) : tab === "patient-records" ? (
             /* PATIENT RECORDS VIEW */
             <PatientModule session={patientSession} onBeforeLeave={registerPatientGuard} />
+          ) : tab === "patient-onboarding" ? (
+            /* PATIENT ONBOARDING VIEW */
+            <PatientOnboardingPage onComplete={() => selectTab("doctors")} />
           ) : tab === "doctors" ? (
             /* DOCTORS DIRECTORY */
             <DoctorDirectory
@@ -335,6 +354,7 @@ function MainApp() {
               actorSubject={actorSubject}
               patientId={patientId}
               onSchedule={() => setTab("doctors")}
+              onRequireProfile={() => selectTab("patient-onboarding")}
             />
           )}
 
