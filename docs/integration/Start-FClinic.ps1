@@ -114,6 +114,24 @@ function Wait-Health($url, [switch]$Tls) {
 }
 Start-ServiceJar 'discovery-server' 'infra/discovery-server'
 Wait-Health 'http://localhost:8761/actuator/health'
+# Realm imports do not update existing realms. Add only the reviewed audience
+# mapper, preserving users, credentials, grants and all other realm settings.
+$adminLogin = Invoke-RestMethod -Method Post -Uri 'http://localhost:8180/realms/master/protocol/openid-connect/token' -Body @{
+    grant_type='password';client_id='admin-cli';username=$env:KEYCLOAK_ADMIN_USER;password=$env:KEYCLOAK_ADMIN_PASSWORD
+}
+$adminHeaders=@{Authorization="Bearer $($adminLogin.access_token)"}
+$scopes=Invoke-RestMethod -Headers $adminHeaders -Uri 'http://localhost:8180/admin/realms/fclinic/client-scopes'
+$claimsScope=@($scopes | Where-Object name -eq 'fclinic-claims')
+if($claimsScope.Count -ne 1){throw 'Exactly one existing fclinic-claims scope is required'}
+$mapperUri="http://localhost:8180/admin/realms/fclinic/client-scopes/$($claimsScope[0].id)/protocol-mappers/models"
+$mappers=Invoke-RestMethod -Headers $adminHeaders -Uri $mapperUri
+if(-not @($mappers | Where-Object name -eq 'fclinic-audience-notification-service').Count){
+    $mapper=@{name='fclinic-audience-notification-service';protocol='openid-connect';protocolMapper='oidc-audience-mapper';consentRequired=$false;config=@{
+        'included.custom.audience'='notification-service';'id.token.claim'='false';'access.token.claim'='true';'introspection.token.claim'='true'
+    }} | ConvertTo-Json -Depth 5
+    Invoke-RestMethod -Method Post -Headers $adminHeaders -Uri $mapperUri -ContentType 'application/json' -Body $mapper | Out-Null
+}
+$adminLogin=$null; $adminHeaders=$null
 # Optional finite, time-limited assignments are external configuration, never source credentials.
 $assignments = Join-Path $runtime 'assignments.json'
 if (Test-Path $assignments) { $env:SPRING_APPLICATION_JSON = Get-Content $assignments -Raw }

@@ -10,10 +10,10 @@ import java.time.Instant;
 import java.util.UUID;
 
 public record NotificationView(
-        Long id,
+        UUID id,
         UUID eventId,
-        Long appointmentId,
-        Long recipientUserId,
+        UUID appointmentId,
+        UUID recipientUserId,
         RecipientType recipientType,
         String recipientName,
         String recipientEmail,

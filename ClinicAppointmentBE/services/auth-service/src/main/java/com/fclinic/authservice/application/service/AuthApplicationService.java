@@ -204,23 +204,14 @@ public class AuthApplicationService implements
     @Transactional
     public User linkPatientProfile(UUID userId, UUID patientId) {
         User user = getCurrentUser(userId);
-        if (user.getRoleName() != RoleName.ROLE_PATIENT) {
-            throw new AuthValidationException("Chỉ tài khoản bệnh nhân mới có thể liên kết hồ sơ bệnh nhân");
+        // Browser UUID possession is not proof of Patient ownership. Until a
+        // trusted provisioning contract exists, only acknowledge an existing
+        // identical binding; never claim/rebind a profile through this route.
+        if (user.getRoleName() != RoleName.ROLE_PATIENT || user.getPatientId() == null
+                || !user.getPatientId().equals(patientId)) {
+            throw new org.springframework.security.access.AccessDeniedException("Trusted Patient provisioning required");
         }
-        if (user.getPatientId() != null && !user.getPatientId().equals(patientId)) {
-            throw new AuthValidationException("Tài khoản đã được liên kết với một hồ sơ bệnh nhân khác");
-        }
-        user.linkPatientId(patientId);
-        User saved = userRepository.save(user);
-        keycloakIdentityPort.updateUserProfile(
-                saved.getKeycloakId(),
-                saved.getEmail(),
-                saved.getFullName(),
-                saved.getPhoneNumber(),
-                saved.getPatientId(),
-                saved.getDoctorId()
-        );
-        return saved;
+        return user;
     }
 
     @Override

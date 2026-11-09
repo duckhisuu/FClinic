@@ -47,13 +47,19 @@ export function PatientOnboardingPage({ onComplete }) {
         ...(user?.email ? { email: user.email.trim() } : {}),
       };
 
-      const patient = await patientApi.create(payload);
+      const pendingKey = `fclinic.pending.onboarding.${user.id}`;
+      const pending = sessionStorage.getItem(pendingKey);
+      const patient = pending ? JSON.parse(pending) : await patientApi.create(payload);
+      sessionStorage.setItem(pendingKey, JSON.stringify({ id: patient.id, patientCode: patient.patientCode }));
 
       // 2. Liên kết patientId vào tài khoản trong auth-service
-      const updatedUser = await authApi.linkPatientProfile(patient.id);
+      await authApi.linkPatientProfile(patient.id);
+      const updatedUser = await authApi.getMe();
+      if (updatedUser.id !== user.id || updatedUser.patientId !== patient.id) throw new Error('Danh tính liên kết chưa được xác minh.');
+      sessionStorage.removeItem(pendingKey);
 
       // 3. Cập nhật lại session trong AuthContext
-      updateUserSession(updatedUser);
+      if (!updateUserSession(updatedUser)) throw new Error('Phiên đăng nhập đã thay đổi. Vui lòng đăng nhập lại.');
 
       setSuccessMsg(`Khởi tạo hồ sơ thành công! Mã hồ sơ của bạn là ${patient.patientCode || 'PAT-' + patient.id.slice(0, 8)}`);
 
@@ -61,7 +67,9 @@ export function PatientOnboardingPage({ onComplete }) {
         if (onComplete) onComplete(patient);
       }, 1200);
     } catch (err) {
-      setErrorMsg(err.message || 'Không thể tạo hồ sơ bệnh nhân. Vui lòng kiểm tra lại thông tin.');
+      setErrorMsg(err.status === 403
+        ? 'Liên kết cần provisioning tin cậy từ quản trị viên. Hồ sơ đã tạo được giữ để thử lại, không tạo thêm bản sao.'
+        : err.message || 'Không thể tạo hồ sơ bệnh nhân. Vui lòng kiểm tra lại thông tin.');
     } finally {
       setBusy(false);
     }

@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
-public interface SpringDataJpaNotificationTemplateRepository extends JpaRepository<JpaNotificationTemplateEntity, Long> {
+public interface SpringDataJpaNotificationTemplateRepository extends JpaRepository<JpaNotificationTemplateEntity, java.util.UUID> {
 
     Optional<JpaNotificationTemplateEntity> findByNotificationTypeAndRecipientTypeAndChannelAndActiveTrue(
             NotificationType type, RecipientType recipientType, NotificationChannel channel);

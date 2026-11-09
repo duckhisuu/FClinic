@@ -17,6 +17,27 @@ class PublicIdentityBoundaryTest {
     final UserProvisioningSupport provision = mock(UserProvisioningSupport.class);
     final AuthApplicationService service = new AuthApplicationService(users, keycloak, provision);
 
+    @Test void unprovenPatientUuidCannotBeClaimedOrRebound() {
+        var id = UUID.randomUUID(); var user = mock(User.class);
+        when(users.findById(id)).thenReturn(java.util.Optional.of(user));
+        when(user.getRoleName()).thenReturn(RoleName.ROLE_PATIENT);
+        var candidate = UUID.randomUUID();
+        assertThatThrownBy(() -> service.linkPatientProfile(id, candidate))
+                .isInstanceOf(org.springframework.security.access.AccessDeniedException.class);
+        when(user.getPatientId()).thenReturn(UUID.randomUUID());
+        assertThatThrownBy(() -> service.linkPatientProfile(id, candidate))
+                .isInstanceOf(org.springframework.security.access.AccessDeniedException.class);
+        verify(users, never()).save(any()); verifyNoInteractions(keycloak);
+    }
+
+    @Test void identicalTrustedBindingIsAnIdempotentRead() {
+        var id = UUID.randomUUID(); var patient = UUID.randomUUID(); var user = mock(User.class);
+        when(users.findById(id)).thenReturn(java.util.Optional.of(user));
+        when(user.getRoleName()).thenReturn(RoleName.ROLE_PATIENT); when(user.getPatientId()).thenReturn(patient);
+        assertThat(service.linkPatientProfile(id, patient)).isSameAs(user);
+        verify(users, never()).save(any()); verifyNoInteractions(keycloak);
+    }
+
     @Test void selfDeclaredGoogleIdentityCannotObtainTokens() {
         assertThatThrownBy(() -> service.loginWithGoogle(new GoogleLoginCommand(
                 "victim@example.test", "Victim", "unverified-id", null, null, null, null, null)))

@@ -1,36 +1,38 @@
-# Patient acceptance — 2026-11-09
+# Patient acceptance — 2026-11-09 latest main/Notification
 
-Kết luận: **Patient flows đã được kiểm thử với provider/PostgreSQL thật; toàn sản phẩm PARTIAL**. Không dùng fake API, mock session hay fixture runtime.
+**Overall PARTIAL: ordinary self-service account linking is blocked safely; operator-provisioned booking and UUID Notification work.** All data is synthetic; services/providers/databases are real.
 
-| Flow | Kết quả | Bằng chứng |
+| Flow | Result | Evidence |
 |---|---|---|
-| 1. Authentication | PASS trong phạm vi login/me/refresh/logout/revocation | runtime-http-evidence.json; browser Staff → logout → Doctor; identity/role thật; logout mất protected UI ngay |
-| 2. Profiles | PARTIAL end-to-end onboarding; CRUD theo assignment PASS | Browser tạo FClinic Browser Synthetic; PostgreSQL có row thật; profile hiện hành sửa version 1 → 2 và đọc lại; search/pagination + stale version qua HTTP |
-| 3. Medical Records | PASS cho walk-in được cấp VALID_VISIT | React Doctor đọc Patient, tạo record UUID 4987af63-82af-40ca-8441-765a54ff1097, sửa với reason/version 0 → 1, refresh deep link đọc lại; PostgreSQL xác nhận |
-| 4. Negative tests | PASS các ca thực thi, PARTIAL tổng ma trận | 401 thiếu/invalid/revoked token; 403 missing exact scope/wrong Patient/wrong Doctor/unauthorized write; 400 UUID; 409 version; Doctor outage 503; DB không đổi |
-| 5. Navigation | PASS các tuyến đã thực thi, PARTIAL guard cancellation | Login → role landing → Patient list/detail → records/create/detail/edit; Doctor appointment → Patient; browser Back; refresh deep link; logout/account role switch; confirm unsaved-change đã xuất hiện, nhánh Cancel chưa xác minh trọn vẹn do dialog công cụ |
-| 6. Cross-service | Appointment PASS; Notification BLOCKED | 11/11 checks qua Gateway: published 60-minute slots, Staff booking, Patient M2M lookup, Doctor association, self read/reschedule/cancel; Notification schema3 UUID chưa tương thích |
+| A. Register → profile | PASS HTTP/profile UI; PARTIAL complete onboarding | New Patient starts unlinked, POST v3 creates profile. Browser B creates once and retries linking without another row. |
+| Trusted account linking | PARTIAL | Public arbitrary linking denied. Existing ADMIN provisioning used only after independently verifying creation principal, ACTIVE profile and no existing account mapping. Not automatic onboarding. /me, refresh/re-login preserve Patient UUID. |
+| B. Booking without MedicalRecord | PASS for trusted linked account | Doctor/published Slot UUID, CONFIRMED persistence, history, idempotency, duplicate conflict, reschedule/cancel. SQL verifies zero medical records for this Patient throughout. |
+| C. Notification | PASS tested lifecycle | Real booking outbox → RabbitMQ → UUID rows → personal JWT REST → React; six SMTP deliveries for create/reschedule/cancel and MailHog receipt. Redelivery dedup and malformed isolation verified. |
+| D. Existing Patient/clinical | PASS | Finite Staff search/read/update, Doctor read and new MedicalRecord create with exact VALID_VISIT; update/version/revision, unauthorized DB invariance and provider outage. |
+| E. Negative | PASS executed cases; PARTIAL exhaustive/browser timing | Unlinked/wrong Patient/Doctor, missing grant/token, invalid/revoked token, UUID, absent references, elapsed/occupied slots, stale version, cross-user Notification/admin denial, malformed event. Wall-clock browser expiration not waited. |
 
-## HTTP và database evidence
+## Current evidence
 
-- runtime-http-evidence.json: **24/24 PASS** ở lần chạy cuối. Lần đầu cũng đã tạo medical record qua HTTP; lần cuối tái sử dụng record đã lưu, kiểm revoked token sau logout.
-- cross-service-http-evidence.json: **11/11 PASS**.
-- authorization-negative-evidence.json: **7/7 PASS**. unauthorized-database-evidence.json: hai Patient rows/version/address không đổi sau các request bị từ chối.
-- provider-outage-evidence.json: **3/3 PASS** (bao gồm login thật); outage-database-evidence.json: Medical Record count trước/sau **2/2**, unchanged=true. Doctor được khôi phục, health UP.
-- runtime-health-evidence.json: Discovery/Auth/Patient/Doctor/Appointment/Notification/Gateway đều HTTP 200, status UP. Auth được gọi bằng CA tin cậy, không bỏ TLS verification.
+- onboarding-notification-evidence.json: **54/54**. An initial B registration used a duplicate synthetic phone and returned 409; fixture corrected to a distinct phone, assertions unchanged. Initial attempt preserved in ignored .runtime.
+- notification-broker-acceptance.json: **7/7**. DLQ **3 → 4** after one deliberate malformed event. Old messages untouched; no replay/reset. Six lifecycle rows SENT, three Patient emails observed in MailHog.
+- appointment-edge-evidence.json: **11/11**: absent Doctor 404; missing slot 409; malformed UUID 400; missing Appointment 404; elapsed published slot 409; revoked token booking 401; rejected writes leave Appointment count unchanged.
+- runtime-http-evidence.json: **25/25** Patient checks including a new Doctor-created MedicalRecord for the separate previously scoped synthetic Patient, after the new-Patient booking acceptance.
+- authorization-negative-evidence.json: **7/7**; unauthorized-database-evidence.json unchanged=true.
+- provider-outage-evidence.json: **3/3**; outage-database-evidence.json medical record count **3 → 3**; Doctor restored.
+- browser-database-evidence.json: B profile rows=1 after retry; A medical records=0; two A bookings, one CONFIRMED from React.
+- Final read-only snapshot after browser booking: Flyway V1–V5 successful; 8 global Notification rows SENT (4 personal rows for A); current consumer queue 0 ready/0 unacknowledged, DLQ 4/0. Additional preserved queue fclinic.appointment.notifications has 9 ready messages and is an owner-cleanup item, not consumer success evidence.
+- sync-runtime-health.json: Discovery/Auth HTTPS/Patient/Doctor/Appointment/Notification/Gateway/React **8/8**. Health alone is not the E2E conclusion.
 
-## Browser evidence
+## Browser observations and retained screenshots
 
-- patient-profile-browser.jpg: profile thật sau React update, version 2.
-- medical-record-browser.jpg: bệnh án tạo/sửa qua React và đọc lại sau refresh, version 1, Doctor UUID thật.
-- doctor-appointments-browser.jpg: lịch hẹn thật có Patient association.
-- Notification drawer hiển thị lỗi UUID contract và Retry, không hiển thị mock hoặc báo đã gửi.
-- Browser kết thúc ở login, không để dữ liệu protected hiển thị sau logout.
+Login A → real Doctor → 11 November 13:00 slot → confirm → persisted CONFIRMED booking → history CREATED/PATIENT/version 0. Notification Drawer shows four actual SENT rows only for A. Refresh keeps verified identity. Logout clears protected UI. Login B opens onboarding; failed linking/retry retains one profile; B inbox is empty. Logout B/re-login A restores A's account/history. Browser left at http://127.0.0.1:5173/#history.
 
-## Giới hạn xác minh
+- patient-booking-browser.jpg
+- notification-uuid-browser.jpg
+- onboarding-trusted-provisioning-browser.jpg
 
-Expired-token/refused-provider/reference/UUID contracts được kiểm thử tự động; không chờ một JWT thật hết hạn theo đồng hồ browser. Automatic refresh có regression test coalescing/no-loop/account-switch; real refresh API và revoked token đã kiểm thử. Missing Doctor/Appointment provider resource cases chưa được thực thi riêng trên runtime này. Chưa kiểm thử UI Admin CRUD/registration hoặc booking wizard đầy đủ bằng browser; booking mutations đã chạy HTTP thật qua Gateway.
+## Automated quality
 
-Hồ sơ mới phát sinh UUID chưa có automatic trusted assignment. Lượt nghiệm thu đã dùng cơ chế deployment hiện hành cấp finite scope cho đúng hai Patient tổng hợp; không cấp wildcard. Walk-in có assignment VALID_VISIT độc lập gắn exact Patient/timestamp/visitId; appointmentId=null không tự sinh quyền. Tài khoản/Doctor/Patient được admin liên kết qua API hiện hành.
+Reactor verify **379 tests**, 0 failures/errors/skips: Gateway 1, Auth 15, Patient 295, Doctor 9, Appointment 29, Notification 30. Patient-only verify PASS. **13** contracts PASS. Frontend **46 tests / 10 files PASS**, build PASS. Logs: sync-backend-final.log, sync-patient-verify.log, sync-contracts.log, sync-frontend-final.log and sync-frontend-build.log (ignored). Counts: test-counts.json. No skipped tests or runtime mock success.
 
-Khi kiểm stale version nhiều lần, mỗi lượt dùng payload thực sự thay đổi. PUT no-op có thể không làm tăng JPA version; không dùng no-op làm bằng chứng stale-write conflict.
+Public linking is not described as safe autonomous onboarding. Registration UI, wall-clock expiry, full unsaved-change Cancel branch and Admin CRUD were not all rerun in browser. Notification reminders/latest-reference retry and immediate JWT revocation are not fully verified.

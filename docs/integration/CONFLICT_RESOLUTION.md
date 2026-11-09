@@ -1,13 +1,16 @@
-# Conflict resolution
+# Conflict resolution — e94d652 + reviewed Notification UUID
 
-Git conflicts: **0**. main was a descendant of Primary HEAD; fast-forward preserved all published history. No blanket ours/theirs, rebase or squash.
+Main merge a608f6229a856054cd39eaf3ecfaced874a75ce1: **2 conflicting files**, no remaining unmerged paths. Base/ours/theirs were inspected; no blanket selection.
 
-Semantic integration fixes:
+- App.jsx: kept current capabilities, Patient session/guard, hash navigation, Patient links and role-scoped menus; incorporated main's user-aware defaults and PatientOnboardingPage. Menus/restoration use the full verified user so unlinked Patients get onboarding. Kept both history callbacks: open Patient and require profile. Booking callbacks now use the same hash navigation.
+- AppointmentHistory.jsx: retained onOpenPatient and incorporated onRequireProfile; both functions remain available. Existing Doctor/Staff/Patient read/ownership rules still belong to backend.
 
-- Removed production mock doctors, fake booking, numeric Patient fallback and fake Notification SENT/retry from services/api.js. Compatibility exports delegate to the canonical Appointment HTTP transport; retired mutations reject explicitly.
-- Auth API shares the canonical bearer/envelope/refresh client. Public auth failures do not recursively refresh. Refresh is coalesced and bounded; network failures do not replay Patient writes.
-- Patient v3 receives the real session. UI action hints are computed on Auth from active exact assignments; Patient independently enforces every request.
-- Doctor navigation reaches Patient profiles; Medical Record forms use the authenticated Doctor UUID. No numeric-to-UUID conversion.
-- Product Patient module has no Preview switch/query fallback. Fixture scenario controls moved to a test harness; existing assertions preserved.
-- One Vite /api proxy targets Gateway. Auth uses HTTPS with a trusted PKCS12 anchor; certificate verification remains enabled.
-- Notification UUID/schema3 incompatibility is exposed as an unavailable personal notification flow; no fabricated data or success.
+Semantic conflicts and fixes:
+
+- Main's self-link endpoint accepted any browser UUID. New claims/rebinding now fail closed with 403 pending an Auth/Patient ownership contract; identical trusted binding is an idempotent read. New regression and runtime authorization checks pass.
+- Onboarding retains a confirmed created UUID in account-scoped sessionStorage before linking, retries that UUID without POSTing another profile, then reads /me before session update. Session updates reject an account switch/logout race; capabilities refresh when patientId changes. No durable cross-session/response-loss idempotency is claimed.
+- Notification backend hunks came from 316944c, whose module parent was identical to main's current module. UUID DTO/JPA/ports/repositories, schema3 validation, recipient isolation, JWT security, V4/V5 and tests received; no older Auth/Doctor/Appointment/Gateway source copied.
+- Canonical FE HTTP/session adapter retained. Personal inbox uses JWT-derived /me with no caller userId; no admin fallback. Admin retry controls remain role-gated; errors propagate. All received security tests are tracked despite legacy ignore rules.
+- Only the reviewed Keycloak audience mapper was added to the existing realm and startup; no realm import reset, fake login or TLS bypass.
+
+Main sync completed before Notification edits. Two local histories remain intact. Logs/evidence and limitations are in PATIENT_ACCEPTANCE_TESTS.md and REMAINING_ISSUES.md.

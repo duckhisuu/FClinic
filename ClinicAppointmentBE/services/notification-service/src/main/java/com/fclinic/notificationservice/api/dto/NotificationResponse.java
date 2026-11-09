@@ -10,7 +10,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 public record NotificationResponse(
-        Long id, UUID eventId, Long appointmentId, Long recipientUserId, RecipientType recipientType,
+        UUID id, UUID eventId, UUID appointmentId, UUID recipientUserId, RecipientType recipientType,
         String recipientName, String recipientEmail, NotificationType type, NotificationChannel channel,
         NotificationStatus status, String subject, int attemptCount, Instant nextAttemptAt, Instant lastAttemptAt,
         Instant sentAt, String lastErrorCode, String lastErrorMessage, Instant createdAt, Instant updatedAt

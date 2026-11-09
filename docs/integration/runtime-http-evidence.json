@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-11-09T14:30:49.503Z",
+  "timestamp": "2026-11-09T16:22:48.158Z",
   "evidence": [
     {
       "label": "login ROLE_STAFF",
@@ -68,7 +68,7 @@
     {
       "label": "wrong patient",
       "method": "GET",
-      "route": "/api/v3/patients/0cc1d6cf-a84b-4232-a717-a7609d951e7e",
+      "route": "/api/v3/patients/a5ab685c-3aa3-466d-835c-fba15cd08ffb",
       "expected": 403,
       "actual": 403,
       "pass": true
@@ -114,6 +114,14 @@
       "pass": true
     },
     {
+      "label": "create record with exact VALID_VISIT",
+      "method": "POST",
+      "route": "/api/v3/patients/e897d9f6-98f2-4451-8157-e21f695a0682/medical-records",
+      "expected": 201,
+      "actual": 201,
+      "pass": true
+    },
+    {
       "label": "wrong doctor",
       "method": "POST",
       "route": "/api/v3/patients/e897d9f6-98f2-4451-8157-e21f695a0682/medical-records",
@@ -140,7 +148,7 @@
     {
       "label": "read medical record",
       "method": "GET",
-      "route": "/api/v3/patients/e897d9f6-98f2-4451-8157-e21f695a0682/medical-records/9e3b7c6c-47bc-4362-97b5-42b23024fd5c",
+      "route": "/api/v3/patients/e897d9f6-98f2-4451-8157-e21f695a0682/medical-records/5602fa04-f299-4827-a006-7527df3c8576",
       "expected": 200,
       "actual": 200,
       "pass": true
@@ -148,7 +156,7 @@
     {
       "label": "replace medical record",
       "method": "PUT",
-      "route": "/api/v3/patients/e897d9f6-98f2-4451-8157-e21f695a0682/medical-records/9e3b7c6c-47bc-4362-97b5-42b23024fd5c",
+      "route": "/api/v3/patients/e897d9f6-98f2-4451-8157-e21f695a0682/medical-records/5602fa04-f299-4827-a006-7527df3c8576",
       "expected": 200,
       "actual": 200,
       "pass": true
@@ -156,7 +164,7 @@
     {
       "label": "stale record version",
       "method": "PUT",
-      "route": "/api/v3/patients/e897d9f6-98f2-4451-8157-e21f695a0682/medical-records/9e3b7c6c-47bc-4362-97b5-42b23024fd5c",
+      "route": "/api/v3/patients/e897d9f6-98f2-4451-8157-e21f695a0682/medical-records/5602fa04-f299-4827-a006-7527df3c8576",
       "expected": 409,
       "actual": 409,
       "pass": true
@@ -164,7 +172,7 @@
     {
       "label": "patient reads own record",
       "method": "GET",
-      "route": "/api/v3/patients/e897d9f6-98f2-4451-8157-e21f695a0682/medical-records/9e3b7c6c-47bc-4362-97b5-42b23024fd5c",
+      "route": "/api/v3/patients/e897d9f6-98f2-4451-8157-e21f695a0682/medical-records/5602fa04-f299-4827-a006-7527df3c8576",
       "expected": 200,
       "actual": 200,
       "pass": true

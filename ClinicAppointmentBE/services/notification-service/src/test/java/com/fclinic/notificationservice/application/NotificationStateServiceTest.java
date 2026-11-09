@@ -29,6 +29,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class NotificationStateServiceTest {
+    private static final UUID ID = UUID.randomUUID();
 
     private static final Instant NOW = Instant.parse("2026-10-10T10:00:00Z");
 
@@ -44,18 +45,18 @@ class NotificationStateServiceTest {
     }
 
     private Notification notification(int failedAttempts) {
-        Notification n = Notification.builder().id(1L).eventId(UUID.randomUUID()).appointmentId(5L)
-                .recipientUserId(2L).recipientType(RecipientType.PATIENT).recipientName("A")
+        Notification n = Notification.builder().id(ID).eventId(UUID.randomUUID()).appointmentId(UUID.randomUUID())
+                .recipientUserId(UUID.randomUUID()).recipientType(RecipientType.PATIENT).recipientName("A")
                 .recipientEmail("a@x.com").type(NotificationType.APPOINTMENT_CONFIRMATION)
                 .status(NotificationStatus.PROCESSING).attemptCount(failedAttempts).build();
-        when(repository.findById(1L)).thenReturn(Optional.of(n));
+        when(repository.findById(ID)).thenReturn(Optional.of(n));
         return n;
     }
 
     @Test
     void firstFailureSchedulesRetryAfterOneMinute() {
         Notification n = notification(0);
-        service.recordFailure(1L, "SMTP_CONNECTION_ERROR", "down");
+        service.recordFailure(ID, "SMTP_CONNECTION_ERROR", "down");
 
         assertThat(n.getStatus()).isEqualTo(NotificationStatus.RETRY_SCHEDULED);
         assertThat(n.getAttemptCount()).isEqualTo(1);
@@ -65,7 +66,7 @@ class NotificationStateServiceTest {
     @Test
     void secondFailureSchedulesRetryAfterFiveMinutes() {
         Notification n = notification(1);
-        service.recordFailure(1L, "E", "down");
+        service.recordFailure(ID, "E", "down");
 
         assertThat(n.getStatus()).isEqualTo(NotificationStatus.RETRY_SCHEDULED);
         assertThat(n.getAttemptCount()).isEqualTo(2);
@@ -75,7 +76,7 @@ class NotificationStateServiceTest {
     @Test
     void thirdFailureIsPermanent() {
         Notification n = notification(2);
-        service.recordFailure(1L, "E", "down");
+        service.recordFailure(ID, "E", "down");
 
         assertThat(n.getStatus()).isEqualTo(NotificationStatus.PERMANENT_FAILURE);
         assertThat(n.getAttemptCount()).isEqualTo(3);
@@ -85,10 +86,10 @@ class NotificationStateServiceTest {
     @Test
     void manualRetryOnlyAllowedAfterPermanentFailure() {
         Notification n = notification(0);
-        assertThatThrownBy(() -> service.manualRetry(1L)).isInstanceOf(NotificationNotRetryableException.class);
+        assertThatThrownBy(() -> service.manualRetry(ID)).isInstanceOf(NotificationNotRetryableException.class);
 
         n.markPermanentFailure("E", "m", NOW);
-        Notification retried = service.manualRetry(1L);
+        Notification retried = service.manualRetry(ID);
 
         assertThat(retried.getStatus()).isEqualTo(NotificationStatus.RETRY_SCHEDULED);
         assertThat(retried.getAttemptCount()).isZero();

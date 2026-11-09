@@ -4,15 +4,18 @@ import com.fclinic.notificationservice.application.result.NotificationView;
 import com.fclinic.notificationservice.domain.model.NotificationStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import java.util.UUID;
 
 public interface QueryNotificationsUseCase {
 
-    Page<NotificationView> getForUser(Long userId, Pageable pageable);
+    Page<NotificationView> getForUser(UUID userId, Pageable pageable);
+
+    NotificationView getForUserById(UUID userId, UUID id);
 
     /** status may be null to list everything. */
     Page<NotificationView> getAll(NotificationStatus status, Pageable pageable);
 
-    NotificationView getById(Long id);
+    NotificationView getById(UUID id);
 
-    NotificationView retry(Long id);
+    NotificationView retry(UUID id);
 }

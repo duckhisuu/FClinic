@@ -5,9 +5,10 @@ import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.UUID;
 
 public record AppointmentSnapshotDto(
-        @NotNull Long appointmentId,
+        @NotNull UUID appointmentId,
         @NotNull LocalDate appointmentDate,
         @NotNull LocalTime startTime,
         LocalTime endTime,

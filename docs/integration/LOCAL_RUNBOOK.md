@@ -95,3 +95,39 @@ Pop-Location
 Stop script kiểm tra PID + command line thuộc Primary; không dừng service khác và không xóa dữ liệu. Hạ tầng giữ nguyên; nếu cần dừng container dùng `docker compose -f ClinicAppointmentBE/docker-compose.yml stop`. Không dùng `down -v`, reset realm, xóa migration hoặc xóa volumes. Log runtime/PID nằm trong `.runtime/`; build logs ở `docs/integration/*.log` (ignored).
 
 UI clinical acceptance: xem uiVisitDate trong .runtime/acceptance-state.json và nhập đúng thời điểm UTC+07 của visit được cấp. Script create sinh thêm một visit theo độ chính xác phút của form; không bỏ VALID_VISIT. Provider outage test chỉ chạy sau khi dừng Doctor do runbook quản lý, rồi phải khởi động lại bằng Start-FClinic.ps1.
+
+
+## Latest main + Notification update (2026-11-09)
+
+Start-FClinic.ps1 now idempotently adds only the reviewed Notification audience mapper to the existing Keycloak fclinic-claims scope via Admin API, using credentials from the existing .env. It does not reset/import over the realm. Login again to obtain a token with notification-service audience. Auth HTTPS and Patient trust/hostname validation remain enabled.
+
+Notification V4/V5 are applied by Flyway at service startup. Before this integration they were rehearsed on restored database test copies with a synthetic numeric row (archive=1, active=0, templates=8). Actual source DB had 0 notifications and 8 templates. Backups/test copies remain in ignored .runtime/current PostgreSQL test databases; they are not runtime alternatives. Legacy rows are archived, not assigned guessed UUID owners or replayed. DLQ is now 4 (3 preserved old messages + 1 intentional malformed acceptance event). Do not purge/replay it to make tests pass.
+
+Public self-linking is deliberately blocked until a trusted ownership contract is published. Existing identical trusted binding is idempotent. The acceptance script uses only synthetic accounts and verifies the exact creation principal, ACTIVE row and unclaimed mapping before existing ADMIN provisioning. Do not use this test procedure to claim arbitrary real profiles. New UI users stop at the explicit provisioning message. Same-session linking retry reuses the confirmed UUID; full durable onboarding idempotency remains pending.
+
+Repeatable test-scope commands (services already healthy; no real medical data):
+
+```powershell
+node docs/integration/Test-OnboardingNotification.cjs
+node docs/integration/Test-OnboardingNotification.cjs edges
+# Optional: republishes only the new test booking event; adds one deliberate poison event to DLQ.
+node docs/integration/Test-OnboardingNotification.cjs broker
+node docs/integration/Test-PatientFlows.cjs verify
+node docs/integration/Test-PatientFlows.cjs negative
+```
+
+The scripts retain synthetic resource IDs in ignored .runtime and may replay existing idempotency results on subsequent runs. Do not remove state/DB rows to disguise a failure. The first fresh account/profile/booking run and browser run are recorded in current evidence. Broker mode changes DLQ by design; do not run it merely to refresh a report count. Fixtures/grants expire; use the existing assign/restart procedure above to renew exact finite assignments.
+
+Run every Maven verify/repackage while managed JARs are stopped; run Patient-only verify and contracts before startup as well. Then Start-FClinic.ps1 and the existing Vite command above. Startup was run again successfully after Doctor outage recovery. All 8 health checks passed; the existing Vite listener was verified as Primary via its served source path and reused.
+
+Manual checks at http://127.0.0.1:5173:
+
+1. The retained browser session is synthetic linked Patient A at #history. Inspect the CONFIRMED 11 November booking and its CREATED history.
+2. Open Notifications: only A's genuine confirmation/reschedule/cancel messages appear; no admin retry for PATIENT.
+3. Browse Doctor slots, select a future available hour, book, then read history/cancel/reschedule with the returned version.
+4. Refresh: identity/link persist. Logout: protected UI disappears. A separate unlinked Patient sees onboarding, and must stop at trusted provisioning rather than self-claim another UUID.
+5. STAFF/DOCTOR use existing synthetic accounts/credentials from the current private local realm configuration, not passwords in this report. Their Patient/clinical actions still require exact finite scope and VALID_VISIT.
+
+See PATIENT_ACCEPTANCE_TESTS.md for current HTTP/browser evidence and REMAINING_ISSUES.md for owner-review blockers. No statement of full LOCAL READY is made.
+
+Final broker snapshot: current `notification.appointment.q` is drained, `notification.appointment.dlq` has 4 preserved messages, and additional `fclinic.appointment.notifications` has 9 buffered event copies. Do not purge or replay the additional queue; confirm its ownership/retirement first. It is not the current Notification consumer queue.

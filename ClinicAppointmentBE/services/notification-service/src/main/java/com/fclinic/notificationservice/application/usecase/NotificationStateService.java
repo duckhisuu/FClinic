@@ -14,6 +14,7 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Short, transaction-scoped state transitions. Performs no SMTP/network I/O. Kept as a separate bean so
@@ -41,22 +42,22 @@ public class NotificationStateService {
     }
 
     @Transactional(readOnly = true)
-    public List<Long> findDueIds() {
+    public List<UUID> findDueIds() {
         return repository.findDueIds(CLAIMABLE, clock.instant(), properties.getDelivery().getBatchSize());
     }
 
     @Transactional
-    public boolean claim(Long id) {
+    public boolean claim(UUID id) {
         return repository.claimForProcessing(id, clock.instant());
     }
 
     @Transactional(readOnly = true)
-    public Notification getRequired(Long id) {
+    public Notification getRequired(UUID id) {
         return repository.findById(id).orElseThrow(() -> new NotificationNotFoundException(id));
     }
 
     @Transactional
-    public void markSent(Long id) {
+    public void markSent(UUID id) {
         Notification n = getRequired(id);
         n.markSent(clock.instant());
         repository.save(n);
@@ -65,7 +66,7 @@ public class NotificationStateService {
     }
 
     @Transactional
-    public void recordFailure(Long id, String errorCode, String errorMessage) {
+    public void recordFailure(UUID id, String errorCode, String errorMessage) {
         Notification n = getRequired(id);
         Instant now = clock.instant();
         NotificationProperties.Delivery cfg = properties.getDelivery();
@@ -101,7 +102,7 @@ public class NotificationStateService {
     }
 
     @Transactional
-    public Notification manualRetry(Long id) {
+    public Notification manualRetry(UUID id) {
         Notification n = getRequired(id);
         if (!n.isManuallyRetryable()) {
             throw new NotificationNotRetryableException(id, n.getStatus());

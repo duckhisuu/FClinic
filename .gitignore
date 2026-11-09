@@ -63,3 +63,9 @@ redisdata/
 ### Personal gitignore files
 AGENTS.md
 CLAUDE.md
+
+# Keep reviewed Notification security/recipient regression tests in source control.
+!ClinicAppointmentBE/services/notification-service/src/test/
+!ClinicAppointmentBE/services/notification-service/src/test/**
+!ClinicAppointmentFE/src/notification/__tests__/
+!ClinicAppointmentFE/src/notification/__tests__/**

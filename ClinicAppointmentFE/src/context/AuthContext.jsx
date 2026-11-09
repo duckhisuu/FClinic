@@ -96,7 +96,7 @@ export function AuthProvider({ children }) {
     let current = true; setCapabilities({});
     if (token && user?.id) authApi.getPatientCapabilities().then(value => { if (current) setCapabilities(value); }).catch(() => {});
     return () => { current = false; };
-  }, [token, user?.id]);
+  }, [token, user?.id, user?.patientId]);
   const hasRole = useCallback((roles) => {
     if (!user || !user.role) return false;
     if (Array.isArray(roles)) {
@@ -106,8 +106,11 @@ export function AuthProvider({ children }) {
   }, [user]);
 
   const updateUserSession = useCallback((newUser) => {
+    const current = JSON.parse(localStorage.getItem('fclinic_user') || 'null');
+    if (!localStorage.getItem('fclinic_token') || current?.id !== newUser?.id) return false;
     localStorage.setItem('fclinic_user', JSON.stringify(newUser));
     setUser(newUser);
+    return true;
   }, []);
 
   return (

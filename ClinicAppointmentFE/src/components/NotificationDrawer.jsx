@@ -80,6 +80,8 @@ export const NotificationDrawer = ({ isOpen, onClose, onNotify }) => {
 
   // Filter in-memory for recipient type if selected
   const displayedNotifications = notifications.filter((item) => {
+    if (statusFilter === 'FAILED' && !['FAILED', 'PERMANENT_FAILURE'].includes(item.status)) return false;
+    if (!['ALL', 'FAILED'].includes(statusFilter) && item.status !== statusFilter) return false;
     if (recipientFilter === 'ALL') return true;
     return item.recipientType === recipientFilter;
   });

@@ -357,7 +357,7 @@ function MainApp() {
             <DoctorDirectory
               onPick={(doctor, slot) => {
                 setSelection({ doctor, slot });
-                setTab("booking");
+                selectTab("booking");
               }}
             />
           ) : tab === "booking" ? (
@@ -368,8 +368,8 @@ function MainApp() {
               actorSubject={actorSubject}
               patientId={patientId}
               selection={selection}
-              onSchedule={() => setTab("doctors")}
-              onHistory={() => setTab("history")}
+              onSchedule={() => selectTab("doctors")}
+              onHistory={() => selectTab("history")}
             />
           ) : (
             /* APPOINTMENT HISTORY */

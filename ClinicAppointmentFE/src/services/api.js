@@ -16,8 +16,8 @@ export const patientApi = {
 };
 export const notificationApi = {
  getAdminNotifications: (params = {}) => apiClient.get('/api/v1/admin/notifications', { params }),
- getUserNotifications: () => Promise.reject(new Error('Notification chưa hỗ trợ danh tính UUID; chưa thể tải thông báo cá nhân an toàn.')),
+ getUserNotifications: ({ page = 0, size = 20, signal } = {}) => apiClient.get(`/api/v1/notifications/me?page=${page}&size=${size}`, { signal }),
  getNotificationById: id => apiClient.get('/api/v1/notifications/' + id),
  retryNotification: id => apiClient.post('/api/v1/admin/notifications/' + id + '/retry'),
- getRecentNotifications: size => notificationApi.getAdminNotifications({ size }).then(p => p.content),
+ getRecentNotifications: size => notificationApi.getUserNotifications({ size }).then(p => p.content),
 };
