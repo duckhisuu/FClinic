@@ -34,9 +34,9 @@ public record IdentitySettings(
     }
 
     public void validateEnabled() {
-        require(endpoint != null && "https".equalsIgnoreCase(endpoint.getScheme()) && endpoint.getHost() != null
+        require(endpoint != null && ("https".equalsIgnoreCase(endpoint.getScheme()) || "http".equalsIgnoreCase(endpoint.getScheme())) && endpoint.getHost() != null
                 && endpoint.getUserInfo() == null && endpoint.getFragment() == null && endpoint.getQuery() == null,
-                "HTTPS endpoint required");
+                "HTTP or HTTPS endpoint required");
         require(issuer != null && !issuer.isBlank() && issuer.length() <= 512, "issuer required");
         require(audience != null && audience.matches("[A-Za-z0-9._:/-]{1,128}"), "audience required");
         require(clientId != null && clientId.matches("[A-Za-z0-9._-]{1,128}"), "client ID required");

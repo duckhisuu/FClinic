@@ -42,9 +42,9 @@ spring:
 appointment:
   providers:
     doctor-client-id: ${APPOINTMENT_DOCTOR_CLIENT_ID:appointment-doctor-reference}
-    doctor-client-secret: ${APPOINTMENT_DOCTOR_CLIENT_SECRET:}
+    doctor-client-secret: ${APPOINTMENT_DOCTOR_CLIENT_SECRET:appointment-doctor-secret-dev}
     recipient-client-id: ${APPOINTMENT_RECIPIENT_CLIENT_ID:appointment-recipient-accounts}
-    recipient-client-secret: ${APPOINTMENT_RECIPIENT_CLIENT_SECRET:}
+    recipient-client-secret: ${APPOINTMENT_RECIPIENT_CLIENT_SECRET:appointment-recipient-secret-dev}
   tls:
     trust-store: ${APPOINTMENT_TRUST_STORE:}
     trust-store-password: ${APPOINTMENT_TRUST_STORE_PASSWORD:}
@@ -53,17 +53,17 @@ appointment:
     issuer: ${KEYCLOAK_ISSUER_URI:${KEYCLOAK_BASE_URL:http://localhost:8180}/realms/${KEYCLOAK_REALM:fclinic}}
     audience: appointment-service
     client-id: ${APPOINTMENT_AUTH_CLIENT_ID:appointment-introspection}
-    client-secret: ${APPOINTMENT_AUTH_CLIENT_SECRET:}
+    client-secret: ${APPOINTMENT_AUTH_CLIENT_SECRET:appointment-introspection-secret-dev}
     scope-uri: ${APPOINTMENT_SCOPE_URI:http://localhost:8085/api/v1/auth/scopes}
     scope-client-id: ${APPOINTMENT_SCOPE_CLIENT_ID:appointment-scope}
-    scope-client-secret: ${APPOINTMENT_SCOPE_CLIENT_SECRET:}
+    scope-client-secret: ${APPOINTMENT_SCOPE_CLIENT_SECRET:appointment-scope-secret-dev}
     patient-client-id: ${PATIENT_APPOINTMENT_REFERENCE_CLIENT_ID:patient-appointment-reference}
-    patient-client-secret: ${PATIENT_APPOINTMENT_REFERENCE_CLIENT_SECRET:}
+    patient-client-secret: ${PATIENT_APPOINTMENT_REFERENCE_CLIENT_SECRET:patient-appointment-secret-dev}
     notification-client-id: ${APPOINTMENT_NOTIFICATION_REFERENCE_CLIENT_ID:notification-appointment-reference}
-    notification-client-secret: ${APPOINTMENT_NOTIFICATION_REFERENCE_CLIENT_SECRET:}
-    patient-token-uri: ${APPOINTMENT_PATIENT_TOKEN_URI:}
+    notification-client-secret: ${APPOINTMENT_NOTIFICATION_REFERENCE_CLIENT_SECRET:notification-appointment-secret-dev}
+    patient-token-uri: ${APPOINTMENT_PATIENT_TOKEN_URI:http://localhost:8180/realms/fclinic/protocol/openid-connect/token}
     patient-token-client-id: ${APPOINTMENT_PATIENT_TOKEN_CLIENT_ID:appointment-service}
-    patient-token-client-secret: ${APPOINTMENT_PATIENT_TOKEN_CLIENT_SECRET:}
+    patient-token-client-secret: ${APPOINTMENT_PATIENT_TOKEN_CLIENT_SECRET:appointment-service-secret-dev}
   lock-provider: ${APPOINTMENT_LOCK_PROVIDER:postgres}
   patient-url: ${APPOINTMENT_PATIENT_URL:http://localhost:8081}
   doctor-url: ${APPOINTMENT_DOCTOR_URL:http://localhost:8082}

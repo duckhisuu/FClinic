@@ -26,12 +26,9 @@ export function PatientOnboardingPage({ onComplete }) {
       setErrorMsg('Vui lòng nhập họ và tên');
       return;
     }
-    if (!phoneNumber.trim()) {
-      setErrorMsg('Vui lòng nhập số điện thoại');
-      return;
-    }
-    if (!dateOfBirth) {
-      setErrorMsg('Vui lòng chọn ngày sinh');
+    const cleanPhone = phoneNumber.replace(/[\s()-]/g, '');
+    if (!cleanPhone.match(/^(0[0-9]{9}|\+[1-9][0-9]{7,14})$/)) {
+      setErrorMsg('Số điện thoại không hợp lệ. Vui lòng nhập số điện thoại 10 chữ số (VD: 0912345678 hoặc +84...)');
       return;
     }
 
@@ -40,7 +37,7 @@ export function PatientOnboardingPage({ onComplete }) {
       // 1. Tạo hồ sơ bệnh nhân mới bên patient-service
       const payload = {
         fullName: fullName.trim(),
-        phoneNumber: phoneNumber.trim(),
+        phoneNumber: cleanPhone,
         dateOfBirth: dateOfBirth,
         gender: gender,
         ...(address.trim() ? { address: address.trim() } : {}),
@@ -61,7 +58,14 @@ export function PatientOnboardingPage({ onComplete }) {
         if (onComplete) onComplete(patient);
       }, 1200);
     } catch (err) {
-      setErrorMsg(err.message || 'Không thể tạo hồ sơ bệnh nhân. Vui lòng kiểm tra lại thông tin.');
+      if (err.fieldErrors && err.fieldErrors.length > 0) {
+        const fields = err.fieldErrors.map(f => f.field === 'phoneNumber' ? 'Số điện thoại' : f.field === 'fullName' ? 'Họ tên' : f.field).join(', ');
+        setErrorMsg(`Thông tin không hợp lệ ở trường: ${fields}. Vui lòng kiểm tra lại.`);
+      } else if (err.code === 'DEPENDENCY_UNAVAILABLE') {
+        setErrorMsg('Dịch vụ xác thực danh tính chưa được kết nối (DEPENDENCY_UNAVAILABLE). Vui lòng restart Patient Service.');
+      } else {
+        setErrorMsg(err.message || 'Không thể tạo hồ sơ bệnh nhân. Vui lòng kiểm tra lại thông tin.');
+      }
     } finally {
       setBusy(false);
     }
@@ -126,6 +130,9 @@ export function PatientOnboardingPage({ onComplete }) {
                 disabled={busy}
                 style={{ width: '100%', padding: '0.65rem 0.75rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', fontSize: '0.95rem' }}
               />
+              <small style={{ color: '#64748b', fontSize: '0.8rem', marginTop: '4px', display: 'block' }}>
+                10 chữ số (VD: 0912345678 hoặc +84...)
+              </small>
             </div>
 
             <div>

@@ -10,9 +10,9 @@ spring:
     name: patient-service
   datasource:
     # Target must explicitly select a prepared fresh UUID database. No fallback to the legacy datasource.
-    url: ${PATIENT_UUID_DB_URL:jdbc:postgresql://localhost:5443/patient_uuid}
-    username: ${PATIENT_UUID_DB_USERNAME:fclinic_admin}
-    password: ${PATIENT_UUID_DB_PASSWORD:fclinic_secret}
+    url: ${PATIENT_UUID_DB_URL:${PATIENT_V2_DB_URL:jdbc:postgresql://${DB_HOST:localhost}:${POSTGRES_PATIENT_PORT:5433}/${PATIENT_DB_NAME:patient_db}}}
+    username: ${PATIENT_UUID_DB_USERNAME:${PATIENT_V2_DB_USERNAME:${DB_USERNAME:sa}}}
+    password: ${PATIENT_UUID_DB_PASSWORD:${PATIENT_V2_DB_PASSWORD:${DB_PASSWORD:sa}}}
   jpa:
     hibernate:
       ddl-auto: validate
@@ -43,3 +43,20 @@ logging:
     # SQL error detail may contain clinical values. Error handler returns only typed generic codes.
     org.hibernate.orm.jdbc.error: OFF
     org.hibernate.engine.jdbc.spi.SqlExceptionHelper: OFF
+
+patient:
+  identity:
+    enabled: ${PATIENT_IDENTITY_ENABLED:true}
+    endpoint: ${PATIENT_AUTH_INTROSPECTION_URI:http://localhost:8085/api/v1/auth/introspect}
+    issuer: ${PATIENT_AUTH_ISSUER:http://localhost:8180/realms/fclinic}
+    audience: ${PATIENT_AUTH_AUDIENCE:patient-service}
+    client-id: ${PATIENT_AUTH_CLIENT_ID:patient-service}
+    client-secret: ${PATIENT_AUTH_CLIENT_SECRET:patient-introspection-secret-dev}
+    connect-timeout: ${PATIENT_AUTH_CONNECT_TIMEOUT:2s}
+    exchange-timeout: ${PATIENT_AUTH_EXCHANGE_TIMEOUT:5s}
+    services:
+      appointment:
+        name: appointment-service
+        authorities:
+          - SVC_PATIENT_READ
+        subject: ${APPOINTMENT_SERVICE_SUBJECT:22222222-2222-4222-8222-222222222205}
