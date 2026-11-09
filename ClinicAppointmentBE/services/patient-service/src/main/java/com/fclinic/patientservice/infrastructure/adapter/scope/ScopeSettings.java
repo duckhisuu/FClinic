@@ -11,10 +11,14 @@ public record ScopeSettings(@DefaultValue("false") boolean enabled, Authority ad
     public record Authority(URI endpoint, String clientId, String clientSecret,
             @DefaultValue("1s") Duration connectTimeout, @DefaultValue("3s") Duration exchangeTimeout,
             @DefaultValue("262144") int maxResponseBytes, @DefaultValue("32") int maxConcurrentRequests,
-            @DefaultValue("1000") int maxSearchPatients, Path trustStore, String trustStorePassword) {
+            @DefaultValue("1000") int maxSearchPatients, Path trustStore, String trustStorePassword,
+            @DefaultValue("false") boolean allowInsecureHttp) {
         @Override public String toString() { return "ScopeAuthority[redacted]"; }
         public void validate() {
-            require(endpoint!=null && "https".equalsIgnoreCase(endpoint.getScheme()) && endpoint.getHost()!=null
+            boolean secure = endpoint!=null && "https".equalsIgnoreCase(endpoint.getScheme());
+            boolean loopbackHttp = allowInsecureHttp && endpoint!=null && "http".equalsIgnoreCase(endpoint.getScheme())
+                    && java.util.Set.of("localhost","127.0.0.1","[::1]").contains(endpoint.getHost());
+            require(endpoint!=null && (secure || loopbackHttp) && endpoint.getHost()!=null
                     && endpoint.getUserInfo()==null && endpoint.getQuery()==null && endpoint.getFragment()==null,"HTTPS endpoint required");
             require(clientId!=null && clientId.matches("[A-Za-z0-9._-]{1,128}"),"client ID required");
             require(clientSecret!=null && !clientSecret.isBlank() && clientSecret.length()<=4096

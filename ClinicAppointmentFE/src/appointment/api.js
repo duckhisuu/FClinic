@@ -80,6 +80,6 @@ export const doctorApi = {
 };
 export const patientApi = {
   search: (params, signal) =>
-    apiClient.get("/api/v2/patients", { params, signal }),
-  get: (id, signal) => apiClient.get(`/api/v2/patients/${id}`, { signal }),
+    apiClient.get("/api/v3/patients", { params, signal }),
+  get: (id, signal) => apiClient.get(`/api/v3/patients/${id}`, { signal }),
 };

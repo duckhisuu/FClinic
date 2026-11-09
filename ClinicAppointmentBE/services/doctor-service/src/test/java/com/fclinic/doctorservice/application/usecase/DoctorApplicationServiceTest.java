@@ -19,6 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -63,6 +64,27 @@ class DoctorApplicationServiceTest {
         assertEquals("Tim Mạch", view.specialty());
         assertTrue(view.active());
         verify(doctorRepository).save(any(Doctor.class));
+    }
+
+    @Test
+    void shouldSeedBookableSlotsAndMatchDoctorIdentity() {
+        when(doctorRepository.count()).thenReturn(0L);
+        when(doctorRepository.save(any(Doctor.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        var doctors = org.mockito.ArgumentCaptor.forClass(Doctor.class);
+        var slots = org.mockito.ArgumentCaptor.forClass(TimeSlot.class);
+
+        service.initSampleData();
+
+        verify(doctorRepository, times(4)).save(doctors.capture());
+        assertEquals(UUID.fromString("33333333-3333-4333-8333-333333333301"),
+                doctors.getAllValues().get(0).getId());
+        verify(timeSlotRepository, times(30)).save(slots.capture());
+        for (TimeSlot slot : slots.getAllValues()) {
+            assertEquals(4, slot.getId().version());
+            assertTrue(slot.isPublished());
+            assertEquals(Duration.ofHours(1), Duration.between(slot.getStartTime(), slot.getEndTime()));
+            assertEquals(0, slot.getStartTime().getMinute());
+        }
     }
 
     @Test

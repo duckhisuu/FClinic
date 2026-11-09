@@ -49,6 +49,12 @@ function getRoleMenu(role) {
           title: "Lịch khám Bác sĩ",
           desc: "Ca trực & danh sách hẹn phụ trách",
         },
+        {
+          id: "patient-records",
+          icon: UsersRound,
+          title: "Hồ sơ bệnh án",
+          desc: "Tra cứu & cập nhật bệnh án",
+        },
       ];
 
     case "ROLE_STAFF":
@@ -58,6 +64,12 @@ function getRoleMenu(role) {
           icon: Building2,
           title: "Tiếp nhận tại quầy",
           desc: "Tra cứu & tạo bệnh nhân",
+        },
+        {
+          id: "patient-records",
+          icon: UsersRound,
+          title: "Hồ sơ bệnh án",
+          desc: "Tra cứu & cập nhật bệnh án",
         },
         {
           id: "doctors",
@@ -129,7 +141,7 @@ function getDefaultTab(role) {
 }
 
 function MainApp() {
-  const { user, isAuthenticated, isLoading, logout } = useAuth();
+  const { user, token, isAuthenticated, isLoading, logout } = useAuth();
   const [tab, setTab] = useState("doctors");
   const [selection, setSelection] = useState(null);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
@@ -175,6 +187,14 @@ function MainApp() {
   const roleBadge = getRoleLabel(user?.role);
   const patientId = walkinPatient?.patientId || user?.patientId || null;
   const actorSubject = user?.fullName || user?.username || "authenticated-user";
+  const patientSession = {
+    user,
+    getAccessToken: () => token,
+    permissions: {
+      createPatient: user?.role === "ROLE_STAFF",
+      canUpdatePatient: () => user?.role === "ROLE_STAFF",
+    },
+  };
 
   return (
     <div className="app">
@@ -299,7 +319,7 @@ function MainApp() {
             <DoctorDashboardPage />
           ) : tab === "patient-records" ? (
             /* PATIENT RECORDS VIEW */
-            <PatientModule onBeforeLeave={registerPatientGuard} />
+            <PatientModule session={patientSession} onBeforeLeave={registerPatientGuard} />
           ) : tab === "doctors" ? (
             /* DOCTORS DIRECTORY */
             <DoctorDirectory

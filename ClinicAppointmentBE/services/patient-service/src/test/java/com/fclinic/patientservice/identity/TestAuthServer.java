@@ -66,7 +66,7 @@ public final class TestAuthServer implements AutoCloseable {
     public IdentitySettings settings(Duration budget) {
         return new IdentitySettings(true,endpoint(),"https://identity.example.test","patient-service",
                 IdentityFixtures.CLIENT_ID,clientSecret,Duration.ofMillis(500),budget,65536,4,
-                tls.store,tls.password,IdentityFixtures.settings().services());
+                tls.store,tls.password,IdentityFixtures.settings().services(),false);
     }
     private void handle(HttpExchange exchange) throws java.io.IOException {
         calls.incrementAndGet();

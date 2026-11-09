@@ -19,7 +19,8 @@ public record IdentitySettings(
         @DefaultValue("65536") int maxResponseBytes,
         @DefaultValue("32") int maxConcurrentRequests,
         Path trustStore, String trustStorePassword,
-        Map<String, ServiceBinding> services) {
+        Map<String, ServiceBinding> services,
+        @DefaultValue("false") boolean allowInsecureHttp) {
     public record ServiceBinding(String name, Set<String> authorities, String subject) {
         public ServiceBinding(String name, Set<String> authorities) { this(name, authorities, null); }
         @org.springframework.boot.context.properties.bind.ConstructorBinding
@@ -34,7 +35,10 @@ public record IdentitySettings(
     }
 
     public void validateEnabled() {
-        require(endpoint != null && "https".equalsIgnoreCase(endpoint.getScheme()) && endpoint.getHost() != null
+        boolean secure = endpoint != null && "https".equalsIgnoreCase(endpoint.getScheme());
+        boolean loopbackHttp = allowInsecureHttp && endpoint != null && "http".equalsIgnoreCase(endpoint.getScheme())
+                && java.util.Set.of("localhost", "127.0.0.1", "[::1]").contains(endpoint.getHost());
+        require(endpoint != null && (secure || loopbackHttp) && endpoint.getHost() != null
                 && endpoint.getUserInfo() == null && endpoint.getFragment() == null && endpoint.getQuery() == null,
                 "HTTPS endpoint required");
         require(issuer != null && !issuer.isBlank() && issuer.length() <= 512, "issuer required");

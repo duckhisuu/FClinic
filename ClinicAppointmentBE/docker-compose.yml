@@ -14,6 +14,7 @@ services:
       - "${POSTGRES_AUTH_PORT:-5438}:5432"
     volumes:
       - auth_pgdata:/var/lib/postgresql/data
+      - ./infra/db-init/01-init-roles.sql:/docker-entrypoint-initdb.d/01-init-roles.sql:ro
     networks:
       - fclinic-network
     healthcheck:
@@ -37,6 +38,7 @@ services:
       - "${POSTGRES_KEYCLOAK_PORT:-5439}:5432"
     volumes:
       - keycloak_pgdata:/var/lib/postgresql/data
+      - ./infra/db-init/01-init-roles.sql:/docker-entrypoint-initdb.d/01-init-roles.sql:ro
     networks:
       - fclinic-network
     healthcheck:
@@ -93,6 +95,9 @@ services:
       - "${POSTGRES_PATIENT_PORT:-5433}:5432"
     volumes:
       - patient_pgdata:/var/lib/postgresql/data
+      - ./infra/db-init/01-init-roles.sql:/docker-entrypoint-initdb.d/01-init-roles.sql:ro
+      - ./infra/db-init/02-init-patient-uuid.sh:/docker-entrypoint-initdb.d/02-init-patient-uuid.sh:ro
+      - ./services/patient-service/src/main/resources/db/schema/uuid/V001__patient_uuid_empty.sql:/docker-entrypoint-initdb.d/uuid-schema.sql:ro
     networks:
       - fclinic-network
     healthcheck:
@@ -116,6 +121,7 @@ services:
       - "${POSTGRES_DOCTOR_PORT:-5434}:5432"
     volumes:
       - doctor_pgdata:/var/lib/postgresql/data
+      - ./infra/db-init/01-init-roles.sql:/docker-entrypoint-initdb.d/01-init-roles.sql:ro
     networks:
       - fclinic-network
     healthcheck:
@@ -139,6 +145,7 @@ services:
       - "${POSTGRES_APPOINTMENT_PORT:-5435}:5432"
     volumes:
       - appointment_pgdata:/var/lib/postgresql/data
+      - ./infra/db-init/01-init-roles.sql:/docker-entrypoint-initdb.d/01-init-roles.sql:ro
     networks:
       - fclinic-network
     healthcheck:
@@ -162,6 +169,7 @@ services:
       - "${POSTGRES_NOTIFICATION_PORT:-5436}:5432"
     volumes:
       - notification_pgdata:/var/lib/postgresql/data
+      - ./infra/db-init/01-init-roles.sql:/docker-entrypoint-initdb.d/01-init-roles.sql:ro
     networks:
       - fclinic-network
     healthcheck:

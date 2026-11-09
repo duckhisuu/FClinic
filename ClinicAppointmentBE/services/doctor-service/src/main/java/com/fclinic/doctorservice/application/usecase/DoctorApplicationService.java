@@ -40,10 +40,10 @@ public class DoctorApplicationService implements
 
     private static final Logger log = LoggerFactory.getLogger(DoctorApplicationService.class);
 
-    public static final UUID DEFAULT_DOC_1_UUID = UUID.fromString("11111111-1111-1111-1111-111111111111");
-    public static final UUID DEFAULT_DOC_2_UUID = UUID.fromString("22222222-2222-2222-2222-222222222222");
-    public static final UUID DEFAULT_DOC_3_UUID = UUID.fromString("33333333-3333-3333-3333-333333333333");
-    public static final UUID DEFAULT_DOC_4_UUID = UUID.fromString("44444444-4444-4444-4444-444444444444");
+    public static final UUID DEFAULT_DOC_1_UUID = UUID.fromString("33333333-3333-4333-8333-333333333301");
+    public static final UUID DEFAULT_DOC_2_UUID = UUID.fromString("33333333-3333-4333-8333-333333333302");
+    public static final UUID DEFAULT_DOC_3_UUID = UUID.fromString("33333333-3333-4333-8333-333333333303");
+    public static final UUID DEFAULT_DOC_4_UUID = UUID.fromString("33333333-3333-4333-8333-333333333304");
 
     private final DoctorRepositoryPort doctorRepository;
     private final TimeSlotRepositoryPort timeSlotRepository;
@@ -242,12 +242,10 @@ public class DoctorApplicationService implements
     }
 
     private void createSlotsForDoctor(UUID doctorId, LocalDate date) {
-        timeSlotRepository.save(TimeSlot.createNew(doctorId, date, LocalTime.of(8, 0), LocalTime.of(8, 30)));
-        timeSlotRepository.save(TimeSlot.createNew(doctorId, date, LocalTime.of(8, 30), LocalTime.of(9, 0)));
-        timeSlotRepository.save(TimeSlot.createNew(doctorId, date, LocalTime.of(9, 0), LocalTime.of(9, 30)));
-        timeSlotRepository.save(TimeSlot.createNew(doctorId, date, LocalTime.of(10, 0), LocalTime.of(10, 30)));
-        timeSlotRepository.save(TimeSlot.createNew(doctorId, date, LocalTime.of(14, 0), LocalTime.of(14, 30)));
-        timeSlotRepository.save(TimeSlot.createNew(doctorId, date, LocalTime.of(14, 30), LocalTime.of(15, 0)));
-        timeSlotRepository.save(TimeSlot.createNew(doctorId, date, LocalTime.of(15, 30), LocalTime.of(16, 0)));
+        timeSlotRepository.save(TimeSlot.createNew(doctorId, date, LocalTime.of(8, 0), LocalTime.of(9, 0)));
+        timeSlotRepository.save(TimeSlot.createNew(doctorId, date, LocalTime.of(9, 0), LocalTime.of(10, 0)));
+        timeSlotRepository.save(TimeSlot.createNew(doctorId, date, LocalTime.of(10, 0), LocalTime.of(11, 0)));
+        timeSlotRepository.save(TimeSlot.createNew(doctorId, date, LocalTime.of(14, 0), LocalTime.of(15, 0)));
+        timeSlotRepository.save(TimeSlot.createNew(doctorId, date, LocalTime.of(15, 0), LocalTime.of(16, 0)));
     }
 }

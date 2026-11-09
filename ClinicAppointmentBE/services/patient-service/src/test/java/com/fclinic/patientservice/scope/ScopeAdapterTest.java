@@ -72,7 +72,7 @@ class ScopeAdapterTest {
         for(boolean wrongSecret:new boolean[]{true,false}) {
             var invalid=new ScopeSettings.Authority(s.endpoint(),s.clientId(),wrongSecret?"wrong-test-secret":s.clientSecret(),
                     s.connectTimeout(),s.exchangeTimeout(),s.maxResponseBytes(),s.maxConcurrentRequests(),s.maxSearchPatients(),
-                    wrongSecret?s.trustStore():null,wrongSecret?s.trustStorePassword():null);
+                    wrongSecret?s.trustStore():null,wrongSecret?s.trustStorePassword():null,false);
             try(var client=new ScopeAuthorityClient(invalid)) { unavailable(() -> client.evaluate(query(ScopeQuery.Operation.ADMIN_ASSIGNMENT_CREATE))); }
         }
     }
@@ -92,7 +92,7 @@ class ScopeAdapterTest {
         };
         var s=server.authority(ScopeQuery.Authority.ADMINISTRATIVE,Duration.ofSeconds(2));
         var one=new ScopeSettings.Authority(s.endpoint(),s.clientId(),s.clientSecret(),s.connectTimeout(),s.exchangeTimeout(),
-                s.maxResponseBytes(),1,s.maxSearchPatients(),s.trustStore(),s.trustStorePassword());
+                s.maxResponseBytes(),1,s.maxSearchPatients(),s.trustStore(),s.trustStorePassword(),false);
         try(var client=new ScopeAuthorityClient(one); var pool=Executors.newVirtualThreadPerTaskExecutor()) {
             var first=pool.submit(() -> unavailable(() -> client.evaluate(query(ScopeQuery.Operation.ADMIN_ASSIGNMENT_CREATE))));
             assertThat(entered.await(5,TimeUnit.SECONDS)).isTrue();

@@ -51,7 +51,7 @@ class RealAuthIdentityContractCheck {
  IdentitySettings settings(String secret){
   String trust=System.getenv(PREFIX+"TRUST_STORE"),password=System.getenv(PREFIX+"TRUST_STORE_PASSWORD");
   return new IdentitySettings(true,URI.create(required(PREFIX+"ENDPOINT")),required(PREFIX+"ISSUER"),required(PREFIX+"AUDIENCE"),required(PREFIX+"CLIENT_ID"),secret,Duration.ofSeconds(1),Duration.ofSeconds(3),65536,4,trust==null?null:Path.of(trust),password,
-   Map.of(required(PREFIX+"SERVICE_SUBJECT"),new IdentitySettings.ServiceBinding(required(PREFIX+"SERVICE_NAME"),Set.of(required(PREFIX+"SERVICE_AUTHORITIES").split(",")))));
+   Map.of(required(PREFIX+"SERVICE_SUBJECT"),new IdentitySettings.ServiceBinding(required(PREFIX+"SERVICE_NAME"),Set.of(required(PREFIX+"SERVICE_AUTHORITIES").split(",")))),false);
  }
  void check(String name,Checked action)throws Exception{try{action.run();cases.add(Map.of("id",name,"status","ADAPTER PROBE PASS"));}catch(Exception|AssertionError error){cases.add(Map.of("id",name,"status","FAIL","failureType",error.getClass().getSimpleName()));throw error;}}
  @FunctionalInterface interface Checked{void run()throws Exception;}

@@ -51,7 +51,7 @@ public final class TestScopeServer implements AutoCloseable {
     public ScopeSettings.Authority authority(ScopeQuery.Authority kind,Duration budget) {
         boolean admin=kind==ScopeQuery.Authority.ADMINISTRATIVE;
         return new ScopeSettings.Authority(endpoint(kind),admin?ADMIN_ID:CLINICAL_ID,admin?adminSecret:clinicalSecret,
-                Duration.ofMillis(500),budget,4096,4,10,tls.store,tls.password);
+                Duration.ofMillis(500),budget,4096,4,10,tls.store,tls.password,false);
     }
     @SuppressWarnings("unchecked")
     private void handle(HttpExchange exchange,ScopeQuery.Authority kind) throws java.io.IOException {
