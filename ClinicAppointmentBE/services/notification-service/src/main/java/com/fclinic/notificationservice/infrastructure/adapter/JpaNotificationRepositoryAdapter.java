@@ -15,6 +15,7 @@ import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Component
 public class JpaNotificationRepositoryAdapter implements NotificationRepositoryPort {
@@ -41,13 +42,18 @@ public class JpaNotificationRepositoryAdapter implements NotificationRepositoryP
     }
 
     @Override
-    public Optional<Notification> findById(Long id) {
+    public Optional<Notification> findById(UUID id) {
         return repository.findById(id).map(mapper::toDomain);
     }
 
     @Override
-    public Page<Notification> findByRecipientUserId(Long userId, Pageable pageable) {
+    public Page<Notification> findByRecipientUserId(UUID userId, Pageable pageable) {
         return repository.findByRecipientUserId(userId, pageable).map(mapper::toDomain);
+    }
+
+    @Override
+    public Optional<Notification> findByIdAndRecipientUserId(UUID id, UUID userId) {
+        return repository.findByIdAndRecipientUserId(id, userId).map(mapper::toDomain);
     }
 
     @Override
@@ -61,7 +67,7 @@ public class JpaNotificationRepositoryAdapter implements NotificationRepositoryP
     }
 
     @Override
-    public List<Long> findDueIds(Collection<NotificationStatus> statuses, Instant now, int limit) {
+    public List<UUID> findDueIds(Collection<NotificationStatus> statuses, Instant now, int limit) {
         return repository.findDueIds(statuses, now, PageRequest.of(0, limit));
     }
 
@@ -72,7 +78,7 @@ public class JpaNotificationRepositoryAdapter implements NotificationRepositoryP
     }
 
     @Override
-    public boolean claimForProcessing(Long id, Instant now) {
+    public boolean claimForProcessing(UUID id, Instant now) {
         return repository.claim(id, CLAIMABLE, NotificationStatus.PROCESSING, now) == 1;
     }
 }

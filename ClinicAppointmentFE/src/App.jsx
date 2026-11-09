@@ -354,6 +354,7 @@ function MainApp() {
       </div>
 
       <NotificationDrawer
+        key={`${user?.id}:${token}`}
         isOpen={isNotificationOpen}
         onClose={() => setIsNotificationOpen(false)}
         onNotify={(msg) => console.log(msg)}

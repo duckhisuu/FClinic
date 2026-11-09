@@ -16,6 +16,10 @@
 !/ClinicAppointmentBE/infra/api-gateway/src/test/
 /ClinicAppointmentBE/infra/api-gateway/src/test/*
 !/ClinicAppointmentBE/infra/api-gateway/src/test/java/
+!/ClinicAppointmentBE/services/notification-service/src/test/
+/ClinicAppointmentBE/services/notification-service/src/test/*
+!/ClinicAppointmentBE/services/notification-service/src/test/java/
+!/ClinicAppointmentFE/src/notification/__tests__/
 
 # Compiled class and jar files
 **/target/

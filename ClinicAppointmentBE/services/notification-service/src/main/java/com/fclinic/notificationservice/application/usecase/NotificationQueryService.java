@@ -8,6 +8,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.UUID;
+import java.util.Objects;
+import com.fclinic.notificationservice.application.exception.NotificationNotFoundException;
 
 @Service
 public class NotificationQueryService implements QueryNotificationsUseCase {
@@ -22,8 +25,17 @@ public class NotificationQueryService implements QueryNotificationsUseCase {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<NotificationView> getForUser(Long userId, Pageable pageable) {
+    public Page<NotificationView> getForUser(UUID userId, Pageable pageable) {
+        Objects.requireNonNull(userId);
         return repository.findByRecipientUserId(userId, pageable).map(NotificationView::from);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public NotificationView getForUserById(UUID userId, UUID id) {
+        Objects.requireNonNull(userId);
+        return repository.findByIdAndRecipientUserId(id, userId).map(NotificationView::from)
+                .orElseThrow(() -> new NotificationNotFoundException(id));
     }
 
     @Override
@@ -35,12 +47,12 @@ public class NotificationQueryService implements QueryNotificationsUseCase {
     }
 
     @Override
-    public NotificationView getById(Long id) {
+    public NotificationView getById(UUID id) {
         return NotificationView.from(stateService.getRequired(id));
     }
 
     @Override
-    public NotificationView retry(Long id) {
+    public NotificationView retry(UUID id) {
         return NotificationView.from(stateService.manualRetry(id));
     }
 }

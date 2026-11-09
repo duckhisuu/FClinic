@@ -182,51 +182,6 @@ let mockOutboxEvents = [
   },
 ];
 
-let mockNotifications = [
-  {
-    id: 1,
-    eventId: 'e1000000-0000-0000-0000-000000000001',
-    appointmentId: 101,
-    recipientUserId: 1,
-    recipientType: 'PATIENT',
-    recipientName: 'Trần Thị Mai Phương',
-    recipientEmail: 'phuong.tran@gmail.com',
-    type: 'APPOINTMENT_CONFIRMATION',
-    channel: 'EMAIL',
-    status: 'SENT',
-    subject: 'Xác nhận lịch hẹn với BS. CKII Nguyễn Văn An',
-    attemptCount: 0,
-    nextAttemptAt: null,
-    lastAttemptAt: new Date().toISOString(),
-    sentAt: new Date().toISOString(),
-    lastErrorCode: null,
-    lastErrorMessage: null,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 2,
-    eventId: 'e1000000-0000-0000-0000-000000000001',
-    appointmentId: 101,
-    recipientUserId: 1,
-    recipientType: 'DOCTOR',
-    recipientName: 'BS. CKII Nguyễn Văn An',
-    recipientEmail: 'doctor.an@fclinic.vn',
-    type: 'APPOINTMENT_CONFIRMATION',
-    channel: 'EMAIL',
-    status: 'SENT',
-    subject: 'Xác nhận lịch hẹn với Trần Thị Mai Phương',
-    attemptCount: 0,
-    nextAttemptAt: null,
-    lastAttemptAt: new Date().toISOString(),
-    sentAt: new Date().toISOString(),
-    lastErrorCode: null,
-    lastErrorMessage: null,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-];
-
 // Doctor Service APIs
 export const doctorApi = {
   getDoctors: async (specialty, department) => {
@@ -430,40 +385,6 @@ export const appointmentApi = {
         createdAt: new Date().toISOString(),
       });
 
-      // Append dual notifications (Patient & Doctor) matching EDA backend
-      const notifBase = {
-        eventId,
-        appointmentId: newAppt.id,
-        attemptCount: 0,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        sentAt: new Date().toISOString(),
-      };
-      mockNotifications.unshift({
-        id: Date.now() + 1,
-        ...notifBase,
-        recipientUserId: requestData.doctorId || 1,
-        recipientType: 'DOCTOR',
-        recipientName: requestData.doctorName,
-        recipientEmail: requestData.doctorEmail || `doctor.${requestData.doctorId || 1}@fclinic.vn`,
-        type: 'APPOINTMENT_CONFIRMATION',
-        channel: 'EMAIL',
-        status: 'SENT',
-        subject: `Xác nhận lịch hẹn với ${requestData.patientName}`,
-      });
-      mockNotifications.unshift({
-        id: Date.now(),
-        ...notifBase,
-        recipientUserId: requestData.patientId || 1,
-        recipientType: 'PATIENT',
-        recipientName: requestData.patientName,
-        recipientEmail: requestData.patientEmail || `${requestData.patientPhone}@fclinic.local`,
-        type: 'APPOINTMENT_CONFIRMATION',
-        channel: 'EMAIL',
-        status: 'SENT',
-        subject: `Xác nhận lịch hẹn với ${requestData.doctorName}`,
-      });
-
       return newAppt;
     }
   },
@@ -486,39 +407,6 @@ export const appointmentApi = {
         status: 'COMPLETED',
         publishedAt: new Date().toISOString(),
         createdAt: new Date().toISOString(),
-      });
-
-      const notifBase = {
-        eventId: cancelEventId,
-        appointmentId: appt.id,
-        attemptCount: 0,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        sentAt: new Date().toISOString(),
-      };
-      mockNotifications.unshift({
-        id: Date.now() + 1,
-        ...notifBase,
-        recipientUserId: appt.doctorId || 1,
-        recipientType: 'DOCTOR',
-        recipientName: appt.doctorName,
-        recipientEmail: appt.doctorEmail || `doctor.${appt.doctorId || 1}@fclinic.vn`,
-        type: 'APPOINTMENT_CANCELLATION',
-        channel: 'EMAIL',
-        status: 'SENT',
-        subject: `Lịch hẹn với ${appt.patientName} đã bị hủy`,
-      });
-      mockNotifications.unshift({
-        id: Date.now(),
-        ...notifBase,
-        recipientUserId: appt.patientId || 1,
-        recipientType: 'PATIENT',
-        recipientName: appt.patientName,
-        recipientEmail: appt.patientEmail || `${appt.patientPhone}@fclinic.local`,
-        type: 'APPOINTMENT_CANCELLATION',
-        channel: 'EMAIL',
-        status: 'SENT',
-        subject: `Lịch hẹn với ${appt.doctorName} đã bị hủy`,
       });
 
       return appt;
@@ -573,81 +461,32 @@ export const notificationApi = {
    * Matches GET /api/v1/admin/notifications?status={status}&page={page}&size={size}
    */
   getAdminNotifications: async ({ status, page = 0, size = 50 } = {}) => {
-    try {
-      const params = new URLSearchParams();
-      if (status && status !== 'ALL') params.append('status', status);
-      params.append('page', String(page));
-      params.append('size', String(size));
-      const response = await apiClient.get(`/api/v1/admin/notifications?${params.toString()}`);
-      if (response && Array.isArray(response.content)) {
-        return response;
-      }
-      if (Array.isArray(response)) {
-        return { content: response, totalElements: response.length, totalPages: 1, page: 0 };
-      }
-      return { content: [], totalElements: 0, totalPages: 0, page: 0 };
-    } catch {
-      let filtered = [...mockNotifications];
-      if (status && status !== 'ALL') {
-        filtered = filtered.filter((n) => n.status === status);
-      }
-      return {
-        content: filtered.slice(page * size, (page + 1) * size),
-        totalElements: filtered.length,
-        totalPages: Math.ceil(filtered.length / size),
-        page,
-        size,
-      };
-    }
+    const params = new URLSearchParams({ page: String(page), size: String(size) });
+    if (status && status !== 'ALL') params.set('status', status);
+    return apiClient.get(`/api/v1/admin/notifications?${params}`);
   },
 
   /**
-   * Fetch user notifications: GET /api/v1/notifications/me?userId={userId}&page={page}&size={size}
+   * Caller identity is derived exclusively from the verified access token on the server.
    */
-  getUserNotifications: async (userId, page = 0, size = 20) => {
-    try {
-      const response = await apiClient.get(`/api/v1/notifications/me?userId=${userId}&page=${page}&size=${size}`);
-      return response?.content || (Array.isArray(response) ? response : []);
-    } catch {
-      return mockNotifications.filter((n) => n.recipientUserId === Number(userId) || n.recipientType === 'PATIENT');
-    }
-  },
+  getUserNotifications: ({ page = 0, size = 20, signal } = {}) =>
+    apiClient.get(`/api/v1/notifications/me?page=${page}&size=${size}`, { signal }),
 
   /**
    * Get single notification by ID: GET /api/v1/notifications/{id}
    */
-  getNotificationById: async (id) => {
-    try {
-      return await apiClient.get(`/api/v1/notifications/${id}`);
-    } catch {
-      return mockNotifications.find((n) => n.id === Number(id)) || null;
-    }
-  },
+  getNotificationById: (id) => apiClient.get(`/api/v1/notifications/${id}`),
 
   /**
    * Manually retry delivery of a notification: POST /api/v1/admin/notifications/{id}/retry
    */
-  retryNotification: async (id) => {
-    try {
-      return await apiClient.post(`/api/v1/admin/notifications/${id}/retry`);
-    } catch {
-      const notif = mockNotifications.find((n) => n.id === Number(id));
-      if (notif) {
-        notif.status = 'SENT';
-        notif.sentAt = new Date().toISOString();
-        notif.attemptCount = (notif.attemptCount || 0) + 1;
-        notif.lastErrorMessage = null;
-        return notif;
-      }
-      throw new Error('Không thể thử lại gửi thông báo.');
-    }
-  },
+  retryNotification: (id) => apiClient.post(`/api/v1/admin/notifications/${id}/retry`),
 
   /**
    * Backward-compatible alias for existing components
    */
   getRecentNotifications: async (limit = 50) => {
-    const res = await notificationApi.getAdminNotifications({ size: limit });
+    const res = await notificationApi.getUserNotifications({ size: limit });
     return res.content;
   },
 };

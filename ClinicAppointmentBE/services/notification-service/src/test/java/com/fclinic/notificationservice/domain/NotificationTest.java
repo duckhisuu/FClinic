@@ -16,7 +16,7 @@ class NotificationTest {
     private static final Instant NOW = Instant.parse("2026-10-10T10:00:00Z");
 
     private Notification pending() {
-        return Notification.pending(UUID.randomUUID(), 1L, 2L, RecipientType.PATIENT, "A", "a@x.com",
+        return Notification.pending(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), RecipientType.PATIENT, "A", "a@x.com",
                 NotificationType.APPOINTMENT_CONFIRMATION, "s", "<p>b</p>", NOW);
     }
 

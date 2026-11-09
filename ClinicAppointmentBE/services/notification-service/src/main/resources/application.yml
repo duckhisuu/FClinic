@@ -1,6 +1,12 @@
 server:
   port: 8084
 
+notification:
+  security:
+    issuer: ${KEYCLOAK_ISSUER_URI:http://localhost:8180/realms/fclinic}
+    jwk-set-uri: ${NOTIFICATION_JWK_SET_URI:${notification.security.issuer}/protocol/openid-connect/certs}
+    audience: notification-service
+
 spring:
   config:
     import: "optional:file:.env[.properties],optional:file:../../.env[.properties],optional:file:ClinicAppointmentBE/.env[.properties]"
