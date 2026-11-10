@@ -45,6 +45,9 @@ logging:
     org.hibernate.engine.jdbc.spi.SqlExceptionHelper: OFF
 
 patient:
+  onboarding:
+    client-id: ${AUTH_PATIENT_ONBOARDING_CLIENT_ID:auth-patient-onboarding}
+    client-secret: ${AUTH_PATIENT_ONBOARDING_CLIENT_SECRET:}
   identity:
     enabled: ${PATIENT_IDENTITY_ENABLED:true}
     endpoint: ${PATIENT_AUTH_INTROSPECTION_URI:http://localhost:8085/api/v1/auth/introspect}

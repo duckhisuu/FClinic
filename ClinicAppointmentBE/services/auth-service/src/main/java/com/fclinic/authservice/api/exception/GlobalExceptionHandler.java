@@ -25,6 +25,12 @@ public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+    @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleConflict(org.springframework.dao.DataIntegrityViolationException ex) {
+        return ResponseEntity.status(409).body(ApiResponse.failure(409, ErrorCode.CONFLICT,
+                "Tài khoản hoặc hồ sơ đã được liên kết. Vui lòng tải lại dữ liệu."));
+    }
+
     @ExceptionHandler(AuthException.class)
     public ResponseEntity<ApiResponse<Void>> handleAuthException(AuthException ex) {
         if (ex.getHttpStatus() >= 500) {

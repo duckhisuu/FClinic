@@ -99,27 +99,27 @@ public class UserProvisioningSupport {
     }
 
     public User resolveOrSyncUserFromClaims(KeycloakTokenClaims claims) {
+        if (claims.keycloakUserId() == null || !claims.keycloakUserId().toString().equals(claims.subject()))
+            throw new com.fclinic.authservice.domain.exception.InvalidTokenException("Identity subject không hợp lệ");
         Optional<User> existing = Optional.empty();
         if (claims.keycloakUserId() != null) {
             existing = userRepository.findByKeycloakId(claims.keycloakUserId());
         }
-        if (existing.isEmpty() && claims.fclinicUserId() != null) {
-            existing = userRepository.findById(claims.fclinicUserId());
-        }
-        if (existing.isEmpty() && claims.email() != null && !claims.email().isBlank()) {
-            existing = userRepository.findByEmail(claims.email().trim().toLowerCase());
-        }
-        if (existing.isEmpty() && claims.username() != null && !claims.username().isBlank()) {
-            existing = userRepository.findByUsername(claims.username().trim().toLowerCase());
-        }
 
         if (existing.isPresent()) {
             User user = existing.get();
+            if (claims.fclinicUserId() != null && !claims.fclinicUserId().equals(user.getId()))
+                throw new com.fclinic.authservice.domain.exception.InvalidTokenException("Identity account không khớp subject");
             if (!user.isActive()) {
                 throw new AccountDisabledException("Tài khoản đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên");
             }
             return user;
         }
+
+        if ((claims.fclinicUserId() != null && userRepository.findById(claims.fclinicUserId()).isPresent())
+                || (claims.email() != null && userRepository.findByEmail(claims.email().trim().toLowerCase()).isPresent())
+                || (claims.username() != null && userRepository.findByUsername(claims.username().trim().toLowerCase()).isPresent()))
+            throw new com.fclinic.authservice.domain.exception.InvalidTokenException("Identity cần liên kết tin cậy; không thể nhận diện bằng email hoặc tên đăng nhập");
 
         UUID keycloakId = claims.keycloakUserId();
         if (keycloakId == null && claims.subject() != null && UuidV4.isUuidV4String(claims.subject())) {

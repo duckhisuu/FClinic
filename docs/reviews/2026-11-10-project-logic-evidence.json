@@ -1,0 +1,90 @@
+{
+  "date": "2026-11-10",
+  "timezone": "Asia/Saigon",
+  "reviewed_commit": "b2ec0aaf384df7644a703f2e883e4cc1d2f5e7ee",
+  "snapshot_root": "C:\\Temp\\fcr-d07c05e6",
+  "production_code_modified": false,
+  "backend": {
+    "command": "mvn -f ClinicAppointmentBE/pom.xml test -B -ntp",
+    "result": "BUILD SUCCESS",
+    "tests": 299.0,
+    "failures": 0.0,
+    "errors": 0.0,
+    "modules": [
+      {
+        "module": "api-gateway",
+        "tests": 1.0,
+        "failures": 0.0,
+        "errors": 0.0,
+        "skipped": 0.0
+      },
+      {
+        "module": "appointment-service",
+        "tests": 29.0,
+        "failures": 0.0,
+        "errors": 0.0,
+        "skipped": 0.0
+      },
+      {
+        "module": "auth-service",
+        "tests": 15.0,
+        "failures": 0.0,
+        "errors": 0.0,
+        "skipped": 0.0
+      },
+      {
+        "module": "doctor-service",
+        "tests": 9.0,
+        "failures": 0.0,
+        "errors": 0.0,
+        "skipped": 0.0
+      },
+      {
+        "module": "notification-service",
+        "tests": 30.0,
+        "failures": 0.0,
+        "errors": 0.0,
+        "skipped": 0.0
+      },
+      {
+        "module": "patient-service",
+        "tests": 215.0,
+        "failures": 0.0,
+        "errors": 0.0,
+        "skipped": 0.0
+      }
+    ]
+  },
+  "frontend": {
+    "test_result": "PASS",
+    "files": 10,
+    "tests": 46,
+    "build_result": "PASS"
+  },
+  "contracts": {
+    "result": "PASS",
+    "checks": 13
+  },
+  "limitations": [
+    "No full end-to-end broker/SMTP/browser acceptance rerun.",
+    "Auth probes use mocked ports; Doctor probes use real HTTP and isolated PostgreSQL.",
+    "Frontend audit probes use it.fails to confirm violated invariants, not fixed behavior.",
+    "Initial mixed-workspace test totals are superseded by this commit-pinned snapshot.",
+    "A first snapshot path was too long for embedded PostgreSQL on Windows; the short-path fresh build passed."
+  ],
+  "audit_probes": {
+    "auth": [
+      "different_subject_same_email_receives_existing_admin_role",
+      "same_otp_two_concurrent_password_resets",
+      "admin_can_link_two_accounts_to_same_patient_without_uniqueness_check"
+    ],
+    "doctor_http_postgres": [
+      "anonymous_doctor_create_http_201",
+      "anonymous_slot_create_http_201",
+      "duplicate_doctor_same_hour_two_distinct_rows_http_201",
+      "negative_fee_and_experience_accepted_http_201"
+    ],
+    "frontend_invariant_expected_failures": 2,
+    "result": "All reported probe cases reproduced"
+  }
+}

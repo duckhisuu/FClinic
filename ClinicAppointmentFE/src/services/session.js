@@ -4,7 +4,7 @@ let refreshing;
 export const SESSION_EVENT = 'fclinic-session-updated';
 const notify = () => window.dispatchEvent(new Event(SESSION_EVENT));
 export function clearSessionStorage() {
-  for (const key of ['fclinic_token', 'fclinic_refresh', 'fclinic_user']) localStorage.removeItem(key);
+  for (const key of ['fclinic_token', 'fclinic_refresh', 'fclinic_user', 'fclinic_session_id']) localStorage.removeItem(key);
   for (const key of Object.keys(sessionStorage)) if (key.startsWith('fclinic.pending.')) sessionStorage.removeItem(key);
   notify();
 }

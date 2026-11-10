@@ -1,6 +1,8 @@
 import { apiClient as authClient } from '../appointment/api';
 
 export const authApi = {
+  getPatientOnboarding: () => authClient.get('/api/v1/auth/me/patient-onboarding'),
+  onboardPatient: body => authClient.post('/api/v1/auth/me/patient-onboarding', body),
   getPatientCapabilities: () => authClient.get('/api/v1/auth/me/patient-capabilities'),
   login: async (username, password) => {
     return await authClient.post('/api/v1/auth/login', { username, password });

@@ -1,6 +1,12 @@
 # Remaining issues — latest main + Notification, 2026-11-09
 
-**PARTIAL. Real local booking/UUID Notification and Patient regression work. Automatic trusted onboarding is not complete.**
+**PARTIAL. Real local booking/UUID Notification and Patient regression work. Trusted onboarding for newly registered accounts is implemented and verified as of 10/11/2026; the remaining unrelated items below are still open.**
+
+## Update 10/11/2026 — trusted new-account flow
+
+The new server-owned `/api/v1/auth/me/patient-onboarding` flow reserves one Patient UUID per authenticated account, provisions through a dedicated protected Patient endpoint, checks ACTIVE/subject/hash proof, repairs partial Keycloak failures on retry and binds only after those checks. The previous arbitrary-UUID self-link route remains closed. React restores progress from the server and isolates asynchronous results by account/session. Doctor duplicate slots, negative fees and work-schedule occupancy/callback issues are fixed in the same change.
+
+See [current contract, migrations and run instructions](TRUSTED_ONBOARDING.md), `trusted-onboarding-acceptance.json` and the fix verification report. The section below records the original 09/11 boundary and owner concerns. Administrative provisioning still requires a trusted operator to establish existence/ownership; this change does not turn a supplied UUID into proof on any public route. Migration rejects duplicate account mappings rather than assigning an owner.
 
 ## 1. Auth/Patient ownership contract — owner review required
 

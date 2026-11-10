@@ -10,6 +10,13 @@ if (-not (Test-Path $envFile)) { Copy-Item 'ClinicAppointmentBE/.env.example' $e
 Get-Content $envFile | ForEach-Object {
     if ($_ -match '^([A-Z][A-Z0-9_]*)=(.*)$') { [Environment]::SetEnvironmentVariable($matches[1], $matches[2], 'Process') }
 }
+$defaults = @{ AUTH_DB_NAME='auth_db'; DOCTOR_DB_NAME='doctor_db'; PATIENT_DB_NAME='patient_db';
+    POSTGRES_PATIENT_PORT='5433'; KEYCLOAK_ADMIN_USER='admin'; KEYCLOAK_ADMIN_PASSWORD='admin' }
+foreach ($name in $defaults.Keys) {
+    if (-not [Environment]::GetEnvironmentVariable($name,'Process')) {
+        [Environment]::SetEnvironmentVariable($name,$defaults[$name],'Process')
+    }
+}
 $settingsFile = Join-Path $runtime 'settings.json'
 if (-not (Test-Path $settingsFile)) {
     $settings = @{}
@@ -20,7 +27,13 @@ if (-not (Test-Path $settingsFile)) {
     $settings | ConvertTo-Json | Set-Content $settingsFile
 }
 $settings = Get-Content $settingsFile -Raw | ConvertFrom-Json
+if (-not $settings.PSObject.Properties['AUTH_PATIENT_ONBOARDING_CLIENT_SECRET']) {
+    $onboardingSecret = if ($env:AUTH_PATIENT_ONBOARDING_CLIENT_SECRET) { $env:AUTH_PATIENT_ONBOARDING_CLIENT_SECRET } else { [guid]::NewGuid().ToString('N') }
+    $settings | Add-Member -NotePropertyName 'AUTH_PATIENT_ONBOARDING_CLIENT_SECRET' -NotePropertyValue $onboardingSecret
+    $settings | ConvertTo-Json | Set-Content $settingsFile
+}
 $settings.PSObject.Properties | ForEach-Object { [Environment]::SetEnvironmentVariable($_.Name, [string]$_.Value, 'Process') }
+$env:AUTH_PATIENT_ONBOARDING_URI = 'http://localhost:8081/internal/v1/patient-onboarding'
 $env:AUTH_INTROSPECTION_CLIENT_SECRET = $env:PATIENT_AUTH_CLIENT_SECRET
 $env:AUTH_INTROSPECTION_CLIENT_ID = 'patient-service'
 $env:PATIENT_AUTH_CLIENT_ID = 'patient-service'
@@ -81,6 +94,19 @@ if ($tables.Trim() -eq '0') {
     $type = & docker exec fclinic-postgres-patient psql -U $env:DB_USERNAME -d $env:PATIENT_DB_NAME -Atc "SELECT data_type FROM information_schema.columns WHERE table_schema='public' AND table_name='patients' AND column_name='id'"
     if ($type.Trim() -ne 'uuid') { throw 'Existing Patient schema requires an owner-approved legacy ID mapping; preserved without changes.' }
 }
+Get-Content 'ClinicAppointmentBE/services/patient-service/src/main/resources/db/schema/uuid/V002__patient_onboarding.sql' -Raw | & docker exec -i fclinic-postgres-patient psql -v ON_ERROR_STOP=1 -U $env:DB_USERNAME -d $env:PATIENT_DB_NAME | Out-Null
+if ($LASTEXITCODE) { throw 'Patient onboarding schema upgrade failed' }
+# Apply reviewed additive constraints only; conflicting existing data stops startup for reconciliation.
+$doctorExists = & docker exec fclinic-postgres-doctor psql -U $env:DB_USERNAME -d $env:DOCTOR_DB_NAME -Atc "SELECT to_regclass('public.doctors') IS NOT NULL"
+if ($LASTEXITCODE) { throw 'Cannot inspect Doctor schema' }
+if ($doctorExists.Trim() -ne 't') {
+    $doctorTables = & docker exec fclinic-postgres-doctor psql -U $env:DB_USERNAME -d $env:DOCTOR_DB_NAME -Atc "SELECT count(*) FROM information_schema.tables WHERE table_schema='public'"
+    if ($LASTEXITCODE -or $doctorTables.Trim() -ne '0') { throw 'Doctor schema is not empty; cannot initialize automatically.' }
+    Get-Content 'ClinicAppointmentBE/services/doctor-service/src/main/resources/db/schema/V001__doctor_uuid_empty.sql' -Raw | & docker exec -i fclinic-postgres-doctor psql -v ON_ERROR_STOP=1 -U $env:DB_USERNAME -d $env:DOCTOR_DB_NAME | Out-Null
+    if ($LASTEXITCODE) { throw 'Doctor schema initialization failed' }
+}
+Get-Content 'ClinicAppointmentBE/services/doctor-service/src/main/resources/db/schema/V002__doctor_booking_constraints.sql' -Raw | & docker exec -i fclinic-postgres-doctor psql -v ON_ERROR_STOP=1 -U $env:DB_USERNAME -d $env:DOCTOR_DB_NAME | Out-Null
+if ($LASTEXITCODE) { throw 'Doctor offers/fees need reconciliation before startup' }
 if ($Build) {
     & (Join-Path $PSScriptRoot 'Stop-FClinic.ps1')
     & mvn -f ClinicAppointmentBE/pom.xml verify -B -ntp
@@ -98,7 +124,9 @@ function Start-ServiceJar($name, $module, $extra = @()) {
     $jar = Join-Path $root "ClinicAppointmentBE/$module/target/$name-1.0.0-SNAPSHOT.jar"
     if (-not (Test-Path $jar)) { throw "Build required: $jar" }
     $args = @('-Xmx384m', "-Djavax.net.ssl.trustStore=$trustStore", "-Djavax.net.ssl.trustStorePassword=$env:TLS_PASSWORD", '-jar', $jar) + $extra
-    $process = Start-Process java -ArgumentList $args -WorkingDirectory $root -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $runtime "$name.log") -RedirectStandardError (Join-Path $runtime "$name.err.log")
+    # Start-Process joins ArgumentList on Windows. Quote each token so workspace/certificate paths with spaces survive.
+    $quotedArgs = $args | ForEach-Object { '"' + $_.Replace('"','\"') + '"' }
+    $process = Start-Process java -ArgumentList $quotedArgs -WorkingDirectory $root -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $runtime "$name.log") -RedirectStandardError (Join-Path $runtime "$name.err.log")
     $process.Id | Set-Content $pidFile
     Write-Host "Started $name (PID $($process.Id))"
 }

@@ -69,3 +69,21 @@ CLAUDE.md
 !ClinicAppointmentBE/services/notification-service/src/test/**
 !ClinicAppointmentFE/src/notification/__tests__/
 !ClinicAppointmentFE/src/notification/__tests__/**
+
+# Keep the booking/onboarding regression coverage introduced with this flow.
+!ClinicAppointmentBE/services/auth-service/src/test/
+ClinicAppointmentBE/services/auth-service/src/test/**
+!ClinicAppointmentBE/services/auth-service/src/test/**/
+!ClinicAppointmentBE/services/auth-service/src/test/**/PatientOnboarding*Test.java
+!ClinicAppointmentBE/services/auth-service/src/test/**/HttpPatientProvisioningAdapterTest.java
+!ClinicAppointmentBE/services/patient-service/src/test/
+ClinicAppointmentBE/services/patient-service/src/test/**
+!ClinicAppointmentBE/services/patient-service/src/test/**/
+!ClinicAppointmentBE/services/patient-service/src/test/**/PatientOnboardingHttpTest.java
+!ClinicAppointmentBE/services/doctor-service/src/test/
+ClinicAppointmentBE/services/doctor-service/src/test/**
+!ClinicAppointmentBE/services/doctor-service/src/test/**/
+!ClinicAppointmentBE/services/doctor-service/src/test/**/DoctorBookingValidationHttpTest.java
+!ClinicAppointmentFE/src/appointment/__tests__/
+ClinicAppointmentFE/src/appointment/__tests__/*
+!ClinicAppointmentFE/src/appointment/__tests__/doctor-schedule.test.jsx

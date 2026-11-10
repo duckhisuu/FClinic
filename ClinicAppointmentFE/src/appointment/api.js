@@ -26,6 +26,7 @@ apiClient.interceptors.request.use((config) => {
     config.headers.Authorization = `Bearer ${token}`;
   }
   config._sessionUserId ??= JSON.parse(localStorage.getItem("fclinic_user") || "null")?.id;
+  config._sessionId ??= localStorage.getItem('fclinic_session_id');
   return config;
 });
 apiClient.interceptors.response.use(
@@ -48,7 +49,8 @@ apiClient.interceptors.response.use(
     if (axios.isCancel(error)) return Promise.reject(error);
     if (error.response?.status === 401 && !error.config?._sessionRetried && !/\/(login|register|refresh|logout|google|oauth2\/token)$/.test(error.config?.url || '')) {
       const originalToken = error.config?.headers?.Authorization;
-      const sameUser = () => error.config?._sessionUserId && error.config._sessionUserId === JSON.parse(localStorage.getItem("fclinic_user") || "null")?.id;
+      const sameUser = () => error.config?._sessionUserId && error.config._sessionUserId === JSON.parse(localStorage.getItem("fclinic_user") || "null")?.id
+        && error.config._sessionId === localStorage.getItem('fclinic_session_id');
       const alreadyRefreshed = () => originalToken !== `Bearer ${localStorage.getItem("fclinic_token")}`;
       if (sameUser() && (alreadyRefreshed() || await refreshSession(originalToken)) && sameUser()) {
         error.config._sessionRetried = true;
@@ -90,7 +92,7 @@ export const doctorApi = {
   list: (signal) => apiClient.get("/api/v1/doctors", { signal }),
   getDoctors: (specialty) => apiClient.get("/api/v1/doctors", { params: { specialty } }),
   getDoctorSlots: (id, date) => apiClient.get(`/api/v1/doctors/${id}/slots`, { params: { date } }),
-  getDoctorSchedule: (id, period, anchorDate) => apiClient.get(`/api/v1/doctors/${id}/schedule`, { params: { period, anchorDate } }),
+  getDoctorSchedule: (id, period, anchorDate, signal) => apiClient.get(`/api/v1/doctors/${id}/schedule`, { params: { period, anchorDate }, signal }),
   createDoctorSlot: (id, body) => apiClient.post(`/api/v1/doctors/${id}/slots`, body),
 };
 export const patientApi = {

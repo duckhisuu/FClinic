@@ -409,6 +409,6 @@ export default function App() {
 }
 
 function SessionApp() {
-  const { user } = useAuth();
-  return <MainApp key={user ? `${user.id}:${user.role}:${user.patientId}:${user.doctorId}` : "signed-out"} />;
+  const { user, sessionKey } = useAuth();
+  return <MainApp key={user ? `${sessionKey}:${user.id}:${user.role}:${user.patientId}:${user.doctorId}` : "signed-out"} />;
 }

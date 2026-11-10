@@ -1,0 +1,7 @@
+{
+  "logs" : "C:\\Users\\Admin\\AppData\\Local\\Temp\\fclinic-onboarding-acceptance-4197729991191947592",
+  "checks" : [ "real registration and login preserve account a", "two concurrent onboarding requests return one Patient UUID", "onboarding binds the authenticated account", "one durable profile, revision and Auth reservation", "retry after a discarded response reuses the same profile", "onboarding state recovers without browser cache", "conflicting replay cannot create a second profile", "original pre-link bearer reads its newly linked profile through live introspection", "real registration and login preserve account b", "another account cannot claim the existing Patient UUID", "public orchestration rejects a client-selected Patient UUID", "separate accounts receive separate owned profiles", "cross-patient read is denied after onboarding", "new account books through real Auth, Patient and Doctor references", "reschedule transfers occupancy to the destination offer", "old hour is free and new hour is occupied", "cancellation frees occupancy in the owning Appointment service", "create, reschedule and cancel retain their audit history", "cleaned test-owned Keycloak identity", "cleaned test-owned Keycloak identity" ],
+  "keycloak" : "real configured realm; test-owned users removed",
+  "result" : "PASS",
+  "business_databases" : "temporary native PostgreSQL only"
+}

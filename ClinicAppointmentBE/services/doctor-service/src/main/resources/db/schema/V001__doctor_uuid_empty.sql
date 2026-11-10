@@ -27,3 +27,4 @@ CREATE TABLE IF NOT EXISTS doctor_time_slots (
 );
 
 CREATE INDEX IF NOT EXISTS idx_doctor_slots_lookup ON doctor_time_slots (doctor_id, slot_date, start_time);
+CREATE UNIQUE INDEX IF NOT EXISTS uq_doctor_slot_hour ON doctor_time_slots (doctor_id, slot_date, start_time);

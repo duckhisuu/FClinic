@@ -17,6 +17,12 @@ import java.util.stream.Collectors;
 @Slf4j
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleConflict(org.springframework.dao.DataIntegrityViolationException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponse.failure(409, ErrorCode.CONFLICT,
+                "Khung giờ đã tồn tại hoặc dữ liệu đang xung đột. Vui lòng tải lại lịch."));
+    }
+
     @ExceptionHandler(DoctorNotFoundException.class)
     public ResponseEntity<ReferenceError> handleNotFound(DoctorNotFoundException ex) {
         log.warn("[NotFound] {}", ex.getMessage());

@@ -135,7 +135,7 @@ public class AuthApplicationService implements
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public AuthResult refresh(String refreshToken) {
         if (refreshToken == null || refreshToken.isBlank()) {
             throw new AuthValidationException("Refresh token không được để trống");

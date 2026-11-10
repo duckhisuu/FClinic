@@ -7,6 +7,7 @@ public enum ErrorCode {
     FORBIDDEN(403, "Không có quyền truy cập"),
     NOT_FOUND(404, "Không tìm thấy tài nguyên yêu cầu"),
     CONFLICT(409, "Xảy ra xung đột dữ liệu"),
+    DEPENDENCY_UNAVAILABLE(503, "Dịch vụ phụ thuộc chưa sẵn sàng"),
     INTERNAL_SERVER_ERROR(500, "Hệ thống gặp sự cố nội bộ");
 
     private final int defaultStatus;

@@ -40,6 +40,8 @@ public class KeycloakJwtAuthenticationConverter implements Converter<Jwt, Abstra
             user = provisioningSupport.resolveOrSyncUserFromClaims(claims);
         } catch (AccountDisabledException ex) {
             throw new DisabledException(ex.getMessage(), ex);
+        } catch (com.fclinic.authservice.domain.exception.InvalidTokenException ex) {
+            throw new org.springframework.security.authentication.BadCredentialsException(ex.getMessage(), ex);
         }
 
         Set<GrantedAuthority> authorities = new LinkedHashSet<>();

@@ -60,6 +60,10 @@ public class Doctor {
             String bio,
             String avatarUrl
     ) {
+        if (consultationFee == null || !Double.isFinite(consultationFee) || consultationFee < 0)
+            throw new IllegalArgumentException("Phí khám phải là số hữu hạn không âm");
+        if (experienceYears != null && experienceYears < 0)
+            throw new IllegalArgumentException("Số năm kinh nghiệm phải không âm");
         Instant now = Instant.now();
         return new Doctor(
                 UUID.randomUUID(),

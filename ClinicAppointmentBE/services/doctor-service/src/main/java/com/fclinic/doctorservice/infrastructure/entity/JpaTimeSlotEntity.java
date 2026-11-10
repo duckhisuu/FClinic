@@ -8,7 +8,8 @@ import java.time.LocalTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "doctor_time_slots")
+@Table(name = "doctor_time_slots", uniqueConstraints = @UniqueConstraint(
+        name = "uq_doctor_slot_hour", columnNames = {"doctor_id", "slot_date", "start_time"}))
 @Getter
 @Setter
 @NoArgsConstructor

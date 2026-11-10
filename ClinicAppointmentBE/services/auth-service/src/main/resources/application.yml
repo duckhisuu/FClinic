@@ -42,6 +42,10 @@ spring:
       "[mail.smtp.timeout]": 5000
 
 app:
+  patient-onboarding:
+    uri: ${AUTH_PATIENT_ONBOARDING_URI:http://localhost:8081/internal/v1/patient-onboarding}
+    client-id: ${AUTH_PATIENT_ONBOARDING_CLIENT_ID:auth-patient-onboarding}
+    client-secret: ${AUTH_PATIENT_ONBOARDING_CLIENT_SECRET:}
   recipients:
     client-id: ${APPOINTMENT_RECIPIENT_CLIENT_ID:appointment-recipient-accounts}
     client-secret: ${APPOINTMENT_RECIPIENT_CLIENT_SECRET:appointment-recipient-secret-dev}

@@ -1,6 +1,8 @@
 # Local runbook — Windows / PowerShell 7
 
-Chỉ chạy trong `D:\Hoc_tap\26_FALL\MSS301\Project_Group\FClinic_Primary`. Java 21, Maven, Node/npm và Docker Desktop Linux Engine phải khả dụng. Không dùng repository gốc hay SafeSync.
+> Update 10/11/2026: the new-account onboarding flow is now server-owned and retryable. See [TRUSTED_ONBOARDING.md](TRUSTED_ONBOARDING.md) for its endpoints, dedicated credential, additive migrations and acceptance checks. The 09/11 observations about new users stopping at trusted provisioning below are historical. `Start-FClinic.ps1` resolves the current repository root and supports paths with spaces.
+
+Chạy từ thư mục gốc của checkout hiện hành. Java 21, Maven, Node/npm và Docker Desktop Linux Engine phải khả dụng. Script xác định repository từ vị trí của chính nó; không cần đường dẫn cố định của máy khác.
 
 ## Khởi động
 

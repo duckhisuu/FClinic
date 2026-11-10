@@ -1,0 +1,222 @@
+{
+  "date": "2026-11-10",
+  "timezone": "Asia/Saigon",
+  "base_commit": "b2ec0aaf384df7644a703f2e883e4cc1d2f5e7ee",
+  "status": "PASS",
+  "backend": {
+    "command": "mvn -f ClinicAppointmentBE/pom.xml verify -B -ntp",
+    "result": "BUILD SUCCESS",
+    "test_reports": [
+      {
+        "kind": "failsafe-reports",
+        "tests": 80,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "kind": "surefire-reports",
+        "tests": 313,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    ]
+  },
+  "frontend": {
+    "test_files": 11,
+    "tests": 53,
+    "test_result": "PASS",
+    "production_build": "PASS"
+  },
+  "contracts": {
+    "checks": 13,
+    "result": "PASS"
+  },
+  "end_to_end": {
+    "checks": 20,
+    "result": "PASS",
+    "identity_provider": "real configured Keycloak",
+    "business_databases": "four temporary PostgreSQL databases",
+    "outbox_publishing": false,
+    "synthetic_identities_cleaned": true,
+    "evidence": "docs/integration/trusted-onboarding-acceptance.json"
+  },
+  "startup_helper": {
+    "powershell_parse_errors": 0,
+    "windows_paths_with_spaces": "PASS",
+    "production_restart_performed": false
+  },
+  "verified_snapshot": "C:\\Temp\\fcfix-5299fd6e",
+  "verified_source_hashes": [
+    {
+      "path": "ClinicAppointmentBE/.env.example",
+      "sha256": "9C67F11F37BFDFD28A64B0E97E6D38BED7B73AE792B39B2798A627D906FC850C"
+    },
+    {
+      "path": "ClinicAppointmentBE/common/common-web/src/main/java/com/fclinic/common/web/error/ErrorCode.java",
+      "sha256": "56C4F15E70F76B9872B8530DF378ECCA99490E501708FCED13F503BBA6AD05CC"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/auth-service/pom.xml",
+      "sha256": "C6E324B0B9413CDAA7C16E727C6433A839D740B1037504DF0568C02CA4AE8B84"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/auth-service/src/main/java/com/fclinic/authservice/api/controller/PatientOnboardingController.java",
+      "sha256": "5E4DF0ED44A185ACE42C5DACC9EE5ADF14DD649B77A59A922B0821A654D8AD68"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/auth-service/src/main/java/com/fclinic/authservice/api/exception/GlobalExceptionHandler.java",
+      "sha256": "7A7D75B2C78AA26048BF6A33A90B81DB723FD3541AC0999E41EDC88CC5692967"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/auth-service/src/main/java/com/fclinic/authservice/application/model/PatientOnboardingCommand.java",
+      "sha256": "09A845EE06B645E008F9042E1134C1EE587B06519F00906BEEF00D5251212871"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/auth-service/src/main/java/com/fclinic/authservice/application/port/out/PatientOnboardingPort.java",
+      "sha256": "367604182CA40B257D259B32657400C260B68B9FE6E187E6E7678E3B273E5F14"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/auth-service/src/main/java/com/fclinic/authservice/application/port/out/PatientProvisioningPort.java",
+      "sha256": "82FFC3E07500E7CC6AC3DBD88B9550BC32F46CB37C5AEA1252F474F1DD80F5DE"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/auth-service/src/main/java/com/fclinic/authservice/application/service/AuthApplicationService.java",
+      "sha256": "523ACD100A7E6ABF58F6B7CF3C644DE4FDAED9F29B70F0E00E3F42D40C7B86EA"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/auth-service/src/main/java/com/fclinic/authservice/application/service/PatientOnboardingService.java",
+      "sha256": "DA3EBA7D106C281990BB46DF9C02846C2235010BE3B8748D34F06260A491ABAF"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/auth-service/src/main/java/com/fclinic/authservice/application/service/UserProvisioningSupport.java",
+      "sha256": "C22D739C7AB40795E8F62DA7075257B4D6A55657E47E061CE3747A3E998A0AAA"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/auth-service/src/main/java/com/fclinic/authservice/domain/exception/PatientOnboardingException.java",
+      "sha256": "23E1CC0AE1AED15B228934184EE2C8B872D1E5FB804C21325BBB50962AF2623F"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/auth-service/src/main/java/com/fclinic/authservice/infrastructure/adapter/HttpPatientProvisioningAdapter.java",
+      "sha256": "A399D4C7CD9318690878C0583A298E271B1186F30AFD1E9C238D8E28F28A9DA1"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/auth-service/src/main/java/com/fclinic/authservice/infrastructure/adapter/PatientOnboardingStore.java",
+      "sha256": "6716470520380C885CBE5F0A7ED966DD93B8FAC96F6CFE5A9D28C00FECD0B67E"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/auth-service/src/main/java/com/fclinic/authservice/infrastructure/config/KeycloakJwtAuthenticationConverter.java",
+      "sha256": "993CE9C7CDC45BED75667E5C2E6B4FAA3E0BB5D6904FD8D642AEC7C71632ACCB"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/auth-service/src/main/resources/application.yml",
+      "sha256": "391E29E721EAE74AAEEADC6F045474173FC299DDDEAB2A1DE6BB14DAF3D03EC4"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/auth-service/src/main/resources/db/migration/V3__patient_onboarding.sql",
+      "sha256": "A7AC04E93FE4148DD657C42BF44AF3DCEA2A31BD431909CDC5F9FC490B35B365"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/auth-service/src/test/java/com/fclinic/authservice/security/HttpPatientProvisioningAdapterTest.java",
+      "sha256": "1D4400AF96316EDC3C4AE178F67FE3798F6CE707A974407617498E5E9CE592EE"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/auth-service/src/test/java/com/fclinic/authservice/security/PatientOnboardingServiceTest.java",
+      "sha256": "995127C2B2D738A05199EC5DA9B7387FEBBE23DE06FB84A8D14E22E652B55F3D"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/auth-service/src/test/java/com/fclinic/authservice/security/PatientOnboardingStoreTest.java",
+      "sha256": "FB297A39BF0A58678900543D7D08083C76664B6C5522E4C3B2265B2401495C81"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/doctor-service/src/main/java/com/fclinic/doctorservice/api/dto/CreateDoctorRequest.java",
+      "sha256": "8C7A40AD3EA8C8B916122780CDD90758ADF3546C43429170665AF8497D9EB7AF"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/doctor-service/src/main/java/com/fclinic/doctorservice/api/exception/GlobalExceptionHandler.java",
+      "sha256": "A6C1CB6012DDC0746796A87BB8028DCA5512AC16C3B847066838E0B3C9F3CEBD"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/doctor-service/src/main/java/com/fclinic/doctorservice/domain/aggregate/Doctor.java",
+      "sha256": "373E0A0CFCAD225491B4FC2505C004BDC25B6B3F1C46E7C47CB175EA19E62B61"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/doctor-service/src/main/java/com/fclinic/doctorservice/infrastructure/entity/JpaTimeSlotEntity.java",
+      "sha256": "174E4511532B600D1A61983D3C6A0D0B067A74914C8A957E06A87191D54985F3"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/doctor-service/src/main/resources/db/schema/V001__doctor_uuid_empty.sql",
+      "sha256": "41092B66520354FD2304542F949800174CE901F3D46FF82A34E0D2185B30B31D"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/doctor-service/src/main/resources/db/schema/V002__doctor_booking_constraints.sql",
+      "sha256": "DEBD69F4DBD0A04A2367AF412DDEAD96C6A5D094F244A0605C5FD425D9332D25"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/doctor-service/src/test/java/com/fclinic/doctorservice/DoctorBookingValidationHttpTest.java",
+      "sha256": "3972F82F764AA9878AA18D8339592F0C5D9E64A9E64DB1537B1D7ED98E66924F"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/api/controller/PatientOnboardingController.java",
+      "sha256": "F0822FB5EC6E3747E0C6B5CCC406A59871196C326F9C1020B01D5D4AE2D19D25"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/java/com/fclinic/patientservice/application/usecase/ProvisionPatientService.java",
+      "sha256": "BF6891BD8C06E12B904FED1F30EE7DEBB413B01EF6D48F6F47C0C63AB406AE48"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/resources/application.yml",
+      "sha256": "063DD9C2C8E8436E22B843A33CA33B77F28C3A9CA5CE604D58058E1A3A0457DC"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/main/resources/db/schema/uuid/V002__patient_onboarding.sql",
+      "sha256": "86E6813C70D4FA3465C5341B34055E2B29A15A3A9563A7C0009C09D78F3FCE4D"
+    },
+    {
+      "path": "ClinicAppointmentBE/services/patient-service/src/test/java/com/fclinic/patientservice/PatientOnboardingHttpTest.java",
+      "sha256": "6BDFEF23B712C75338531FB0D0305696D7C55AD4FA8D085ACC52D0FC671CA869"
+    },
+    {
+      "path": "ClinicAppointmentFE/src/App.jsx",
+      "sha256": "688A213720DF1CBCF1002F221D057421B4C6AB0D95361FD76658F50AE404A772"
+    },
+    {
+      "path": "ClinicAppointmentFE/src/appointment/__tests__/doctor-schedule.test.jsx",
+      "sha256": "5D95391D243A701CAD86457D99121895F1D479C9847B2652EC3B37818321A663"
+    },
+    {
+      "path": "ClinicAppointmentFE/src/appointment/__tests__/onboarding.test.jsx",
+      "sha256": "FF8F55DC1D9BC49BD9BFE1BCF8D1A0668D21CF066EE71E9CC57BD4A3329EE2F1"
+    },
+    {
+      "path": "ClinicAppointmentFE/src/appointment/api.js",
+      "sha256": "88914E1E0773E8300F3E1AE91589BD3849E02F111D42C6CE70C2434409861089"
+    },
+    {
+      "path": "ClinicAppointmentFE/src/context/AuthContext.jsx",
+      "sha256": "89C2A6D0EEAC400ECC748CE4CD03B65B5D75D3072EB6FA90F35EBFA7BC04503F"
+    },
+    {
+      "path": "ClinicAppointmentFE/src/pages/DoctorDashboardPage.jsx",
+      "sha256": "A931D80FBD03A35FED2A0480B86F6565C70B5AFA0C1F86756E698BB01187E6C1"
+    },
+    {
+      "path": "ClinicAppointmentFE/src/pages/DoctorSchedulePage.jsx",
+      "sha256": "D486EA167F1FBDDD0B8D1F7354496C99D6FD40FFD71B26E43FBB2BF080AA80D4"
+    },
+    {
+      "path": "ClinicAppointmentFE/src/pages/PatientOnboardingPage.jsx",
+      "sha256": "69C5569433769C35BDAF0705994AC080DD2A7ACC7C8060130E37C325FE0BEF0C"
+    },
+    {
+      "path": "ClinicAppointmentFE/src/services/authApi.js",
+      "sha256": "290548CEC8989BBA64C28596AB1CF44177CFB641E5A77F959AA84B001B99642B"
+    },
+    {
+      "path": "ClinicAppointmentFE/src/services/session.js",
+      "sha256": "F09484AA4A6F0CF0A09967C35CA1B4DAB9EE82F91E1F1AEAD0C8B8B93825BFD2"
+    }
+  ],
+  "scope": "Doctor duplicate/negative validation and work schedule; account-isolated durable trusted new-patient onboarding through booking/reschedule/cancellation"
+}

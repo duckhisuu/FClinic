@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { UserRound, Calendar, MapPin, Phone, User, CheckCircle2, AlertCircle, ArrowRight, Loader2 } from 'lucide-react';
-import { patientApi } from '../appointment/api';
+
 import { authApi } from '../services/authApi';
 import { useAuth } from '../context/AuthContext';
+import { today } from '../appointment/ui';
 
 export function PatientOnboardingPage({ onComplete }) {
-  const { user, updateUserSession } = useAuth();
+  const { user, sessionKey, updateUserSession } = useAuth();
 
   const [fullName, setFullName] = useState(user?.fullName || '');
   const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber || '');
@@ -16,77 +17,69 @@ export function PatientOnboardingPage({ onComplete }) {
   const [busy, setBusy] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
-  const [pendingPatient, setPendingPatient] = useState(() => {
-    try {
-      const stored = sessionStorage.getItem('fclinic.pending.patient');
-      return stored ? JSON.parse(stored) : null;
-    } catch {
-      return null;
-    }
-  });
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setErrorMsg('');
-    setSuccessMsg('');
-
-    if (!fullName.trim()) {
-      setErrorMsg('Vui lòng nhập họ và tên');
-      return;
-    }
-    const cleanPhone = phoneNumber.replace(/[\s()-]/g, '');
-    if (!cleanPhone.match(/^(0[0-9]{9}|\+[1-9][0-9]{7,14})$/)) {
-      setErrorMsg('Số điện thoại không hợp lệ. Vui lòng nhập số điện thoại 10 chữ số (VD: 0912345678 hoặc +84...)');
-      return;
-    }
-
-    setBusy(true);
-    try {
-      let patient = pendingPatient;
-      if (!patient) {
-        // 1. Tạo hồ sơ bệnh nhân mới bên patient-service
-        const payload = {
-          fullName: fullName.trim(),
-          phoneNumber: cleanPhone,
-          dateOfBirth: dateOfBirth,
-          gender: gender,
-          ...(address.trim() ? { address: address.trim() } : {}),
-          ...(user?.email ? { email: user.email.trim() } : {}),
-        };
-
-        patient = await patientApi.create(payload);
-        setPendingPatient(patient);
-        sessionStorage.setItem('fclinic.pending.patient', JSON.stringify(patient));
-      }
-
-      // 2. Liên kết patientId vào tài khoản trong auth-service
-      const updatedUser = await authApi.linkPatientProfile(patient.id);
-      sessionStorage.removeItem('fclinic.pending.patient');
-
-      // 3. Cập nhật lại session trong AuthContext
-      updateUserSession(updatedUser);
-
-      setSuccessMsg(`Khởi tạo hồ sơ thành công! Mã hồ sơ của bạn là ${patient.patientCode || 'PAT-' + patient.id.slice(0, 8)}`);
-
-      setTimeout(() => {
-        if (onComplete) onComplete(patient);
-      }, 1200);
-    } catch (err) {
-      if (err.fieldErrors && err.fieldErrors.length > 0) {
-        const fields = err.fieldErrors.map(f => f.field === 'phoneNumber' ? 'Số điện thoại' : f.field === 'fullName' ? 'Họ tên' : f.field).join(', ');
-        setErrorMsg(`Thông tin không hợp lệ ở trường: ${fields}. Vui lòng kiểm tra lại.`);
-      } else if (err.code === 'DEPENDENCY_UNAVAILABLE') {
-        setErrorMsg('Dịch vụ xác thực danh tính chưa được kết nối (DEPENDENCY_UNAVAILABLE). Vui lòng restart Patient Service.');
-      } else if (err.status === 403) {
-        setErrorMsg('Liên kết cần provisioning tin cậy. Vui lòng thử lại hoặc liên hệ quản trị viên.');
-      } else {
-        setErrorMsg(err.message || 'Không thể tạo hồ sơ bệnh nhân. Vui lòng kiểm tra lại thông tin.');
-      }
-    } finally {
-      setBusy(false);
-    }
+  const [restoring, setRestoring] = useState(true);
+  const [ready, setReady] = useState(false);
+  const [pending, setPending] = useState(null);
+  const [revision, setRevision] = useState(0);
+  const epoch = useRef(0);
+  const running = useRef(false);
+  const identity = useRef({ id: user?.id, sessionKey });
+  identity.current = { id: user?.id, sessionKey };
+  const sameSession = (id, key, ticket) => {
+    let stored; try { stored = JSON.parse(localStorage.getItem('fclinic_user') || 'null'); } catch { return false; }
+    return ticket === epoch.current && identity.current.id === id && identity.current.sessionKey === key
+      && stored?.id === id && (localStorage.getItem('fclinic_session_id') || null) === (key || null);
   };
 
+  useEffect(() => {
+    const ticket = ++epoch.current, id = user?.id, key = sessionKey;
+    running.current = false; setBusy(false); setRestoring(true); setReady(false);
+    setPending(null); setErrorMsg(''); setSuccessMsg('');
+    setFullName(user?.fullName || ''); setPhoneNumber(user?.phoneNumber || '');
+    setDateOfBirth(''); setGender('MALE'); setAddress('');
+    sessionStorage.removeItem('fclinic.pending.patient');
+    authApi.getPatientOnboarding().then(state => {
+      if (!sameSession(id, key, ticket)) return;
+      if (state.user?.id !== id) throw new Error('Phiên tài khoản đã thay đổi. Vui lòng đăng nhập lại.');
+      if (state.user.patientId) {
+        if (updateUserSession(state.user) !== false) onComplete?.();
+        return;
+      }
+      if (state.profile) {
+        setPending(state.profile); setFullName(state.profile.fullName);
+        setPhoneNumber(state.profile.phoneNumber); setDateOfBirth(state.profile.dateOfBirth);
+        setGender(state.profile.gender); setAddress(state.profile.address || '');
+      }
+      setReady(true);
+    }).catch(err => { if (sameSession(id, key, ticket)) setErrorMsg(err.message || 'Không thể tải tiến trình khởi tạo hồ sơ.'); })
+      .finally(() => { if (sameSession(id, key, ticket)) setRestoring(false); });
+    return () => { ++epoch.current; };
+  }, [user?.id, sessionKey, revision]);
+
+  const handleSubmit = async e => {
+    e.preventDefault();
+    if (running.current || !ready) return;
+    const id = user?.id, key = sessionKey, ticket = epoch.current;
+    if (!sameSession(id, key, ticket)) return;
+    const payload = pending || {
+      fullName: fullName.trim(), phoneNumber: phoneNumber.trim(), dateOfBirth,
+      gender, address: address.trim() || null,
+    };
+    running.current = true; setBusy(true); setPending(payload); setErrorMsg(''); setSuccessMsg('');
+    try {
+      const updated = await authApi.onboardPatient(payload);
+      if (!sameSession(id, key, ticket)) return;
+      if (updated.id !== id || !updated.patientId) throw new Error('Máy chủ chưa xác nhận liên kết hồ sơ. Vui lòng thử lại.');
+      setSuccessMsg('Đã hoàn tất hồ sơ. Bạn có thể đặt lịch khám.');
+      if (updateUserSession(updated) !== false) onComplete?.();
+    } catch (err) {
+      if (!sameSession(id, key, ticket)) return;
+      setErrorMsg(err.message || 'Chưa hoàn tất khởi tạo. Thử lại sẽ tiếp tục cùng hồ sơ.');
+      if (err.status === 400) setPending(null);
+    } finally {
+      if (sameSession(id, key, ticket)) { running.current = false; setBusy(false); }
+    }
+  };
   return (
     <div style={{ maxWidth: '680px', margin: '2rem auto', padding: '0 1rem' }}>
       <div className="page-heading">
@@ -100,6 +93,9 @@ export function PatientOnboardingPage({ onComplete }) {
       </div>
 
       <section className="panel">
+        {restoring && <p role="status">Đang kiểm tra tiến trình hồ sơ…</p>}
+        {pending && !successMsg && <p className="notice">Tiến trình đã được giữ theo tài khoản. Thử lại sẽ tiếp tục cùng hồ sơ.</p>}
+        {!busy && !restoring && (errorMsg || pending) && <button type="button" className="button secondary" onClick={() => setRevision(v => v + 1)}>Tải lại tiến trình</button>}
         {errorMsg && (
           <div className="login-alert error" style={{ marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1rem', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '0.5rem', color: '#991b1b' }}>
             <AlertCircle size={18} />
@@ -126,7 +122,7 @@ export function PatientOnboardingPage({ onComplete }) {
                 placeholder="Ví dụ: Nguyễn Văn An"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                disabled={busy}
+                disabled={busy || restoring || !!pending || !ready}
                 style={{ width: '100%', padding: '0.65rem 0.75rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', fontSize: '0.95rem' }}
               />
             </div>
@@ -143,7 +139,7 @@ export function PatientOnboardingPage({ onComplete }) {
                 placeholder="0900000001"
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
-                disabled={busy}
+                disabled={busy || restoring || !!pending || !ready}
                 style={{ width: '100%', padding: '0.65rem 0.75rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', fontSize: '0.95rem' }}
               />
               <small style={{ color: '#64748b', fontSize: '0.8rem', marginTop: '4px', display: 'block' }}>
@@ -158,10 +154,10 @@ export function PatientOnboardingPage({ onComplete }) {
               <input
                 type="date"
                 required
-                max={new Date().toISOString().slice(0, 10)}
+                max={today()}
                 value={dateOfBirth}
                 onChange={(e) => setDateOfBirth(e.target.value)}
-                disabled={busy}
+                disabled={busy || restoring || !!pending || !ready}
                 style={{ width: '100%', padding: '0.65rem 0.75rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', fontSize: '0.95rem' }}
               />
             </div>
@@ -175,7 +171,7 @@ export function PatientOnboardingPage({ onComplete }) {
               <select
                 value={gender}
                 onChange={(e) => setGender(e.target.value)}
-                disabled={busy}
+                disabled={busy || restoring || !!pending || !ready}
                 style={{ width: '100%', padding: '0.65rem 0.75rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', fontSize: '0.95rem', background: '#fff' }}
               >
                 <option value="MALE">Nam</option>
@@ -206,7 +202,7 @@ export function PatientOnboardingPage({ onComplete }) {
               placeholder="Nhập địa chỉ cư trú của bạn..."
               value={address}
               onChange={(e) => setAddress(e.target.value)}
-              disabled={busy}
+              disabled={busy || restoring || !!pending || !ready}
               style={{ width: '100%', padding: '0.65rem 0.75rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', fontSize: '0.95rem', resize: 'vertical' }}
             />
           </div>
@@ -214,8 +210,7 @@ export function PatientOnboardingPage({ onComplete }) {
           <div style={{ marginTop: '0.5rem', display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
             <button
               type="submit"
-              className="button primary"
-              disabled={busy}
+              className="button primary" disabled={busy || restoring || !ready}
               style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.5rem', fontWeight: 600 }}
             >
               {busy ? (
@@ -225,7 +220,7 @@ export function PatientOnboardingPage({ onComplete }) {
                 </>
               ) : (
                 <>
-                  Lưu & Tiếp tục đặt lịch
+                  {pending ? 'Tiếp tục khởi tạo hồ sơ' : 'Lưu & Tiếp tục đặt lịch'}
                   <ArrowRight size={17} />
                 </>
               )}

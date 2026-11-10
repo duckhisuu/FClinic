@@ -15,8 +15,11 @@ export function AuthProvider({ children }) {
   });
   const [token, setToken] = useState(() => localStorage.getItem('fclinic_token') || null);
   const [isLoading, setIsLoading] = useState(true);
+  const [sessionKey, setSessionKey] = useState(() => localStorage.getItem('fclinic_session_id'));
 
   const saveSession = useCallback((data) => {
+    const key = crypto.randomUUID();
+    localStorage.setItem('fclinic_session_id', key); setSessionKey(key);
     if (data.accessToken) {
       localStorage.setItem('fclinic_token', data.accessToken);
       setToken(data.accessToken);
@@ -34,6 +37,7 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('fclinic_token');
     localStorage.removeItem('fclinic_refresh');
     localStorage.removeItem('fclinic_user');
+    localStorage.removeItem('fclinic_session_id'); setSessionKey(null);
   for (const key of Object.keys(sessionStorage)) if (key.startsWith('fclinic.pending.')) sessionStorage.removeItem(key);
     setToken(null);
     setUser(null);
@@ -42,16 +46,20 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const sync = () => {
       setToken(localStorage.getItem('fclinic_token'));
+      setSessionKey(localStorage.getItem('fclinic_session_id'));
       try { setUser(JSON.parse(localStorage.getItem('fclinic_user') || 'null')); } catch { clearSession(); }
     };
     window.addEventListener(SESSION_EVENT, sync);
-    return () => window.removeEventListener(SESSION_EVENT, sync);
+    const storage = event => { if (!event.key || event.key.startsWith('fclinic_')) sync(); };
+    window.addEventListener('storage', storage);
+    return () => { window.removeEventListener(SESSION_EVENT, sync); window.removeEventListener('storage', storage); };
   }, [clearSession]);
 
   // Verify initial token on mount
   useEffect(() => {
     const initAuth = async () => {
       const storedToken = localStorage.getItem('fclinic_token');
+      const initialSession = localStorage.getItem('fclinic_session_id');
       if (!storedToken) {
         setIsLoading(false);
         return;
@@ -60,11 +68,12 @@ export function AuthProvider({ children }) {
         const currentUser = await authApi.getMe();
         const currentToken = localStorage.getItem('fclinic_token');
         const currentIdentity = JSON.parse(localStorage.getItem('fclinic_user') || 'null');
-        if (!currentToken || (currentIdentity?.id && currentIdentity.id !== currentUser.id)) return;
+        if (!currentToken || localStorage.getItem('fclinic_session_id') !== initialSession
+            || (currentIdentity?.id && currentIdentity.id !== currentUser.id)) return;
         setUser(currentUser);
         localStorage.setItem('fclinic_user', JSON.stringify(currentUser));
       } catch (err) {
-        clearSession();
+        if (localStorage.getItem('fclinic_session_id') === initialSession) clearSession();
       } finally {
         setIsLoading(false);
       }
@@ -119,6 +128,7 @@ export function AuthProvider({ children }) {
         user,
         capabilities,
         token,
+        sessionKey,
         isAuthenticated: !!user && !!token,
         isLoading,
         login,
