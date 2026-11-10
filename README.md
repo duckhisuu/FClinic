@@ -115,6 +115,8 @@ npm run dev
 ```
 Mở trình duyệt truy cập: **`http://localhost:5173`**
 
+FE gọi API theo luồng **FE → API Gateway → các service**. Vite chuyển toàn bộ `/api` tới `http://localhost:8080`; có thể đổi địa chỉ Gateway bằng `VITE_PROXY_TARGET` trong `.env.local` (xem `ClinicAppointmentFE/.env.example`). Khi triển khai, cấu hình reverse proxy `/api` tới Gateway hoặc đặt `VITE_API_GATEWAY_URL` là origin của Gateway khi build FE, không thêm `/api`. FE không cấu hình địa chỉ riêng của từng service.
+
 ---
 
 ## 4. Kiểm Tra Thông Tuyến & REST Endpoints Qua API Gateway

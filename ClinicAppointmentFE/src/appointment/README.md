@@ -16,6 +16,6 @@ npm run dev
 npm run build
 ```
 
-Mặc định Vite chuyển API Appointment tới localhost:8083, đọc Patient tới :8081 và Doctor tới :8082. Có thể đổi VITE_APPOINTMENT_PROXY_TARGET/VITE_PATIENT_PROXY_TARGET/VITE_DOCTOR_PROXY_TARGET trong env riêng được gitignore. Khi dùng Gateway đã nối v2, đặt VITE_API_GATEWAY_URL; module không sửa Gateway/CORS/security.
+Mọi request API đi theo luồng FE → API Gateway → service. Khi phát triển, Vite proxy toàn bộ `/api` tới Gateway `http://localhost:8080`; dùng `VITE_PROXY_TARGET` để đổi địa chỉ Gateway. Không cấu hình proxy riêng tới từng service. Khi triển khai, reverse proxy `/api` tới Gateway hoặc đặt `VITE_API_GATEWAY_URL` là origin của Gateway khi build FE (không thêm `/api`); không đặt URL service vào biến này. Gateway đã có route cho Appointment v2, Patient v3, Doctor, Auth và Notification.
 
 API/provider phải chạy thật và dùng hợp đồng response của Report. Provider lỗi sẽ hiện lỗi, không tạo dữ liệu demo. Test/evidence chỉ chứa dữ liệu tổng hợp và được gitignore.

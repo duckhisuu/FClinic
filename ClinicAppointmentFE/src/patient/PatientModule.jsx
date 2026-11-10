@@ -28,7 +28,7 @@ export function PatientWorkspace({ api, session, scenario, revision: scenarioRev
   const guard = () => !busy && (!dirty || window.confirm('Bạn có thay đổi chưa lưu. Rời màn hình và bỏ các thay đổi này?'));
   useEffect(() => { registerGuard(() => guard); return () => registerGuard(null); }, [dirty, busy, registerGuard]);
   useEffect(() => { root.current?.scrollIntoView?.({ block: 'start' }); root.current?.querySelector('h1')?.focus({ preventScroll: true }); }, [route.name, route.patientId, route.recordId]);
-  const navigate = (next, reload = false) => { if (!guard()) return; setDirty(false); setNotice(''); setRoute(next); if (!preview) {
+  const navigate = (next, reload = false) => { if (!guard()) return; if (next.name === 'list' && session?.patientId && !session?.permissions?.searchPatients) next = { name: 'profile', patientId: session.patientId }; setDirty(false); setNotice(''); setRoute(next); if (!preview) {
     const params = new URLSearchParams(Object.entries({ view: next.name, patientId: next.patientId, recordId: next.recordId }).filter(([, value]) => value));
     window.history.pushState({}, '', '#patient-records?' + params);
   } if (reload) setRevision(n => n + 1); };
@@ -37,18 +37,23 @@ export function PatientWorkspace({ api, session, scenario, revision: scenarioRev
     const restore = () => {
       const params = new URLSearchParams(window.location.hash.split('?')[1]);
       if (window.location.hash.startsWith('#patient-records') && guard()) {
-        setDirty(false); setRoute({ name: params.get('view') || 'list', patientId: params.get('patientId'), recordId: params.get('recordId') });
+        const name = params.get('view') || 'list';
+        setDirty(false); setRoute(name === 'list' && session?.patientId && !session?.permissions?.searchPatients
+          ? { name: 'profile', patientId: session.patientId }
+          : { name, patientId: params.get('patientId'), recordId: params.get('recordId') });
       }
     };
     window.addEventListener('beforeunload', leave); window.addEventListener('popstate', restore);
     return () => { window.removeEventListener('beforeunload', leave); window.removeEventListener('popstate', restore); };
-  }, [dirty, busy]);
+  }, [dirty, busy, session?.patientId, session?.permissions?.searchPatients]);
   const finish = (next, message) => { setDirty(false); setNotice(`${preview ? 'Mô phỏng: ' : ''}${message}`); setRevision(n => n + 1); setRoute(next); if (!preview) window.history.replaceState({}, '', '#patient-records?' + new URLSearchParams(Object.entries({ view: next.name, patientId: next.patientId, recordId: next.recordId }).filter(([, value]) => value))); };
   const canCreate = preview || session?.permissions?.createPatient === true;
   const canEdit = id => preview || session?.permissions?.canUpdatePatient?.(id) === true;
   const props = { api, session, revision: revision + (scenarioRevision || 0), navigate, finish, preview, onDirty: setDirty, onBusy: setBusy };
   let page;
-  if (route.name === 'list') page = <PatientListPage {...props} canCreate={canCreate} />;
+  if (route.name === 'list') page = preview || session?.permissions?.searchPatients === true
+    ? <PatientListPage {...props} canCreate={canCreate} />
+    : <><PageHeading title="Hồ sơ & bệnh án" description="Xem hồ sơ bệnh nhân trong phạm vi được phân công." /><section className="pt-card pt-empty" role={session ? 'status' : 'alert'}><UsersRound size={28} /><h2>{session ? 'Chưa có quyền tra cứu bệnh nhân' : 'Chưa kết nối phiên đăng nhập được xác minh.'}</h2>{session && <p>Tài khoản cần được phân công bệnh nhân trước khi tra cứu hồ sơ và bệnh án. Vui lòng liên hệ quản trị viên để kiểm tra phân công.</p>}</section></>;
   else if (route.name === 'createPatient') page = <><PageHeading title="Tạo hồ sơ bệnh nhân" description="Thông tin hành chính được lưu tách biệt với bệnh án." onBack={() => navigate({ name: 'list' })} /><PatientForm allowed={canCreate} preview={preview} onDirty={setDirty} onBusy={setBusy} onCancel={() => navigate({ name: 'list' })} onReload={() => navigate({ name: 'list' }, true)} onSave={async body => { const saved = await api.createPatient(body); finish({ name: 'profile', patientId: saved.id }, 'Đã tạo hồ sơ bệnh nhân.'); }} /></>;
   else if (route.name === 'profile' || route.name === 'editPatient') page = <PatientDetailPage {...props} patientId={route.patientId} editing={route.name === 'editPatient'} canEdit={canEdit} />;
   else if (route.name === 'records') page = <MedicalRecordsPage {...props} patientId={route.patientId} />;

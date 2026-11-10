@@ -10,6 +10,11 @@ import org.springframework.data.repository.query.Param;
 public interface SpringDataJpaAppointmentRepository
     extends JpaRepository<JpaAppointmentEntity, UUID>,
         JpaSpecificationExecutor<JpaAppointmentEntity> {
+  @Query("select distinct a.patientId from JpaAppointmentEntity a where a.doctorId=:doctor and "
+      + "a.status in (com.fclinic.appointmentservice.domain.model.AppointmentStatus.CONFIRMED, "
+      + "com.fclinic.appointmentservice.domain.model.AppointmentStatus.COMPLETED) order by a.patientId")
+  List<UUID> assignedPatients(@Param("doctor") UUID doctor, org.springframework.data.domain.Pageable pageable);
+
   @Lock(LockModeType.PESSIMISTIC_WRITE)
   @Query("select a from JpaAppointmentEntity a where a.id=:id")
   Optional<JpaAppointmentEntity> findLockedById(@Param("id") UUID id);

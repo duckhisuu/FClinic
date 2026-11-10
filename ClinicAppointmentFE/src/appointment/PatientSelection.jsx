@@ -9,14 +9,17 @@ export function PatientSelection({ patientId, selectedPatient, onSelect, canSear
     [query, setQuery] = useState(""),
     [candidates, setCandidates] = useState(null),
     [error, setError] = useState(null),
-    [busy, setBusy] = useState(false);
+    [busy, setBusy] = useState(false),
+    [loadAttempt, setLoadAttempt] = useState(0);
   useEffect(() => {
     if (!patientId) return;
     const c = new AbortController();
     setBusy(true);
+    setError(null);
     patientApi
       .get(patientId, c.signal)
       .then((p) => {
+        if (c.signal.aborted) return;
         setPatient(p);
         onSelect(p);
       })
@@ -27,7 +30,7 @@ export function PatientSelection({ patientId, selectedPatient, onSelect, canSear
         if (!c.signal.aborted) setBusy(false);
       });
     return () => c.abort();
-  }, [patientId]);
+  }, [patientId, loadAttempt]);
   const search = async (e) => {
     e.preventDefault();
     setBusy(true);
@@ -53,7 +56,10 @@ export function PatientSelection({ patientId, selectedPatient, onSelect, canSear
         <UserRound size={20} />
         <h2>Người đến khám</h2>
       </div>
-      <ErrorNotice error={error} />
+      <ErrorNotice
+        error={error}
+        onRetry={patientId && !busy ? () => setLoadAttempt((attempt) => attempt + 1) : undefined}
+      />
       {busy && <Busy />}
       {patient && (
         <div className="selected-patient">

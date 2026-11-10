@@ -75,3 +75,8 @@ CLAUDE.md
 !ClinicAppointmentBE/services/auth-service/src/test/**
 !ClinicAppointmentFE/src/patient/__tests__/
 !ClinicAppointmentFE/src/patient/__tests__/self-profile.test.jsx
+!ClinicAppointmentFE/src/patient/__tests__/patient-access.test.jsx
+
+# Keep booking profile recovery regression coverage in source control.
+!ClinicAppointmentFE/src/appointment/__tests__/
+!ClinicAppointmentFE/src/appointment/__tests__/patient-selection.test.jsx

@@ -24,7 +24,7 @@ class PatientCapabilitiesTest {
                 Set.of("ADMIN_ASSIGNMENT_CREATE", "ADMIN_ASSIGNMENT_UPDATE", "ADMIN_PROFILE_UPDATE"), Set.of(patient), false, true,
                 now.minusSeconds(1), now.plusSeconds(60), null, null, null)));
         var clock = Clock.fixed(now, ZoneOffset.UTC);
-        var controller = new PatientCapabilitiesController(assignments, new ScopeAuthorityService(users, assignments, clock), clock);
+        var controller = new PatientCapabilitiesController(assignments, new ScopeAuthorityService(users, assignments, clock, mock(DoctorPatientAssignmentPort.class)), clock);
         var caller = new AuthenticatedCaller(user.getId(), subject, "staff", "staff@example.test", RoleName.ROLE_STAFF, null, null);
         var result = controller.get(caller).data();
         assertThat(result).containsEntry("createPatient", false).containsEntry("searchPatients", false);
@@ -38,7 +38,7 @@ class PatientCapabilitiesTest {
         var users = mock(UserRepositoryPort.class); var assignments = mock(ScopeAssignmentPort.class);
         when(assignments.grants()).thenReturn(Map.of());
         var clock = Clock.systemUTC(); var subject = UUID.randomUUID(); var patient = UUID.randomUUID();
-        var controller = new PatientCapabilitiesController(assignments, new ScopeAuthorityService(users, assignments, clock), clock);
+        var controller = new PatientCapabilitiesController(assignments, new ScopeAuthorityService(users, assignments, clock, mock(DoctorPatientAssignmentPort.class)), clock);
         var unlinked = new AuthenticatedCaller(UUID.randomUUID(), subject, "patient", "p@example.test", RoleName.ROLE_PATIENT, null, null);
         assertThat(controller.get(unlinked).data()).containsEntry("createPatient", true);
         var linked = new AuthenticatedCaller(unlinked.userId(), subject, "patient", "p@example.test", RoleName.ROLE_PATIENT, patient, null);

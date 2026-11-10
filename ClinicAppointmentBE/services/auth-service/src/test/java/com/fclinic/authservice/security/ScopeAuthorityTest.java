@@ -15,7 +15,8 @@ class ScopeAuthorityTest {
   final UUID subject = UUID.randomUUID(), patient = UUID.randomUUID(), assignment = UUID.randomUUID();
   final UserRepositoryPort users = mock(UserRepositoryPort.class);
   final ScopeAssignmentPort assignments = mock(ScopeAssignmentPort.class);
-  final ScopeAuthorityService service = new ScopeAuthorityService(users, assignments, Clock.fixed(now, ZoneOffset.UTC));
+  final DoctorPatientAssignmentPort appointments = mock(DoctorPatientAssignmentPort.class);
+  final ScopeAuthorityService service = new ScopeAuthorityService(users, assignments, Clock.fixed(now, ZoneOffset.UTC), appointments);
   final User staff = User.create(UUID.randomUUID(), subject, "synthetic_staff", "staff@example.test", null, "Synthetic",
       new Role(UUID.randomUUID(), RoleName.ROLE_STAFF, "", now, now), null, null, null);
   @BeforeEach void setup() {
@@ -83,5 +84,25 @@ class ScopeAuthorityTest {
     assertThat(((Map<?, ?>) result.get("evidence")).get("visitId")).isEqualTo(visitId);
     var wrongDate = new ScopeAuthorityService.Query(query.contractVersion(), query.nonce(), now, query.authority(), query.operation(), caller, patient, null, now.minusSeconds(1));
     assertThat(service.evaluate(wrongDate)).containsEntry("allowed", false);
+  }
+  @Test void doctorReadsFollowCurrentBookingsAndIgnoreStaticDemoReadGrants() {
+    UUID doctorId = UUID.randomUUID();
+    var doctor = User.create(UUID.randomUUID(), subject, "doctor", "d@example.test", null, "Doctor",
+        new Role(UUID.randomUUID(), RoleName.ROLE_DOCTOR, "", now, now), null, doctorId, null);
+    when(users.findByKeycloakId(subject)).thenReturn(Optional.of(doctor));
+    when(appointments.assignedPatients(doctorId)).thenReturn(Set.of(patient));
+    var caller = new ScopeAuthorityService.Caller(subject.toString(), "USER", null, doctorId, null);
+    var search = new ScopeAuthorityService.Query("patient-work-scope/2", UUID.randomUUID(), now, "CLINICAL", "DOCTOR_SEARCH", caller, null, null, null);
+    assertThat(service.evaluate(search)).containsEntry("allowed", true).containsEntry("patientIds", Set.of(patient));
+    var read = new ScopeAuthorityService.Query(search.contractVersion(), UUID.randomUUID(), now, "CLINICAL", "DOCTOR_PROFILE_READ", caller, patient, null, null);
+    assertThat(service.evaluate(read)).containsEntry("allowed", true);
+    var unrelated = new ScopeAuthorityService.Query(read.contractVersion(), UUID.randomUUID(), now, "CLINICAL", "MEDICAL_READ", caller, UUID.randomUUID(), null, null);
+    assertThat(service.evaluate(unrelated)).containsEntry("allowed", false);
+    grant("DOCTOR_PROFILE_READ", true, now.plusSeconds(3600));
+    when(appointments.assignedPatients(doctorId)).thenReturn(Set.of());
+    assertThat(service.evaluate(read)).containsEntry("allowed", false);
+    assertThat(service.evaluate(search)).containsEntry("allowed", true).containsEntry("patientIds", Set.of());
+    clearInvocations(appointments); doctor.setActiveStatus(false);
+    assertThat(service.evaluate(read)).containsEntry("allowed", false); verifyNoInteractions(appointments);
   }
 }

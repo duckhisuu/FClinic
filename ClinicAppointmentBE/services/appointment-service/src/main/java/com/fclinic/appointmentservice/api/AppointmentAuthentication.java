@@ -36,7 +36,7 @@ public class AppointmentAuthentication implements HandlerInterceptor {
     response.setHeader("Cache-Control", "no-store");
     return true;
   }
-  private static void authenticateBasic(String header, String id, String secret) {
+  public static void authenticateBasic(String header, String id, String secret) {
     boolean valid = false;
     if (id != null && !id.isBlank() && secret != null && !secret.isBlank()
         && header.regionMatches(true, 0, "Basic ", 0, 6) && header.length() <= 8192) {

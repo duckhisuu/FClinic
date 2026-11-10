@@ -56,12 +56,15 @@ apiClient.interceptors.response.use(
       }
     }
     const body = error.response?.data;
+    const unavailable = [502, 503, 504].includes(error.response?.status);
     return Promise.reject(
       new ApiError(
         body?.message ||
-          "Chưa nhận được kết quả từ máy chủ. Vui lòng kiểm tra kết nối.",
+          (unavailable
+            ? "Dịch vụ tạm thời chưa sẵn sàng. Vui lòng thử lại sau ít phút."
+            : "Chưa nhận được kết quả từ máy chủ. Vui lòng kiểm tra kết nối."),
         error.response?.status || 0,
-        body?.code || (error.response ? "HTTP_ERROR" : "NETWORK_ERROR"),
+        body?.code || (unavailable ? "DEPENDENCY_UNAVAILABLE" : error.response ? "HTTP_ERROR" : "NETWORK_ERROR"),
         body?.fieldErrors || [],
         error.response?.headers?.["x-request-id"] || "",
       ),

@@ -52,6 +52,8 @@ com.fclinic.authservice
 | `ROLE_DOCTOR` | `bs_an` | `Doctor@123` | `11111111-1111-4111-8111-111111111103` | `doctorId = 33333333-3333-4333-8333-333333333301` |
 | `ROLE_PATIENT` | `patient_hung` | `Patient@123` | `11111111-1111-4111-8111-111111111104` | `patientId = 74fba630-5953-44b8-86d6-bc236ac1213b` |
 
+Quyền đọc hồ sơ của bác sĩ lấy từ lịch hẹn đã đặt với chính bác sĩ đó. Danh sách bệnh nhân cập nhật tự động khi đặt/hủy lịch; không cần khai báo UUID hay gia hạn quyền demo. Xem [phân công theo lịch hẹn](../../../docs/integration/DOCTOR_PATIENT_ASSIGNMENTS.md).
+
 ## 4. Chạy hạ tầng & Demo thủ công
 
 1. Khởi động hạ tầng Docker (bao gồm `postgres-auth`, `postgres-keycloak`, `keycloak` tự động import [fclinic-realm.json](../../infra/keycloak/fclinic-realm.json)):

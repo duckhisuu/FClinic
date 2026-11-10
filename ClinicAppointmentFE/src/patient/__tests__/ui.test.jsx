@@ -57,7 +57,7 @@ describe('complete preview screens', () => {
   it('switching Live discards visible preview responses and does not create a fake session', async () => {
     const { user, fetch } = preview(); await screen.findByText('Bùi Thanh Mai');
     await user.click(screen.getByRole('button', { name: 'Live API', exact: true })); await screen.findByRole('alert');
-    expect(screen.queryByText('Bùi Thanh Mai')).not.toBeInTheDocument(); expect(screen.getByRole('button', { name: 'Tạo bệnh nhân' })).toBeDisabled(); expect(fetch).not.toHaveBeenCalled();
+    expect(screen.queryByText('Bùi Thanh Mai')).not.toBeInTheDocument(); expect(screen.queryByRole('button', { name: 'Tạo bệnh nhân' })).not.toBeInTheDocument(); expect(fetch).not.toHaveBeenCalled();
   });
 });
 describe('editor boundaries', () => {

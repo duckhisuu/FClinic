@@ -55,6 +55,8 @@ class AppointmentSecurityTcpTest {
     r.add("appointment.doctor-url", AppointmentSecurityTcpTest::upstreamUrl); r.add("appointment.service-token", () -> "machine-token");
     r.add("appointment.providers.doctor-client-id", () -> "doctor-reference");
     r.add("appointment.providers.doctor-client-secret", () -> "doctor-secret");
+    r.add("AUTH_APPOINTMENT_ASSIGNMENTS_CLIENT_ID", () -> "auth-assignments");
+    r.add("AUTH_APPOINTMENT_ASSIGNMENTS_CLIENT_SECRET", () -> "assignment-secret");
   }
   @BeforeEach void reset() { jdbc.execute("TRUNCATE appointments CASCADE"); STAFF_ALLOWED.set(true); AUTH_DOWN.set(false); PATIENT_READS.set(0); }
   @AfterAll static void close() throws Exception { HTTP.close(); UPSTREAM.stop(0); PG.close(); }
@@ -79,6 +81,39 @@ class AppointmentSecurityTcpTest {
     assertThat(book("bob", PATIENT).statusCode()).isEqualTo(403);
     assertThat(PATIENT_READS.get()).isZero();
     assertThat(jdbc.queryForObject("SELECT count(*) FROM appointments", Integer.class)).isZero();
+  }
+  HttpResponse<String> assignedPatients(UUID doctor, String authorization) throws Exception {
+    var request = HttpRequest.newBuilder(URI.create("http://127.0.0.1:" + port + "/internal/v1/doctor-patient-assignments/" + doctor));
+    if (authorization != null) request.header("Authorization", authorization);
+    return HTTP.send(request.GET().build(), HttpResponse.BodyHandlers.ofString());
+  }
+  @Test void clinicalAssignmentsFollowCommittedBookingCancellationAndDoctorBoundaries() throws Exception {
+    String basic = "Basic " + Base64.getEncoder().encodeToString("auth-assignments:assignment-secret".getBytes(StandardCharsets.UTF_8));
+    assertThat(assignedPatients(DOCTOR, null).statusCode()).isEqualTo(401);
+    assertThat(assignedPatients(DOCTOR, "Bearer alice").statusCode()).isEqualTo(401);
+    assertThat(data(assignedPatients(DOCTOR, basic)).path("patientIds").size()).isZero();
+    var first = book("alice", PATIENT); assertThat(first.statusCode()).isEqualTo(201);
+    var second = book("bob", OTHER, NEXT_SLOT); assertThat(second.statusCode()).isEqualTo(201);
+    var assigned = assignedPatients(DOCTOR, basic);
+    assertThat(assigned.statusCode()).isEqualTo(200);
+    assertThat(assigned.headers().firstValue("Cache-Control")).contains("no-store");
+    assertThat(data(assigned).path("patientIds").toString()).contains(PATIENT.toString(), OTHER.toString());
+    assertThat(data(assignedPatients(UUID.randomUUID(), basic)).path("patientIds").size()).isZero();
+    String id = data(first).path("id").asText();
+    assertThat(request("PUT", "/" + id + "/cancel", "alice", Map.of("version", 0), UUID.randomUUID()).statusCode()).isEqualTo(200);
+    assertThat(data(assignedPatients(DOCTOR, basic)).path("patientIds").toString()).doesNotContain(PATIENT.toString()).contains(OTHER.toString());
+    jdbc.update("update appointments set status='NO_SHOW' where id=?", UUID.fromString(data(second).path("id").asText()));
+    assertThat(data(assignedPatients(DOCTOR, basic)).path("patientIds").size()).isZero();
+    jdbc.update("update appointments set status='COMPLETED' where id=?", UUID.fromString(data(second).path("id").asText()));
+    assertThat(data(assignedPatients(DOCTOR, basic)).path("patientIds").toString()).contains(OTHER.toString());
+  }
+  @Test void anotherConfirmedBookingPreservesAssignmentAfterCancellation() throws Exception {
+    String basic = "Basic " + Base64.getEncoder().encodeToString("auth-assignments:assignment-secret".getBytes(StandardCharsets.UTF_8));
+    var first = book("alice", PATIENT); assertThat(first.statusCode()).isEqualTo(201);
+    assertThat(book("alice", PATIENT, NEXT_SLOT).statusCode()).isEqualTo(201);
+    assertThat(data(assignedPatients(DOCTOR, basic)).path("patientIds").size()).isEqualTo(1);
+    assertThat(request("PUT", "/" + data(first).path("id").asText() + "/cancel", "alice", Map.of("version", 0), UUID.randomUUID()).statusCode()).isEqualTo(200);
+    assertThat(data(assignedPatients(DOCTOR, basic)).path("patientIds").toString()).contains(PATIENT.toString());
   }
   @Test void selfBookingCancelAndDurableReplayWorkWithVerifiedAudit() throws Exception {
     var booked = book("alice", PATIENT); assertThat(booked.statusCode()).isEqualTo(201);

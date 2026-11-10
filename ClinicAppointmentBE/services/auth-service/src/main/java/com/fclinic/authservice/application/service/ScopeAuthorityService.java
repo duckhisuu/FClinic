@@ -4,6 +4,7 @@ import com.fclinic.authservice.application.port.out.UserRepositoryPort;
 import com.fclinic.authservice.domain.util.UuidV4;
 import com.fclinic.authservice.domain.valueobject.RoleName;
 import com.fclinic.authservice.application.port.out.ScopeAssignmentPort;
+import com.fclinic.authservice.application.port.out.DoctorPatientAssignmentPort;
 import java.time.*;
 import java.util.*;
 import org.springframework.stereotype.Service;
@@ -14,8 +15,9 @@ public class ScopeAuthorityService {
   private final UserRepositoryPort users;
   private final ScopeAssignmentPort settings;
   private final Clock clock;
-  public ScopeAuthorityService(UserRepositoryPort users, ScopeAssignmentPort settings, Clock clock) {
-    this.users = users; this.settings = settings; this.clock = clock;
+  private final DoctorPatientAssignmentPort appointments;
+  public ScopeAuthorityService(UserRepositoryPort users, ScopeAssignmentPort settings, Clock clock, DoctorPatientAssignmentPort appointments) {
+    this.users = users; this.settings = settings; this.clock = clock; this.appointments = appointments;
   }
   public record Caller(String subject, String principalType, UUID patientId, UUID doctorId, String serviceName) { }
   public record Query(String contractVersion, UUID nonce, Instant requestedAt, String authority,
@@ -30,6 +32,18 @@ public class ScopeAuthorityService {
     if (!UuidV4.isUuidV4(q.nonce()) || (q.patientId() != null && !UuidV4.isUuidV4(q.patientId()))
         || (q.appointmentId() != null && !UuidV4.isUuidV4(q.appointmentId())) || q.requestedAt() == null || q.requestedAt().isBefore(now.minusSeconds(5))
         || q.requestedAt().isAfter(now.plusSeconds(1)) || !permittedIdentity(q)) return result;
+    // Read access follows the selected doctor in committed bookings. Cancellation revokes it
+    // when no other confirmed/completed appointment connects this doctor and patient.
+    if ("CLINICAL".equals(q.authority()) && Set.of("DOCTOR_SEARCH", "DOCTOR_PROFILE_READ", "MEDICAL_READ").contains(q.operation())) {
+      Set<UUID> patients = appointments.assignedPatients(q.caller().doctorId());
+      boolean search = "DOCTOR_SEARCH".equals(q.operation());
+      if (patients.size() > 1000 || (!search && (q.patientId() == null || !patients.contains(q.patientId())))) return result;
+      Map<String, Object> evidence = new LinkedHashMap<>();
+      evidence.put("assignmentId", q.caller().doctorId()); evidence.put("active", true);
+      evidence.put("validFrom", now.minusSeconds(1)); evidence.put("validUntil", now.plusSeconds(30)); evidence.put("visitId", null);
+      result.put("allowed", true); result.put("patientIds", search ? patients : null); result.put("evidence", evidence);
+      return result;
+    }
     boolean search = Set.of("APPOINTMENT_SEARCH", "ADMIN_SEARCH", "DOCTOR_SEARCH").contains(q.operation());
     for (var entry : settings.grants().entrySet()) {
       var grant = entry.getValue();

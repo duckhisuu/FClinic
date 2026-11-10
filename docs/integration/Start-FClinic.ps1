@@ -20,6 +20,11 @@ if (-not (Test-Path $settingsFile)) {
     $settings | ConvertTo-Json | Set-Content $settingsFile
 }
 $settings = Get-Content $settingsFile -Raw | ConvertFrom-Json
+# Keep the Auth -> Appointment assignment credential distinct and stable across restarts.
+if (!$settings.PSObject.Properties['AUTH_APPOINTMENT_ASSIGNMENTS_CLIENT_SECRET']) {
+    $settings | Add-Member -NotePropertyName 'AUTH_APPOINTMENT_ASSIGNMENTS_CLIENT_SECRET' -NotePropertyValue ([guid]::NewGuid().ToString('N'))
+    $settings | ConvertTo-Json | Set-Content $settingsFile
+}
 $settings.PSObject.Properties | ForEach-Object { [Environment]::SetEnvironmentVariable($_.Name, [string]$_.Value, 'Process') }
 $env:AUTH_INTROSPECTION_CLIENT_SECRET = $env:PATIENT_AUTH_CLIENT_SECRET
 $env:AUTH_INTROSPECTION_CLIENT_ID = 'patient-service'
@@ -148,7 +153,5 @@ Start-ServiceJar 'notification-service' 'services/notification-service'
 Wait-Health 'http://localhost:8084/actuator/health'
 Start-ServiceJar 'api-gateway' 'infra/api-gateway'
 Wait-Health 'http://localhost:8080/actuator/health'
-$env:NODE_EXTRA_CA_CERTS = $certificate
-$env:VITE_AUTH_PROXY_TARGET = 'https://localhost:8085'
 Write-Host 'Backend started. Frontend: cd ClinicAppointmentFE; npm run dev -- --host 127.0.0.1'
-Write-Host 'Open http://127.0.0.1:5173 (this shell retains TLS trust for Vite).'
+Write-Host 'Open http://127.0.0.1:5173 (all /api requests go through Gateway :8080).'
