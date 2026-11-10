@@ -156,8 +156,10 @@ function MainApp() {
     permissions: { ...capabilities,
       canUpdatePatient: id => capabilities.updatePatientIds?.includes(id) === true,
       canCreateRecord: id => capabilities.createRecordPatientIds?.includes(id) === true,
+      canReadRecord: id => (user?.role === 'ROLE_PATIENT' && user?.patientId === id)
+        || capabilities.readRecordPatientIds?.includes(id) === true,
       canUpdateRecord: id => capabilities.updateRecordPatientIds?.includes(id) === true,
-    } }), [user?.id, user?.patientId, user?.doctorId, capabilities]);
+    } }), [user?.id, user?.role, user?.patientId, user?.doctorId, capabilities]);
 
   const patientLeave = useRef(null);
   const registerPatientGuard = useCallback((guard) => {

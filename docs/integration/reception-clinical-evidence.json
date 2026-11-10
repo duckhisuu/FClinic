@@ -1,0 +1,1425 @@
+{
+  "updatedAt": "2026-11-10T05:26:31.965Z",
+  "patientId": "221a006a-6843-40b3-89d3-6a3faea21d43",
+  "appointmentId": "f63a85ec-4e90-4b1b-9dad-ee154099ce80",
+  "recordId": "aef9dac7-2821-4ec3-b2c3-fbde78304a78",
+  "latestAttempts": {
+    "prepare": 1,
+    "scope": 1,
+    "slots": 1,
+    "visit": 1,
+    "verify": 1,
+    "outage": 1,
+    "extras": 2,
+    "audit": 2
+  },
+  "latestChecks": 131,
+  "latestFailures": 0,
+  "historicalFailures": 1,
+  "checks": [
+    {
+      "phase": "prepare",
+      "label": "Real login",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "prepare",
+      "label": "Register synthetic patient",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/register",
+      "expected": 201,
+      "actual": 201
+    },
+    {
+      "phase": "prepare",
+      "label": "Register synthetic outsider",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/register",
+      "expected": 201,
+      "actual": 201
+    },
+    {
+      "phase": "prepare",
+      "label": "Create actual reader Doctor UUID",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/doctors",
+      "expected": 201,
+      "actual": 201
+    },
+    {
+      "phase": "prepare",
+      "label": "Admin provisions least-privilege reader Doctor",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/admin/users",
+      "expected": 201,
+      "actual": 201
+    },
+    {
+      "phase": "prepare",
+      "label": "Real login",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "prepare",
+      "label": "No wildcard human grant added",
+      "pass": true
+    },
+    {
+      "phase": "scope",
+      "label": "Real login",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "scope",
+      "label": "Staff-created synthetic row exists with exact immutable creator",
+      "pass": true
+    },
+    {
+      "phase": "scope",
+      "label": "Real login",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "scope",
+      "label": "Real login",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "scope",
+      "label": "New account initially unlinked",
+      "pass": true
+    },
+    {
+      "phase": "scope",
+      "label": "No other account owns reception profile",
+      "pass": true
+    },
+    {
+      "phase": "scope",
+      "label": "Trusted Admin associates identified reception Patient account",
+      "pass": true,
+      "method": "PUT",
+      "route": "/api/v1/auth/admin/users/eb9f5a90-cf99-4fae-b5bb-2b162c4c70a2",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "scope",
+      "label": "Real login",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "scope",
+      "label": "Verified patient identity binding",
+      "pass": true
+    },
+    {
+      "phase": "slots",
+      "label": "Real login",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "slots",
+      "label": "Doctor publishes real same-day 60-minute offer",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/doctors/c6f4f54e-1d05-4c6e-8392-9da5092ea4d7/slots",
+      "expected": 201,
+      "actual": 201
+    },
+    {
+      "phase": "slots",
+      "label": "Offer visible through protected actual provider",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v2/appointments/available-slots?doctorId=c6f4f54e-1d05-4c6e-8392-9da5092ea4d7&date=2026-11-10",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "visit",
+      "label": "Real login",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "visit",
+      "label": "Real login",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "visit",
+      "label": "Staff reads actual booked appointment",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v2/appointments/f63a85ec-4e90-4b1b-9dad-ee154099ce80",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "visit",
+      "label": "Appointment exact Patient/Doctor/slot and CONFIRMED",
+      "pass": true
+    },
+    {
+      "phase": "visit",
+      "label": "No MedicalRecord before clinical examination",
+      "pass": true
+    },
+    {
+      "phase": "verify",
+      "label": "Real login",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "verify",
+      "label": "Real login",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "verify",
+      "label": "Real login",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "verify",
+      "label": "Real login",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "verify",
+      "label": "Real login",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "verify",
+      "label": "Real login",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "verify",
+      "label": "Get canonical reception profile",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "verify",
+      "label": "Search by name/code/phone with pagination",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients?keyword=QA%20Reception%20mwa85a9c&page=0&size=1",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "verify",
+      "label": "Search returns exact finite Patient",
+      "pass": true
+    },
+    {
+      "phase": "verify",
+      "label": "Search by name/code/phone with pagination",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients?keyword=PAT-221a006a-6843-40b3-89d3-6a3faea21d43&page=0&size=1",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "verify",
+      "label": "Search returns exact finite Patient",
+      "pass": true
+    },
+    {
+      "phase": "verify",
+      "label": "Search by name/code/phone with pagination",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients?phoneNumber=%2B84900000951&page=0&size=1",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "verify",
+      "label": "Search returns exact finite Patient",
+      "pass": true
+    },
+    {
+      "phase": "verify",
+      "label": "Second finite page",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients?page=1&size=1",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "verify",
+      "label": "Pagination is bounded",
+      "pass": true
+    },
+    {
+      "phase": "verify",
+      "label": "Replace Patient profile",
+      "pass": true,
+      "method": "PUT",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "verify",
+      "label": "Profile version advances",
+      "pass": true
+    },
+    {
+      "phase": "verify",
+      "label": "Stale profile rejected",
+      "pass": true,
+      "method": "PUT",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43",
+      "expected": 409,
+      "actual": 409
+    },
+    {
+      "phase": "verify",
+      "label": "Patient reads saved profile",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "verify",
+      "label": "Profile update read back",
+      "pass": true
+    },
+    {
+      "phase": "verify",
+      "label": "List medical records",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43/medical-records?page=0&size=1",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "verify",
+      "label": "Browser-created record exists",
+      "pass": true
+    },
+    {
+      "phase": "verify",
+      "label": "Real Doctor UUID and appointment association",
+      "pass": true
+    },
+    {
+      "phase": "verify",
+      "label": "Get medical record",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43/medical-records/aef9dac7-2821-4ec3-b2c3-fbde78304a78",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "verify",
+      "label": "Replace medical record with version and reason",
+      "pass": true,
+      "method": "PUT",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43/medical-records/aef9dac7-2821-4ec3-b2c3-fbde78304a78",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "verify",
+      "label": "Medical version advances",
+      "pass": true
+    },
+    {
+      "phase": "verify",
+      "label": "Stale medical version rejected",
+      "pass": true,
+      "method": "PUT",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43/medical-records/aef9dac7-2821-4ec3-b2c3-fbde78304a78",
+      "expected": 409,
+      "actual": 409
+    },
+    {
+      "phase": "verify",
+      "label": "author Doctor reads persisted record",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43/medical-records/aef9dac7-2821-4ec3-b2c3-fbde78304a78",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "verify",
+      "label": "author Doctor sees amended record",
+      "pass": true
+    },
+    {
+      "phase": "verify",
+      "label": "author Doctor lists records",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43/medical-records?page=0&size=1",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "verify",
+      "label": "assigned read-only Doctor reads persisted record",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43/medical-records/aef9dac7-2821-4ec3-b2c3-fbde78304a78",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "verify",
+      "label": "assigned read-only Doctor sees amended record",
+      "pass": true
+    },
+    {
+      "phase": "verify",
+      "label": "assigned read-only Doctor lists records",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43/medical-records?page=0&size=1",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "verify",
+      "label": "own Patient reads persisted record",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43/medical-records/aef9dac7-2821-4ec3-b2c3-fbde78304a78",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "verify",
+      "label": "own Patient sees amended record",
+      "pass": true
+    },
+    {
+      "phase": "verify",
+      "label": "own Patient lists records",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43/medical-records?page=0&size=1",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "verify",
+      "label": "Staff cannot read clinical data",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43/medical-records/aef9dac7-2821-4ec3-b2c3-fbde78304a78",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "phase": "verify",
+      "label": "Admin without clinical role cannot read clinical data",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43/medical-records/aef9dac7-2821-4ec3-b2c3-fbde78304a78",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "phase": "verify",
+      "label": "outside Patient cannot read clinical data",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43/medical-records/aef9dac7-2821-4ec3-b2c3-fbde78304a78",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "phase": "verify",
+      "label": "Missing token",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43/medical-records/aef9dac7-2821-4ec3-b2c3-fbde78304a78",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "phase": "verify",
+      "label": "Invalid token",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43/medical-records/aef9dac7-2821-4ec3-b2c3-fbde78304a78",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "phase": "verify",
+      "label": "Doctor outside finite Patient scope",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/1fba72d5-04bd-4963-9143-50ec4092d5b2/medical-records",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "phase": "verify",
+      "label": "Absent record correctly rejected",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43/medical-records/fb18a48e-7229-4fb9-a90d-970ee83aba65",
+      "expected": 404,
+      "actual": 404
+    },
+    {
+      "phase": "verify",
+      "label": "Malformed Patient UUID",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/not-a-uuid",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "phase": "verify",
+      "label": "Staff cannot create medical record",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43/medical-records",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "phase": "verify",
+      "label": "Wrong Doctor UUID",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43/medical-records",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "phase": "verify",
+      "label": "Malformed Doctor UUID",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43/medical-records",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "phase": "verify",
+      "label": "Future encounter rejected",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43/medical-records",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "phase": "verify",
+      "label": "Null appointment is not an implicit walk-in grant",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43/medical-records",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "phase": "verify",
+      "label": "Read-only Doctor cannot amend",
+      "pass": true,
+      "method": "PUT",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43/medical-records/aef9dac7-2821-4ec3-b2c3-fbde78304a78",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "phase": "verify",
+      "label": "Patient cannot amend",
+      "pass": true,
+      "method": "PUT",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43/medical-records/aef9dac7-2821-4ec3-b2c3-fbde78304a78",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "phase": "verify",
+      "label": "Doctor cannot change administrative profile",
+      "pass": true,
+      "method": "PUT",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "phase": "verify",
+      "label": "All rejected writes leave database and revisions unchanged",
+      "pass": true
+    },
+    {
+      "phase": "verify",
+      "label": "Canonical PostgreSQL profile and record match HTTP",
+      "pass": true
+    },
+    {
+      "phase": "verify",
+      "label": "Revision rows persist",
+      "pass": true
+    },
+    {
+      "phase": "verify",
+      "label": "Amendment reason is audited",
+      "pass": true
+    },
+    {
+      "phase": "outage",
+      "label": "Real login",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "outage",
+      "label": "Doctor provider outage is not success",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43/medical-records",
+      "expected": 503,
+      "actual": 503
+    },
+    {
+      "phase": "outage",
+      "label": "Outage leaves MedicalRecord count unchanged",
+      "pass": true
+    },
+    {
+      "phase": "extras",
+      "label": "Real login",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "extras",
+      "label": "Real login",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "extras",
+      "label": "Real login",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "extras",
+      "label": "Real login",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "extras",
+      "label": "Real login",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "extras",
+      "label": "Read record after service restart",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43/medical-records/aef9dac7-2821-4ec3-b2c3-fbde78304a78",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "extras",
+      "label": "One medical record per Appointment enforced",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43/medical-records",
+      "expected": 409,
+      "actual": 409
+    },
+    {
+      "phase": "extras",
+      "label": "Change reason is mandatory",
+      "pass": true,
+      "method": "PUT",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43/medical-records/aef9dac7-2821-4ec3-b2c3-fbde78304a78",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "phase": "extras",
+      "label": "Unchanged clinical update is idempotent",
+      "pass": true,
+      "method": "PUT",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43/medical-records/aef9dac7-2821-4ec3-b2c3-fbde78304a78",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "extras",
+      "label": "No-op preserves medical version",
+      "pass": true
+    },
+    {
+      "phase": "extras",
+      "label": "Read current profile for no-op and status checks",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "extras",
+      "label": "Unchanged profile update is idempotent",
+      "pass": true,
+      "method": "PUT",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "extras",
+      "label": "No-op preserves profile version",
+      "pass": true
+    },
+    {
+      "phase": "extras",
+      "label": "Staff deactivates exact assigned profile",
+      "pass": true,
+      "method": "PUT",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "extras",
+      "label": "Inactive Patient cannot receive a new medical record",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43/medical-records",
+      "expected": 409,
+      "actual": 409
+    },
+    {
+      "phase": "extras",
+      "label": "Staff restores active status",
+      "pass": true,
+      "method": "PUT",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "extras",
+      "label": "Active status restored with audited version",
+      "pass": true
+    },
+    {
+      "phase": "extras",
+      "label": "Rejected duplicate and inactive writes did not add records",
+      "pass": true
+    },
+    {
+      "phase": "extras",
+      "label": "Medical pagination next page",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43/medical-records?page=1&size=1",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "extras",
+      "label": "Medical pagination bounded",
+      "pass": true
+    },
+    {
+      "phase": "extras",
+      "label": "Read-only Doctor actual capabilities",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v1/auth/me/patient-capabilities",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "extras",
+      "label": "Read capability does not imply write",
+      "pass": true
+    },
+    {
+      "phase": "extras",
+      "label": "Staff actual capabilities",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v1/auth/me/patient-capabilities",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "extras",
+      "label": "Staff clinical navigation denied",
+      "pass": true
+    },
+    {
+      "phase": "extras",
+      "label": "New Patient has no self-owned profile",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/self-profile",
+      "expected": 404,
+      "actual": 404
+    },
+    {
+      "phase": "extras",
+      "label": "Unlinked Patient self-creates canonical profile",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v3/patients",
+      "expected": 201,
+      "actual": 201
+    },
+    {
+      "phase": "extras",
+      "label": "Self creation retry",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v3/patients",
+      "expected": 201,
+      "actual": 201
+    },
+    {
+      "phase": "extras",
+      "label": "Self retry returns existing UUID",
+      "pass": true
+    },
+    {
+      "phase": "extras",
+      "label": "Server-owned initial profile lookup",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/self-profile",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "extras",
+      "label": "Self profile exact UUID",
+      "pass": true
+    },
+    {
+      "phase": "extras",
+      "label": "Verified self-profile binding",
+      "pass": true,
+      "method": "PUT",
+      "route": "/api/v1/auth/me/patient-profile",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "extras",
+      "label": "Other linked Patient still cannot read this clinical record",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43/medical-records/aef9dac7-2821-4ec3-b2c3-fbde78304a78",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "phase": "extras",
+      "label": "Patient reads actual booking Notification",
+      "pass": false,
+      "method": "GET",
+      "route": "/api/v1/notifications/me?size=100",
+      "expected": 200,
+      "actual": 503
+    },
+    {
+      "phase": "extras",
+      "attempt": 2,
+      "label": "Real login",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "extras",
+      "attempt": 2,
+      "label": "Real login",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "extras",
+      "attempt": 2,
+      "label": "Real login",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "extras",
+      "attempt": 2,
+      "label": "Real login",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "extras",
+      "attempt": 2,
+      "label": "Real login",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "extras",
+      "attempt": 2,
+      "label": "Read record after service restart",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43/medical-records/aef9dac7-2821-4ec3-b2c3-fbde78304a78",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "extras",
+      "attempt": 2,
+      "label": "One medical record per Appointment enforced",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43/medical-records",
+      "expected": 409,
+      "actual": 409
+    },
+    {
+      "phase": "extras",
+      "attempt": 2,
+      "label": "Change reason is mandatory",
+      "pass": true,
+      "method": "PUT",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43/medical-records/aef9dac7-2821-4ec3-b2c3-fbde78304a78",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "phase": "extras",
+      "attempt": 2,
+      "label": "Unchanged clinical update is idempotent",
+      "pass": true,
+      "method": "PUT",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43/medical-records/aef9dac7-2821-4ec3-b2c3-fbde78304a78",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "extras",
+      "attempt": 2,
+      "label": "No-op preserves medical version",
+      "pass": true
+    },
+    {
+      "phase": "extras",
+      "attempt": 2,
+      "label": "Read current profile for no-op and status checks",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "extras",
+      "attempt": 2,
+      "label": "Unchanged profile update is idempotent",
+      "pass": true,
+      "method": "PUT",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "extras",
+      "attempt": 2,
+      "label": "No-op preserves profile version",
+      "pass": true
+    },
+    {
+      "phase": "extras",
+      "attempt": 2,
+      "label": "Staff deactivates exact assigned profile",
+      "pass": true,
+      "method": "PUT",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "extras",
+      "attempt": 2,
+      "label": "Inactive Patient cannot receive a new medical record",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43/medical-records",
+      "expected": 409,
+      "actual": 409
+    },
+    {
+      "phase": "extras",
+      "attempt": 2,
+      "label": "Staff restores active status",
+      "pass": true,
+      "method": "PUT",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "extras",
+      "attempt": 2,
+      "label": "Active status restored with audited version",
+      "pass": true
+    },
+    {
+      "phase": "extras",
+      "attempt": 2,
+      "label": "Rejected duplicate and inactive writes did not add records",
+      "pass": true
+    },
+    {
+      "phase": "extras",
+      "attempt": 2,
+      "label": "Medical pagination next page",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43/medical-records?page=1&size=1",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "extras",
+      "attempt": 2,
+      "label": "Medical pagination bounded",
+      "pass": true
+    },
+    {
+      "phase": "extras",
+      "attempt": 2,
+      "label": "Read-only Doctor actual capabilities",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v1/auth/me/patient-capabilities",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "extras",
+      "attempt": 2,
+      "label": "Read capability does not imply write",
+      "pass": true
+    },
+    {
+      "phase": "extras",
+      "attempt": 2,
+      "label": "Staff actual capabilities",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v1/auth/me/patient-capabilities",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "extras",
+      "attempt": 2,
+      "label": "Staff clinical navigation denied",
+      "pass": true
+    },
+    {
+      "phase": "extras",
+      "attempt": 2,
+      "label": "Server-owned initial profile lookup",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/self-profile",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "extras",
+      "attempt": 2,
+      "label": "Self profile exact UUID",
+      "pass": true
+    },
+    {
+      "phase": "extras",
+      "attempt": 2,
+      "label": "Verified self-profile binding",
+      "pass": true,
+      "method": "PUT",
+      "route": "/api/v1/auth/me/patient-profile",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "extras",
+      "attempt": 2,
+      "label": "Other linked Patient still cannot read this clinical record",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43/medical-records/aef9dac7-2821-4ec3-b2c3-fbde78304a78",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "phase": "extras",
+      "attempt": 2,
+      "label": "Patient reads actual booking Notification",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v1/notifications/me?size=100",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "extras",
+      "attempt": 2,
+      "label": "Booking event delivered to exact Patient account",
+      "pass": true
+    },
+    {
+      "phase": "extras",
+      "attempt": 2,
+      "label": "Other Patient cannot read booking Notification",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v1/notifications/0fdbed99-c8e5-4867-b405-94ea153eb5fd",
+      "expected": 404,
+      "actual": 404
+    },
+    {
+      "phase": "extras",
+      "attempt": 2,
+      "label": "Staff reads exact appointment",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v2/appointments/f63a85ec-4e90-4b1b-9dad-ee154099ce80",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "extras",
+      "attempt": 2,
+      "label": "Doctor reads exact appointment",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v2/appointments/f63a85ec-4e90-4b1b-9dad-ee154099ce80",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "extras",
+      "attempt": 2,
+      "label": "Patient reads exact appointment",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v2/appointments/f63a85ec-4e90-4b1b-9dad-ee154099ce80",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "extras",
+      "attempt": 2,
+      "label": "Real refresh rotation",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/refresh",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "extras",
+      "attempt": 2,
+      "label": "Logout current test session",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/logout",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "extras",
+      "attempt": 2,
+      "label": "Revoked token cannot read medical data",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43/medical-records/aef9dac7-2821-4ec3-b2c3-fbde78304a78",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "phase": "audit",
+      "attempt": 1,
+      "label": "Real login",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "audit",
+      "attempt": 1,
+      "label": "Real login",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "audit",
+      "attempt": 1,
+      "label": "Final Patient reads canonical profile",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "audit",
+      "attempt": 1,
+      "label": "Staff editor persisted exact address",
+      "pass": true
+    },
+    {
+      "phase": "audit",
+      "attempt": 1,
+      "label": "Final assigned reader reads canonical medical record",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43/medical-records/aef9dac7-2821-4ec3-b2c3-fbde78304a78",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "audit",
+      "attempt": 1,
+      "label": "Final record author and appointment match",
+      "pass": true
+    },
+    {
+      "phase": "audit",
+      "attempt": 1,
+      "label": "Final API and PostgreSQL versions match",
+      "pass": true
+    },
+    {
+      "phase": "audit",
+      "attempt": 1,
+      "label": "All profile and medical revisions retained",
+      "pass": true
+    },
+    {
+      "phase": "audit",
+      "attempt": 1,
+      "label": "Exactly one medical record for original registration",
+      "pass": true
+    },
+    {
+      "phase": "audit",
+      "attempt": 1,
+      "label": "Appointment remains honestly CONFIRMED",
+      "pass": true
+    },
+    {
+      "phase": "audit",
+      "attempt": 2,
+      "label": "Real login",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "audit",
+      "attempt": 2,
+      "label": "Real login",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "audit",
+      "attempt": 2,
+      "label": "Final Patient reads canonical profile",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "audit",
+      "attempt": 2,
+      "label": "Staff editor persisted exact address",
+      "pass": true
+    },
+    {
+      "phase": "audit",
+      "attempt": 2,
+      "label": "Final assigned reader reads canonical medical record",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/221a006a-6843-40b3-89d3-6a3faea21d43/medical-records/aef9dac7-2821-4ec3-b2c3-fbde78304a78",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "audit",
+      "attempt": 2,
+      "label": "Final record author and appointment match",
+      "pass": true
+    },
+    {
+      "phase": "audit",
+      "attempt": 2,
+      "label": "Final API and PostgreSQL versions match",
+      "pass": true
+    },
+    {
+      "phase": "audit",
+      "attempt": 2,
+      "label": "All profile and medical revisions retained",
+      "pass": true
+    },
+    {
+      "phase": "audit",
+      "attempt": 2,
+      "label": "Exactly one medical record for original registration",
+      "pass": true
+    },
+    {
+      "phase": "audit",
+      "attempt": 2,
+      "label": "Appointment remains honestly CONFIRMED",
+      "pass": true
+    },
+    {
+      "phase": "audit",
+      "attempt": 2,
+      "label": "Cold service restart preserved exact database rows and audits",
+      "pass": true
+    }
+  ]
+}

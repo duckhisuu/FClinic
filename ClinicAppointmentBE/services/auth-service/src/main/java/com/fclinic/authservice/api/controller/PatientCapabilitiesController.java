@@ -32,6 +32,7 @@ public class PatientCapabilitiesController {
         result.put("updatePatientIds", candidates.stream().filter(id -> allowed(identity, "ADMINISTRATIVE", "ADMIN_ASSIGNMENT_UPDATE", null)
                 && allowed(identity, "ADMINISTRATIVE", "ADMIN_PROFILE_UPDATE", id)).toList());
         result.put("createRecordPatientIds", candidates.stream().filter(id -> allowed(identity, "CLINICAL", "MEDICAL_CREATE", id)).toList());
+        result.put("readRecordPatientIds", candidates.stream().filter(id -> allowed(identity, "CLINICAL", "MEDICAL_READ", id)).toList());
         result.put("updateRecordPatientIds", candidates.stream().filter(id -> allowed(identity, "CLINICAL", "MEDICAL_UPDATE", id)).toList());
         return ApiResponse.success(result);
     }

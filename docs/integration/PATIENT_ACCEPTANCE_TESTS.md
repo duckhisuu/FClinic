@@ -1,4 +1,44 @@
-# Patient acceptance — current self-service onboarding, 2026-11-10
+# Patient acceptance — Staff reception to clinical record, 2026-11-10
+
+**Canonical Patient APIs: 8/8 PASS with real services, real PostgreSQL and explicit finite WorkScope.** All identity, demographic and clinical input for this run is synthetic. No runtime mocks, fake success, authorization bypass or database reset was used.
+
+The same case was exercised through React: Staff logs in → creates Patient → receives an exact administrative assignment → searches/selects that Patient at reception → selects actual Doctor/Slot UUIDs → books and reads the persisted appointment → treating Doctor opens the Patient from the appointment list → creates MedicalRecord with exact VALID_VISIT and Appointment reference → amends it with version/changeReason. A different assigned read-only Doctor and the linked Patient subsequently read the same amended record. Staff separately updates the administrative profile through React.
+
+| Patient v3 operation | Result | Evidence |
+|---|---|---|
+| POST /api/v3/patients | PASS | Staff creates through React; canonical row, immutable Staff subject and initial revision verified by SQL. Additional Patient self-create/retry also returns 201 and one stable UUID. |
+| GET /api/v3/patients | PASS | Name, patientCode and phone searches; exact finite result; first/next page metadata. |
+| GET /api/v3/patients/{id} | PASS | Staff, assigned Doctor and own Patient read actual data; wrong Patient/scope denied. |
+| PUT /api/v3/patients/{id} | PASS | Live API and Staff React editor; readback; optimistic version; no-op; INACTIVE/ACTIVE transitions; revisions. |
+| POST /api/v3/patients/{patientId}/medical-records | PASS | Treating Doctor React editor persists one record with actual Doctor/Appointment UUIDs and explicit exact VALID_VISIT. |
+| GET /api/v3/patients/{patientId}/medical-records | PASS | Doctor/read-only Doctor/own Patient list actual record; pagination; other callers denied. |
+| GET /api/v3/patients/{patientId}/medical-records/{recordId} | PASS | Same persisted content/version read independently by authorized accounts; absent record 404. |
+| PUT /api/v3/patients/{patientId}/medical-records/{recordId} | PASS | Doctor React amendment plus API amendment; changeReason persisted in revision; stale version 409; no-op preserves version. |
+
+Retained case:
+
+- Patient UUID: `221a006a-6843-40b3-89d3-6a3faea21d43`.
+- Doctor UUID: `c6f4f54e-1d05-4c6e-8392-9da5092ea4d7`.
+- Appointment UUID: `f63a85ec-4e90-4b1b-9dad-ee154099ce80` (actual booking remains CONFIRMED).
+- MedicalRecord UUID: `aef9dac7-2821-4ec3-b2c3-fbde78304a78`.
+- Final profile version **6**, profile revisions **7**. Final record version **2**, medical revisions **3**; exactly one record for this Appointment.
+- Canonical tables: patient_db.patients, medical_records, patient_revisions, medical_record_revisions; trusted identity association in auth_db.users. No Patient data was moved to another schema/database.
+
+Negative/runtime coverage includes missing/invalid/revoked token, wrong Patient, Doctor without exact scope, wrong Doctor UUID, malformed UUID, future visit, missing changeReason, stale version, duplicate Appointment medical record, inactive Patient, unauthorized Staff/Patient/read-only Doctor writes and Doctor provider outage (503). SQL snapshots prove rejected writes preserve rows/revisions. appointmentId=null with no walk-in VALID_VISIT is explicitly denied. Self-profile ownership and booking Notification recipient isolation also pass.
+
+Source fixes found by this flow:
+
+1. Auth capabilities now expose additive readRecordPatientIds derived from actual MEDICAL_READ grants. React uses this for clinical navigation, independently from create/update rights; own Patient self-read follows verified identity. Staff no longer sees clinical links simply because administrative profile read succeeded. Backend access policy is unchanged.
+2. Start-FClinic.ps1 now waits for actual Gateway routes, including expected 401 on protected routes, after Actuator UP. The first post-build extension attempt correctly failed with Notification 503 while Gateway's discovery cache contained only 3 services. This historical failure remains in reception-clinical-evidence.json. Unchanged assertions passed after route-readiness verification; a full cold restart passed: Gateway waited 29 probes for Appointment discovery before reporting readiness, and all routes became reachable.
+
+Verification: full Maven verify **383 tests**, zero failures/errors/skips (Gateway 1, Auth 18, Patient 296, Doctor 9, Appointment 29, Notification 30); Patient-only verify PASS; security contracts **13/13** PASS; React **51 tests / 11 files PASS**, build PASS. Logs are retained in ignored .runtime/reception-*.log. reception-clinical-evidence.json preserves every attempt and separately summarizes the latest attempt per phase; the first 503 failure is not deleted or counted as a final passing assertion.
+
+Latest attempts: **131/131 checks PASS**; one historical 503 failure retained. A cold restart preserved the exact PostgreSQL rows and audits; the Patient refreshed the browser and read the same version 2 record. All 8 local health checks are UP (reception-clinical-health.json); Auth TLS was checked with the actual CA certificate. Current Notification consumer queue is drained, DLQ remains 4 untouched, and the additional legacy queue retains 14 copies.
+
+Browser evidence: reception-staff-profile.jpg, reception-staff-booking.jpg, reception-doctor-created-record.jpg, reception-staff-updated-profile.jpg, reception-reader-doctor-record.jpg, and reception-patient-record.jpg after the cold restart. These contain synthetic test data only.
+
+Boundaries: WorkScope assignment is still protected deployment configuration, not an Admin UI workflow. A new Staff-created UUID required explicit exact assignment before it could be read/updated or booked; the initial 403 before assignment was observed and respected. Synthetic Patient account association used the existing trusted ADMIN API after verifying the exact Staff-created row and no prior account binding. Grants are finite, no wildcard, and expire after 8 hours. Appointment currently exposes booking/cancel/reschedule/read, not a completion operation; writing MedicalRecord does not claim that Appointment changed to COMPLETED. The synthetic encounter uses the explicitly granted past visit timestamp; booking slot start is 13:00 and the test does not simulate waiting for real clinical care.
+## Previous self-service onboarding acceptance — 2026-11-10
 
 **Self-service profile creation: PASS (real HTTP, PostgreSQL and React browser).**
 

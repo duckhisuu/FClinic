@@ -150,6 +150,24 @@ Start-ServiceJar 'notification-service' 'services/notification-service'
 Wait-Health 'http://localhost:8084/actuator/health'
 Start-ServiceJar 'api-gateway' 'infra/api-gateway'
 Wait-Health 'http://localhost:8080/actuator/health'
+# Actuator UP does not prove Eureka/LoadBalancer has discovered every backend.
+# Probe only read operations; 401 proves the protected service is reachable.
+function Wait-GatewayRoute([string]$route, [int]$expectedStatus) {
+    for ($attempt = 0; $attempt -lt 45; $attempt++) {
+        $status = & curl.exe --silent --max-time 2 --output NUL --write-out '%{http_code}' ("http://localhost:8080" + $route)
+        if ($LASTEXITCODE -eq 0 -and $status.Trim() -eq "$expectedStatus") {
+            Write-Host "Gateway route ready: $route ($expectedStatus, attempt $($attempt + 1))"
+            return
+        }
+        Start-Sleep -Milliseconds 1000
+    }
+    throw "Gateway route unavailable: $route (expected $expectedStatus, received $status). Inspect discovery and Gateway logs."
+}
+Wait-GatewayRoute '/api/v1/auth/me' 401
+Wait-GatewayRoute '/api/v1/doctors' 200
+Wait-GatewayRoute '/api/v3/patients' 401
+Wait-GatewayRoute '/api/v2/appointments' 401
+Wait-GatewayRoute '/api/v1/notifications/me' 401
 $env:NODE_EXTRA_CA_CERTS = $certificate
 $env:VITE_AUTH_PROXY_TARGET = 'https://localhost:8085'
 Write-Host 'Backend started. Frontend: cd ClinicAppointmentFE; npm run dev -- --host 127.0.0.1'

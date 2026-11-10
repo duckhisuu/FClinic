@@ -3,6 +3,7 @@ import {render,screen} from '@testing-library/react';
 import {it,expect,vi} from 'vitest';
 import {MedicalRecordsPage} from '../pages/MedicalRecordsPage';
 import {MedicalRecordDetailPage} from '../pages/MedicalRecordDetailPage';
+import {PatientDetailPage} from '../pages/PatientDetailPage';
 import {makeFixtures} from '../preview/fixtures';
 
 const {patients:[patient],records:[record]}=makeFixtures();
@@ -14,6 +15,13 @@ it('shows the successful empty medical list without treating missing write acces
  expect(await screen.findByText('Chưa có bệnh án')).toBeVisible();
  expect(screen.queryByText('Chưa sẵn sàng trên hệ thống thật')).not.toBeInTheDocument();
  expect(screen.queryByRole('button',{name:'Tạo bệnh án'})).not.toBeInTheDocument();
+});
+it.each([false,true])('exposes medical navigation only when backend-derived read permission is %s',async(allowed)=>{
+ const api={getPatient:vi.fn().mockResolvedValue(patient)};
+ render(<PatientDetailPage api={api} patientId={patient.id} session={{permissions:{canReadRecord:()=>allowed}}} canEdit={()=>false} navigate={vi.fn()}/>);
+ await screen.findByRole('heading',{name:patient.fullName});
+ const link=screen.queryByRole('button',{name:'Xem bệnh án'});
+ if(allowed) expect(link).toBeVisible(); else expect(link).not.toBeInTheDocument();
 });
 
 it('displays a readable record without edit permissions or a false blocker',async()=>{

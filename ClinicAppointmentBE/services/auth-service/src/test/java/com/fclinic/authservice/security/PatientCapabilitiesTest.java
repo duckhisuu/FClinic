@@ -30,8 +30,26 @@ class PatientCapabilitiesTest {
         assertThat(result).containsEntry("createPatient", true).containsEntry("searchPatients", false);
         assertThat(result.get("updatePatientIds")).isEqualTo(List.of(patient));
         assertThat((List<?>)result.get("createRecordPatientIds")).isEmpty();
+        assertThat((List<?>)result.get("readRecordPatientIds")).isEmpty();
         user.setActiveStatus(false);
         assertThat(controller.get(caller).data()).containsEntry("createPatient", false);
         assertThat((List<?>)controller.get(caller).data().get("updatePatientIds")).isEmpty();
+    }
+    @Test void readOnlyDoctorCapabilitiesDoNotGrantClinicalWritesOrOtherPatients() {
+        var now = Instant.parse("2026-11-10T00:00:00Z");
+        var subject = UUID.randomUUID(); var patient = UUID.randomUUID();
+        var users = mock(UserRepositoryPort.class); var assignments = mock(ScopeAssignmentPort.class);
+        var user = User.create(UUID.randomUUID(), subject, "reader", "reader@example.test", null, "Reader",
+                new Role(UUID.randomUUID(), RoleName.ROLE_DOCTOR, "", now, now), null, UUID.randomUUID(), null);
+        when(users.findByKeycloakId(subject)).thenReturn(Optional.of(user));
+        when(assignments.grants()).thenReturn(Map.of(UUID.randomUUID(), new ScopeAssignmentPort.Grant(subject.toString(),
+                Set.of("MEDICAL_READ"), Set.of(patient), false, true, now.minusSeconds(1), now.plusSeconds(60), null, null, null)));
+        var clock = Clock.fixed(now, ZoneOffset.UTC);
+        var controller = new PatientCapabilitiesController(assignments, new ScopeAuthorityService(users, assignments, clock), clock);
+        var caller = new AuthenticatedCaller(user.getId(), subject, "reader", user.getEmail(), user.getRoleName(), null, user.getDoctorId());
+        var result = controller.get(caller).data();
+        assertThat(result.get("readRecordPatientIds")).isEqualTo(List.of(patient));
+        assertThat((List<?>)result.get("createRecordPatientIds")).isEmpty();
+        assertThat((List<?>)result.get("updateRecordPatientIds")).isEmpty();
     }
 }

@@ -53,7 +53,7 @@ Auth phục vụ HTTPS bằng certificate có SAN localhost/127.0.0.1. Script t�
 curl.exe --fail --cacert .runtime/localhost.pem https://localhost:8085/actuator/health
 ```
 
-Auth/Keycloak thực quyết định identity và role. Account ↔ Patient/Doctor UUID phải được admin liên kết qua API hiện hành. Không thay ID/role ở frontend. Tài khoản STAFF/DOCTOR cần assignment hữu hạn, có hiệu lực; empty grants trả 403 là đúng. User đọc/lưu qua Patient vẫn được backend kiểm tra độc lập với UI capabilities.
+Auth/Keycloak thực quyết định identity và role. Patient tự khởi tạo được liên kết tự động sau khi xác minh quyền sở hữu. Hồ sơ do Staff tạo và Doctor UUID dùng liên kết tin cậy qua API ADMIN hiện hành. Không thay ID/role ở frontend. Tài khoản STAFF/DOCTOR cần assignment hữu hạn, có hiệu lực; empty grants trả 403 là đúng. User đọc/lưu qua Patient vẫn được backend kiểm tra độc lập với UI capabilities.
 
 ## Nghiệm thu tổng hợp có thể lặp lại
 
@@ -75,7 +75,7 @@ node docs/integration/Test-PatientFlows.cjs cross
 node docs/integration/Test-PatientFlows.cjs negative
 ```
 
-Không suy diễn `appointmentId=null` là có quyền: `create` chuẩn bị VALID_VISIT độc lập trước khi `verify` lưu bệnh án. Tạo profile mới trong UI vẫn cần trusted assignment cho UUID mới để đọc/sửa sau đó; đây là giới hạn onboarding hiện hành, xem REMAINING_ISSUES.md.
+Không suy diễn `appointmentId=null` là có quyền: `create` chuẩn bị VALID_VISIT độc lập trước khi `verify` lưu bệnh án. Hồ sơ do Staff tạo vẫn cần trusted assignment cho UUID mới để Staff đọc/sửa sau đó; Patient tự khởi tạo dùng quyền self-read theo identity đã xác minh, xem REMAINING_ISSUES.md.
 
 ## Tests và dừng
 
@@ -135,4 +135,34 @@ Manual checks at http://127.0.0.1:5173:
 
 See PATIENT_ACCEPTANCE_TESTS.md for current HTTP/browser evidence and REMAINING_ISSUES.md for owner-review blockers. No statement of full LOCAL READY is made.
 
-Final broker snapshot: current `notification.appointment.q` is drained, `notification.appointment.dlq` has 4 preserved messages, and additional `fclinic.appointment.notifications` has 13 buffered event copies in the 2026-11-10 snapshot. Do not purge or replay the additional queue; confirm its ownership/retirement first. It is not the current Notification consumer queue.
+Final broker snapshot: current `notification.appointment.q` is drained, `notification.appointment.dlq` has 4 preserved messages, and additional `fclinic.appointment.notifications` has 14 buffered event copies in the latest 2026-11-10 snapshot. Do not purge or replay the additional queue; confirm its ownership/retirement first. It is not the current Notification consumer queue.
+
+## Staff reception → Doctor clinical acceptance (2026-11-10)
+
+The retained case and exact IDs are in PATIENT_ACCEPTANCE_TESTS.md. It is open in React as the synthetic linked Patient. Eight canonical Patient endpoints, browser Staff/Doctor editors, read-only Doctor and own Patient readback passed. No Patient/MedicalRecord data is synthetic runtime fallback: all test inputs are explicitly synthetic, but persisted in the actual canonical PostgreSQL databases.
+
+`Test-ReceptionClinical.cjs` is test orchestration only. Its phases preserve private accounts/resource IDs in ignored .runtime/reception-clinical-state.json and append all public checks, including failed attempts, to reception-clinical-evidence.json. Never run it against real medical data. It preserves pre-existing grant entries and takes an assignments.json backup before adding finite 8-hour human grants (all-patients=false). Secrets are not written to reports.
+
+For a fresh test fixture: `prepare` creates permitted synthetic accounts and prepares finite assignment configuration; restart Auth through the existing runbook. Staff creates the profile in React. `scope <PatientUUID>` verifies the exact immutable Staff creator/name/email/active row and unclaimed account binding, uses the existing trusted ADMIN association API, and prepares exact Patient grants; reload Auth. `slots` publishes an actual Doctor offer. Staff selects that Patient/Doctor/slot and books through React. `visit <AppointmentUUID>` verifies actual booking ownership/status and prepares exact VALID_VISIT with appointmentId, visitDate and visitId; reload Auth. Doctor enters those exact IDs/time from the private state and saves/amends the medical record through React. `verify` executes profile/record reads and replacements, pagination, version conflicts and negative authorization checks. `extras` checks no-op/status/self-onboarding/Notification/session behavior. `audit` compares real HTTP data to PostgreSQL and compares cold-restart snapshots.
+
+Reuse the current case without creating another fixture:
+
+```powershell
+Set-Location 'D:\Hoc_tap\26_FALL\MSS301\Project_Group\FClinic_Primary'
+node docs/integration/Test-ReceptionClinical.cjs audit
+# Renewal of the same finite grants, if expired; does not reset accounts/data:
+node docs/integration/Test-ReceptionClinical.cjs prepare
+# Stop only the verified Primary Auth JAR before Start-FClinic.ps1 reloads assignments.
+$authPid = [int](Get-Content .runtime/auth-service.pid)
+$authProcess = Get-CimInstance Win32_Process -Filter "ProcessId=$authPid"
+$primaryRoot = (Get-Location).Path
+if ($authProcess.Name -ne 'java.exe' -or $authProcess.CommandLine -notlike "*$primaryRoot*auth-service-1.0.0-SNAPSHOT.jar*") { throw 'Auth PID ownership mismatch' }
+Stop-Process -Id $authPid
+& .\docs\integration\Start-FClinic.ps1
+```
+
+`outage` is an explicit negative test requiring only the verified Primary Doctor JAR stopped; it expects 503 and unchanged database state. Restore Doctor with Start-FClinic.ps1 immediately afterward. It was exercised successfully and Doctor is running again. Do not stop arbitrary Java processes or replay/delete queues.
+
+Startup now waits for actual Gateway routes after Actuator UP: Auth me 401, Doctor list 200, Patient 401, Appointment 401, Notification me 401. These are read-only probes; 401 is the correct unauthenticated response proving the protected backend is reachable, not an auth bypass. A cold restart demonstrated that Appointment discovery needed 29 attempts even after health UP. The script now waits before declaring ready. Launch Vite only after it finishes.
+
+Appointment status does not automatically become COMPLETED after saving a MedicalRecord because no completion operation is currently published. Do not update PostgreSQL directly to simulate it. Initial Staff-created profile scope and trusted administrative account association are explicit test setup; automatic assignment UI remains pending.
