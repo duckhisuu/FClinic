@@ -37,7 +37,7 @@ Set-Location 'D:\Hoc_tap\26_FALL\MSS301\Project_Group\FClinic_Primary'
 docker compose -f ClinicAppointmentBE/docker-compose.yml up -d --wait
 ```
 
-Sau đó bấm Run **FClinic - All Services**. Cấu hình gọi `npm run start:all` trong ClinicAppointmentFE, dùng Start-FClinic.ps1 hiện hành với `-SkipInfrastructure -Build -Frontend -Wait`. Script chỉ kiểm tra Compose; không chạy Docker up/start/stop trong chế độ này. Maven verify/repackage chạy trước khi khởi động để dùng backend mới nhất, nên lần Run có thể mất vài phút. Các JAR cũ của đúng Primary được dừng trước khi repackage. Sau đó lần lượt Discovery, Auth HTTPS, Doctor, Patient, Appointment, Notification, Gateway và Vite được bật; health/route readiness và chứng chỉ TLS được giữ nguyên.
+Sau đó bấm Run **FClinic - All Services**. Cấu hình gọi `npm run start:all` trong ClinicAppointmentFE, dùng Start-FClinic.ps1 hiện hành với `-SkipInfrastructure -Frontend -Wait`. Script chỉ kiểm tra Compose; không chạy Docker up/start/stop trong chế độ này. Run Configuration chỉ chạy các JAR đã build sẵn và frontend Vite; không chạy Maven, tests hoặc frontend build. Khi sửa source backend, cần chủ động build lại trước khi chạy để JAR nhận thay đổi. Script lần lượt Discovery, Auth HTTPS, Doctor, Patient, Appointment, Notification, Gateway và Vite được bật; health/route readiness và chứng chỉ TLS được giữ nguyên.
 
 URL: http://127.0.0.1:5173. Log từng service và frontend nằm trong .runtime. Secrets chỉ đọc từ .env/settings hiện hành, không nằm trong XML Run Configuration. Supervisor giữ phiên Run hoạt động và theo dõi các tiến trình đã quản lý; khối finally dừng các tiến trình ứng dụng khi phiên kết thúc bình thường/Ctrl+C. Docker không bị dừng bởi supervisor. Lệnh dừng ứng dụng trực tiếp vẫn là:
 

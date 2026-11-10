@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { authApi } from '../services/authApi';
-import { SESSION_EVENT } from '../services/session';
+import { SESSION_EVENT, sameSessionIdentity } from '../services/session';
 
 const AuthContext = createContext(null);
 
@@ -15,6 +15,9 @@ export function AuthProvider({ children }) {
   });
   const [token, setToken] = useState(() => localStorage.getItem('fclinic_token') || null);
   const [isLoading, setIsLoading] = useState(true);
+  const [capabilities, setCapabilities] = useState({});
+  const capabilityRequest=useRef(0);
+  const verifiedIdentity=useRef(user); verifiedIdentity.current=user;
 
   const saveSession = useCallback((data) => {
     if (data.accessToken) {
@@ -40,12 +43,38 @@ export function AuthProvider({ children }) {
   }, []);
 
   useEffect(() => {
+    let verification = 0;
+    let pendingToken, pendingIdentity;
+    const clearPending = () => {
+      for (const key of Object.keys(sessionStorage)) if (key.startsWith('fclinic.pending.')) sessionStorage.removeItem(key);
+    };
     const sync = () => {
       setToken(localStorage.getItem('fclinic_token'));
       try { setUser(JSON.parse(localStorage.getItem('fclinic_user') || 'null')); } catch { clearSession(); }
     };
+    const crossTab = event => {
+      if (event.key !== null && !['fclinic_token', 'fclinic_user', 'fclinic_refresh'].includes(event.key)) return;
+      const nextToken = localStorage.getItem('fclinic_token');
+      let nextUser;
+      try { nextUser = JSON.parse(localStorage.getItem('fclinic_user') || 'null'); } catch { nextUser = null; }
+      if (nextToken && sameSessionIdentity(verifiedIdentity.current, nextUser)) { setToken(nextToken); return; }
+      if (nextToken && nextToken === pendingToken && sameSessionIdentity(pendingIdentity, nextUser)) return;
+      const ticket = ++verification; ++capabilityRequest.current;
+      setCapabilities({}); clearPending(); setUser(null); setToken(null);
+      if (!nextToken || !nextUser?.id) { setIsLoading(false); return; }
+      pendingToken=nextToken; pendingIdentity=nextUser;
+      setIsLoading(true);
+      // A different tab changed accounts. Hide the old workspace immediately and
+      // obtain the actual identity from Auth before showing protected screens.
+      authApi.getMe().then(verified => {
+        if (ticket !== verification || localStorage.getItem('fclinic_token') !== nextToken) return;
+        localStorage.setItem('fclinic_user', JSON.stringify(verified));
+        setUser(verified); setToken(nextToken);
+      }).catch(() => {}).finally(() => { if (ticket === verification) { pendingToken=null; pendingIdentity=null; setIsLoading(false); } });
+    };
     window.addEventListener(SESSION_EVENT, sync);
-    return () => window.removeEventListener(SESSION_EVENT, sync);
+    window.addEventListener('storage', crossTab);
+    return () => { ++verification; window.removeEventListener(SESSION_EVENT, sync); window.removeEventListener('storage', crossTab); };
   }, [clearSession]);
 
   // Verify initial token on mount
@@ -91,8 +120,6 @@ export function AuthProvider({ children }) {
     if (refreshToken) await authApi.logout(refreshToken);
   };
 
-  const [capabilities, setCapabilities] = useState({});
-  const capabilityRequest=useRef(0);
   const refreshCapabilities = useCallback(async () => {
     const ticket=++capabilityRequest.current;
     const identity = JSON.parse(localStorage.getItem('fclinic_user') || 'null');

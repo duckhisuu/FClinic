@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "start:all": "powershell.exe -NoLogo -NoProfile -File ../docs/integration/Start-FClinic.ps1 -SkipInfrastructure -Build -Frontend -Wait",
+    "start:all": "powershell.exe -NoLogo -NoProfile -File ../docs/integration/Start-FClinic.ps1 -SkipInfrastructure -Frontend -Wait",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",

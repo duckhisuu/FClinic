@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { LoginPage } from "./pages/LoginPage";
+import { accessTokenForIdentity } from './services/session';
 import { StaffWalkinPage } from "./pages/StaffWalkinPage";
 import { AdminUsersPage } from "./pages/AdminUsersPage";
 import { DoctorDashboardPage } from "./pages/DoctorDashboardPage";
@@ -151,7 +152,7 @@ function MainApp() {
   const [selection, setSelection] = useState(null);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [walkinPatient, setWalkinPatient] = useState(null);
-  const patientSession = useMemo(() => ({ getAccessToken: () => localStorage.getItem("fclinic_token"),
+  const patientSession = useMemo(() => ({ getAccessToken: () => accessTokenForIdentity(user),
     patientId: user?.patientId, doctorId: user?.doctorId,
     onPatientAccess: async id => {
       if (user?.role === 'ROLE_STAFF' && !capabilities.updatePatientIds?.includes(id)) await refreshCapabilities?.();

@@ -33,3 +33,7 @@ Main e94d652 merged with 2 conflicts resolved. Notification 316944c file hunks r
 ## Doctor schedules — 2026-11-10
 
 New overlapping slot writes are blocked transactionally, including concurrent requests (409 DOCTOR_SLOT_OVERLAP). Real API/PostgreSQL and React checks passed. One pre-existing 16:00-17:00 overlap pair on 2026-11-10 is preserved; reconcile Appointment references before retiring a specific old UUID. See FULL_APP_INTEGRATION.md and doctor-slot-overlap-evidence.json.
+
+## Cross-tab Staff report — current request
+
+Fixed and browser-verified a shared-token/stale-Staff-menu mismatch when accounts change in another tab. Frontend 55 tests/build PASS. Specific screenshot-profile lookup and fresh Patient creation remain unverified in this request: automatic approval review rejected that combined data-access/write command before execution. No bypass was attempted. See PATIENT_ACCEPTANCE_TESTS.md for evidence and approval limitation.

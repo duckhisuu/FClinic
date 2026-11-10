@@ -3,6 +3,16 @@ import axios from 'axios';
 let refreshing;
 export const SESSION_EVENT = 'fclinic-session-updated';
 const notify = () => window.dispatchEvent(new Event(SESSION_EVENT));
+export function sameSessionIdentity(a, b) {
+  return !!a?.id && a.id === b?.id && a.role === b.role
+    && (a.patientId || null) === (b.patientId || null) && (a.doctorId || null) === (b.doctorId || null);
+}
+export function accessTokenForIdentity(expected) {
+  let current;
+  try { current = JSON.parse(localStorage.getItem('fclinic_user') || 'null'); } catch { /* fail closed */ }
+  if (!sameSessionIdentity(expected, current)) throw new Error('SESSION_CHANGED');
+  return localStorage.getItem('fclinic_token');
+}
 export function clearSessionStorage() {
   for (const key of ['fclinic_token', 'fclinic_refresh', 'fclinic_user']) localStorage.removeItem(key);
   for (const key of Object.keys(sessionStorage)) if (key.startsWith('fclinic.pending.')) sessionStorage.removeItem(key);
