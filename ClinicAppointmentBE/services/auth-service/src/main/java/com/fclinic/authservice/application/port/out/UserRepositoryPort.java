@@ -12,6 +12,7 @@ public interface UserRepositoryPort {
     User save(User user);
 
     Optional<User> findById(UUID id);
+    Optional<User> lockById(UUID id);
 
     Optional<User> findByKeycloakId(UUID keycloakId);
 
@@ -38,4 +39,3 @@ public interface UserRepositoryPort {
 
     List<User> findDoctorAccounts(UUID doctorId);
 }
-

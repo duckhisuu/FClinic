@@ -65,6 +65,7 @@ export function createPatientApi({ getAccessToken, fetchImpl = (...args) => fetc
   const write = (method, path, body, check) => request(method, path, body).then(check).catch(error => { if (error.code === 'INVALID_ENVELOPE') error.uncertain = true; throw error; });
   return {
     mode: 'live',
+    getOwnPatient: signal => request('GET', `${ROOT}/me`, null, signal).then(v => resource(v)),
     listPatients: (params, signal) => request('GET', `${ROOT}?${query(params)}`, null, signal).then(v => page(v, false)),
     getPatient: (patient, signal) => request('GET', `${ROOT}/${id(patient)}`, null, signal).then(v => matching(v, patient)),
     createPatient: body => write('POST', ROOT, fields(body, PROFILE), v => resource(v)),

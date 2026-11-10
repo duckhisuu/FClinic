@@ -90,6 +90,35 @@ class PatientServiceIT {
         });
     }
     @AfterAll static void stop() throws Exception { PG.close(); }
+    @Test void firstLoginRetriesAndConcurrentCreationHaveOneOwnedProfile() throws Exception {
+        var caller = newPatient();
+        var result = race(() -> service.create(caller, profile("Own profile")),
+                () -> service.create(caller, profile("Own profile")));
+        assertThat(result).allMatch(Patient.class::isInstance);
+        var first = (Patient) result.get(0);
+        assertThat(((Patient) result.get(1)).id()).isEqualTo(first.id());
+        assertThat(service.create(caller, profile("Retry must not replace"))).isEqualTo(first);
+        assertThat(service.own(caller)).isEqualTo(first);
+        assertThat(count("patients")).isEqualTo(1);
+        assertThat(count("patient_revisions")).isEqualTo(1);
+        assertCode(PatientError.Code.PATIENT_NOT_FOUND, () -> service.own(newPatient()));
+    }
+    @Test void staffCannotCreateOrEditAndPatientCanEditOnlyOwnProfile() throws Exception {
+        UUID id = create("Owned"); var patient = owner(id); patientCaller.set(patient);
+        var body = JSON.writeValueAsString(replaceBody("Changed", 0));
+        mvc.perform(post("/api/v3/patients").header("Authorization", "Bearer component-staff")
+                .contentType("application/json").content("{\"fullName\":\"Staff creation\",\"phoneNumber\":\"0900000001\"}"))
+                .andExpect(status().isForbidden());
+        mvc.perform(put("/api/v3/patients/" + id).header("Authorization", "Bearer component-staff")
+                .contentType("application/json").content(body)).andExpect(status().isForbidden());
+        mvc.perform(get("/api/v3/patients/me").header("Authorization", "Bearer component-patient"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.data.id").value(id.toString()));
+        mvc.perform(put("/api/v3/patients/" + id).header("Authorization", "Bearer component-patient")
+                .contentType("application/json").content(body)).andExpect(status().isOk());
+        assertCode(PatientError.Code.FORBIDDEN, () -> service.replace(newPatient(), id, 1, profile("Forged")));
+        assertCode(PatientError.Code.FORBIDDEN, () -> service.replace(patient, id, 1, inactive()));
+        assertThat(repository.find(id).orElseThrow().fullName()).isEqualTo("Changed");
+    }
     @Test void uuidSchemaColumnsRevisionKeysAndForeignKeysAreRealPostgres() {
         UUID patient=create("UUID synthetic");
         var medical=service.createRecord(doctor,patient,fixture(12),null,clinical());
@@ -159,9 +188,9 @@ class PatientServiceIT {
         assertThat(count("patient_revisions")).isEqualTo(2);
     }
     @Test void tc06_optionalFieldsAreErasedByReplacement() {
-        var p=service.create(staff,new ProfileData("Demo","+84900000001","demo@example.test",LocalDate.of(1995,5,15),
+        var p=service.create(newPatient(),new ProfileData("Demo","+84900000001","demo@example.test",LocalDate.of(1995,5,15),
                 ProfileData.Gender.UNKNOWN,"Simulated address",ProfileData.Status.ACTIVE));
-        var changed=service.replace(staff,p.id(),0,profile("Demo"));
+        var changed=service.replace(owner(p.id()),p.id(),0,profile("Demo"));
         assertThat(changed.email()).isNull(); assertThat(changed.dateOfBirth()).isNull(); assertThat(changed.address()).isNull();
         assertThat(changed.version()).isEqualTo(1);
     }
@@ -203,7 +232,7 @@ class PatientServiceIT {
     }
     @Test void tc08_inactiveForbidsNewMedicalButAllowsExistingReadAndEdit() {
         UUID id=create("Demo"); var old=service.createRecord(doctor,id,fixture(12),null,clinical());
-        service.replace(staff,id,0,inactive());
+        writer.replace(id,0,inactive(),staff.subject());
         assertCode(PatientError.Code.PATIENT_INACTIVE,() -> service.createRecord(doctor,id,fixture(12),null,clinical()));
         assertThat(service.record(doctor,id,old.id()).id()).isEqualTo(old.id());
         assertThat(service.replaceRecord(doctor,id,old.id(),0,clinical(),"Simulated review").version()).isZero();
@@ -233,11 +262,11 @@ class PatientServiceIT {
     }
     @Test void tc23_revisionFailureRollsBackBothAggregatesAndVersions() {
         doThrow(new IllegalStateException("fault")).when(revisionSpy).patient(isNull(),any());
-        assertThatThrownBy(() -> service.create(staff,profile("Rollback"))).isInstanceOf(org.springframework.dao.DataAccessException.class).hasRootCauseMessage("fault");
+        assertThatThrownBy(() -> service.create(newPatient(),profile("Rollback"))).isInstanceOf(org.springframework.dao.DataAccessException.class).hasRootCauseMessage("fault");
         assertThat(count("patients")).isZero(); reset(revisionSpy);
         UUID id=create("Demo");
         doThrow(new IllegalStateException("fault")).when(revisionSpy).patient(notNull(),any());
-        assertThatThrownBy(() -> service.replace(staff,id,0,profile("Rollback"))).isInstanceOf(org.springframework.dao.DataAccessException.class).hasRootCauseMessage("fault");
+        assertThatThrownBy(() -> service.replace(owner(id),id,0,profile("Rollback"))).isInstanceOf(org.springframework.dao.DataAccessException.class).hasRootCauseMessage("fault");
         assertThat(repository.find(id).orElseThrow().version()).isZero();
         assertThat(repository.find(id).orElseThrow().fullName()).isEqualTo("Demo");
         doThrow(new IllegalStateException("fault")).when(revisionSpy).medical(isNull(),any(),isNull());
@@ -251,7 +280,7 @@ class PatientServiceIT {
     }
     @Test void tc07_competingProfileUpdatesHaveOneWinner() throws Exception {
         UUID id=create("Demo");
-        var result=race(() -> service.replace(staff,id,0,profile("First")),() -> service.replace(staff,id,0,profile("Second")));
+        var result=race(() -> service.replace(owner(id),id,0,profile("First")),() -> service.replace(owner(id),id,0,profile("Second")));
         assertThat(result.stream().filter(Patient.class::isInstance).count()).isEqualTo(1);
         assertThat(result.stream().filter(e -> e instanceof PatientError p && p.code()==PatientError.Code.VERSION_CONFLICT).count()).isEqualTo(1);
         assertThat(count("patient_revisions")).isEqualTo(2);
@@ -277,7 +306,7 @@ class PatientServiceIT {
     }
     @Test void tc29_recordCommittedBeforeDeactivationRemains() {
         UUID id=create("Demo"); var record=service.createRecord(doctor,id,fixture(12),null,clinical());
-        service.replace(staff,id,0,inactive());
+        writer.replace(id,0,inactive(),staff.subject());
         assertThat(repository.findRecord(id,record.id())).isPresent(); assertThat(count("medical_record_revisions")).isEqualTo(1);
     }
     @Test void tc31_noOpMedicalDetectsConcurrentVersionChangeAtCommit() throws Exception {
@@ -311,8 +340,9 @@ class PatientServiceIT {
                 "{\"fullName\":12,\"phoneNumber\":\"0900000001\"}",
                 "{\"fullName\":\"Demo\",\"phoneNumber\":\"0900000001\",\"createdBy\":\"spoof\"}",
                 "{\"fullName\":\"Demo\",\"phoneNumber\":\"0900000001\",\"dateOfBirth\":\" \"}");
+        patientCaller.set(newPatient());
         for(String body:cases) {
-            var result=mvc.perform(post("/api/v3/patients").header("Authorization","Bearer component-staff")
+            var result=mvc.perform(post("/api/v3/patients").header("Authorization","Bearer component-patient")
                     .contentType("application/json").content(body)).andExpect(status().isBadRequest()).andReturn();
             schema(result,"Error"); assertThat(json(result).path("code").asText()).isEqualTo("VALIDATION_ERROR");
         }
@@ -334,12 +364,15 @@ class PatientServiceIT {
         mvc.perform(get("/api/v3/patients").header("Authorization","Bearer inactive")).andExpect(status().isUnauthorized());
     }
     private UUID createHttp(String name) throws Exception {
-        var r=mvc.perform(post("/api/v3/patients").header("Authorization","Bearer component-staff")
+        patientCaller.set(newPatient());
+        var r=mvc.perform(post("/api/v3/patients").header("Authorization","Bearer component-patient")
                 .contentType("application/json").content(JSON.writeValueAsString(Map.of("fullName",name,"phoneNumber","0900000001"))))
                 .andExpect(status().isCreated()).andReturn();
         schema(r,"PatientCreated"); UUID id=UUID.fromString(json(r).at("/data/id").asText()); allowed.add(id); return id;
     }
-    private UUID create(String name) { var p=service.create(staff,profile(name)); allowed.add(p.id()); return p.id(); }
+    private TrustedCaller newPatient() { return caller(UUID.randomUUID().toString(),"ROLE_PATIENT",null,null); }
+    private TrustedCaller owner(UUID id) { return caller(repository.find(id).orElseThrow().createdBy(),"ROLE_PATIENT",id,null); }
+    private UUID create(String name) { var p=service.create(newPatient(),profile(name)); allowed.add(p.id()); return p.id(); }
     private UUID createMedicalHttp(UUID id,UUID appointment) throws Exception {
         var r=postMedical(id,appointment,201); schema(r,"MedicalRecordCreated"); return UUID.fromString(json(r).at("/data/id").asText());
     }
@@ -350,7 +383,8 @@ class PatientServiceIT {
         return r;
     }
     private MvcResult putProfile(UUID id,Map<String,Object> b,int expected) throws Exception {
-        return mvc.perform(put("/api/v3/patients/"+id).header("Authorization","Bearer component-staff")
+        patientCaller.set(owner(id));
+        return mvc.perform(put("/api/v3/patients/"+id).header("Authorization","Bearer component-patient")
                 .contentType("application/json").content(JSON.writeValueAsString(b))).andExpect(status().is(expected)).andReturn();
     }
     private MvcResult putMedical(String path,Map<String,Object> b,String token,int expected) throws Exception {
@@ -402,4 +436,3 @@ class PatientServiceIT {
     }
     private static void assertCode(PatientError.Code code,Runnable call) { assertThatThrownBy(call::run).isInstanceOfSatisfying(PatientError.class,e -> assertThat(e.code()).isEqualTo(code)); }
 }
-

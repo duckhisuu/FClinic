@@ -99,7 +99,7 @@ class PatientReferenceTcpIT {
         DOC.rejectAuthentication=false; APT.rejectAuthentication=false;
         DOC.handler=id -> { EVENTS.add("DOCTOR"); return DOC.json(200,doctor(id,true)); };
         APT.handler=id -> { EVENTS.add("APPOINTMENT"); return APT.json(200,appointment(id,own,fixture(12),"CONFIRMED")); };
-        var profile=request("POST","/api/v3/patients","staff",profile());
+        var profile=request("POST","/api/v3/patients","patient",profile());
         assertThat(profile.statusCode()).as(profile.body()).isEqualTo(201);
         own=UUID.fromString(json(profile).at("/data/id").asText());
         EVENTS.clear(); DOC.requests.clear(); APT.requests.clear(); DOC.calls.set(0); APT.calls.set(0);
@@ -204,8 +204,8 @@ class PatientReferenceTcpIT {
         assertThat(DOC.calls.get()).isZero(); assertThat(APT.calls.get()).isZero(); assertThat(snapshot()).isEqualTo(before);
     }
     @Test void inactiveParentRemainsFinalLocalWriteGuardAfterValidReferences() {
-        var replace=new LinkedHashMap<>(profile()); replace.put("gender","UNKNOWN"); replace.put("status","INACTIVE"); replace.put("version",0);
-        assertThat(request("PUT","/api/v3/patients/"+own,"staff",replace).statusCode()).isEqualTo(200);
+        // Fixture-only administrative transition; staff can no longer mutate profiles through HTTP.
+        jdbc.update("update patients set status='INACTIVE' where id=?", own);
         var before=snapshot(); expect(request("POST",records(),"doctor",medical(fixture(102))),409,"PATIENT_INACTIVE");
         assertThat(snapshot()).isEqualTo(before); assertThat(APT.calls.get()).isEqualTo(1);
     }
@@ -248,6 +248,7 @@ class PatientReferenceTcpIT {
     private TestAuthServer.Reply identity(String token) {
         EVENTS.add("IDENTITY"); var data=IdentityFixtures.user(); data.put("patientId",null);
         switch(token) {
+            case "patient" -> { data.put("sub","opaque-patient-fixture"); data.put("authorities",List.of("ROLE_PATIENT")); }
             case "staff" -> { data.put("sub","opaque-staff-fixture"); data.put("authorities",List.of("ROLE_STAFF")); }
             case "doctor" -> { data.put("sub","opaque-doctor-fixture"); data.put("doctorId",fixture(12).toString()); data.put("authorities",List.of("ROLE_DOCTOR")); }
             default -> { return TestAuthServer.Reply.json(200,bytes(Map.of("active",false))); }
@@ -305,4 +306,3 @@ class PatientReferenceTcpIT {
         } catch(Exception e) { throw new ExceptionInInitializerError(e); }
     }
 }
-

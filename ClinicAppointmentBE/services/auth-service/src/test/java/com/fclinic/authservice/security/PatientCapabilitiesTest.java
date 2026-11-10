@@ -27,11 +27,21 @@ class PatientCapabilitiesTest {
         var controller = new PatientCapabilitiesController(assignments, new ScopeAuthorityService(users, assignments, clock), clock);
         var caller = new AuthenticatedCaller(user.getId(), subject, "staff", "staff@example.test", RoleName.ROLE_STAFF, null, null);
         var result = controller.get(caller).data();
-        assertThat(result).containsEntry("createPatient", true).containsEntry("searchPatients", false);
-        assertThat(result.get("updatePatientIds")).isEqualTo(List.of(patient));
+        assertThat(result).containsEntry("createPatient", false).containsEntry("searchPatients", false);
+        assertThat((List<?>)result.get("updatePatientIds")).isEmpty();
         assertThat((List<?>)result.get("createRecordPatientIds")).isEmpty();
         user.setActiveStatus(false);
         assertThat(controller.get(caller).data()).containsEntry("createPatient", false);
         assertThat((List<?>)controller.get(caller).data().get("updatePatientIds")).isEmpty();
+    }
+    @Test void patientCapabilitiesAllowInitialCreationAndOnlyOwnProfileUpdates() {
+        var users = mock(UserRepositoryPort.class); var assignments = mock(ScopeAssignmentPort.class);
+        when(assignments.grants()).thenReturn(Map.of());
+        var clock = Clock.systemUTC(); var subject = UUID.randomUUID(); var patient = UUID.randomUUID();
+        var controller = new PatientCapabilitiesController(assignments, new ScopeAuthorityService(users, assignments, clock), clock);
+        var unlinked = new AuthenticatedCaller(UUID.randomUUID(), subject, "patient", "p@example.test", RoleName.ROLE_PATIENT, null, null);
+        assertThat(controller.get(unlinked).data()).containsEntry("createPatient", true);
+        var linked = new AuthenticatedCaller(unlinked.userId(), subject, "patient", "p@example.test", RoleName.ROLE_PATIENT, patient, null);
+        assertThat(controller.get(linked).data()).containsEntry("createPatient", false).containsEntry("updatePatientIds", List.of(patient));
     }
 }

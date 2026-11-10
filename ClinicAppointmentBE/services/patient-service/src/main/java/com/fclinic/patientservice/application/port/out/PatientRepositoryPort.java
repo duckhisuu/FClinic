@@ -10,6 +10,8 @@ import java.util.UUID;
 public interface PatientRepositoryPort {
     Optional<Patient> find(UUID id);
     Optional<Patient> lock(UUID id);
+    Optional<Patient> findByCreator(String subject);
+    void lockCreator(String subject);
     Patient insert(Patient patient);
     Patient update(Patient patient);
     void checkAtCommit(Patient patient);

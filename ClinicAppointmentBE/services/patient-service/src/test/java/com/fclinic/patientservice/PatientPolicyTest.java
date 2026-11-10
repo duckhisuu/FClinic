@@ -16,12 +16,12 @@ class PatientPolicyTest {
     private TrustedCaller user(String role, UUID patient, UUID doctor) {
         return new TrustedCaller("user:demo",TrustedCaller.PrincipalType.USER,Set.of(role),patient,doctor,null,true);
     }
-    @Test void tc18_patientCanReadSelfOnlyAndCannotMutateOrSearch() {
+    @Test void patientCanReadAndUpdateSelfButCannotManageOthersOrClinicalRecords() {
         var c=user("ROLE_PATIENT",a,null);
         policy.readProfile(c,a); policy.readMedical(c,a);
         denied(() -> policy.readProfile(c,b)); denied(() -> policy.readMedical(c,b));
         denied(() -> policy.createProfile(c)); denied(() -> policy.search(c));
-        denied(() -> policy.replaceProfile(c,a)); denied(() -> policy.editMedical(c,a));
+        policy.replaceProfile(c,a); denied(() -> policy.replaceProfile(c,b)); denied(() -> policy.editMedical(c,a));
     }
     @Test void unlinkedPatientCanCreateInitialProfile() {
         var unlinked = user("ROLE_PATIENT", null, null);
@@ -42,7 +42,8 @@ class PatientPolicyTest {
         var staff=user("ROLE_STAFF",null,null);
         denied(() -> policy.createProfile(staff));
         when(scopes.receptionist(staff)).thenReturn(true);
-        policy.createProfile(staff);
+        denied(() -> policy.createProfile(staff));
+        denied(() -> policy.replaceProfile(staff,a));
         denied(() -> policy.readMedical(staff,a)); denied(() -> policy.editMedical(staff,a));
         var admin=user("ROLE_ADMIN",null,null);
         denied(() -> policy.readMedical(admin,a)); denied(() -> policy.editMedical(admin,a));

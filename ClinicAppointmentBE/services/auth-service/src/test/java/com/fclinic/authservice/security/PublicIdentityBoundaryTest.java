@@ -15,11 +15,13 @@ class PublicIdentityBoundaryTest {
     final UserRepositoryPort users = mock(UserRepositoryPort.class);
     final KeycloakIdentityPort keycloak = mock(KeycloakIdentityPort.class);
     final UserProvisioningSupport provision = mock(UserProvisioningSupport.class);
-    final AuthApplicationService service = new AuthApplicationService(users, keycloak, provision);
+    final PatientOwnershipPort ownership = mock(PatientOwnershipPort.class);
+    final AuthApplicationService service = new AuthApplicationService(users, keycloak, provision, ownership);
 
     @Test void unprovenPatientUuidCannotBeClaimedOrRebound() {
         var id = UUID.randomUUID(); var user = mock(User.class);
-        when(users.findById(id)).thenReturn(java.util.Optional.of(user));
+        when(users.lockById(id)).thenReturn(java.util.Optional.of(user));
+        when(user.isActive()).thenReturn(true);
         when(user.getRoleName()).thenReturn(RoleName.ROLE_PATIENT);
         var candidate = UUID.randomUUID();
         assertThatThrownBy(() -> service.linkPatientProfile(id, candidate))
@@ -32,7 +34,8 @@ class PublicIdentityBoundaryTest {
 
     @Test void identicalTrustedBindingIsAnIdempotentRead() {
         var id = UUID.randomUUID(); var patient = UUID.randomUUID(); var user = mock(User.class);
-        when(users.findById(id)).thenReturn(java.util.Optional.of(user));
+        when(users.lockById(id)).thenReturn(java.util.Optional.of(user));
+        when(user.isActive()).thenReturn(true);
         when(user.getRoleName()).thenReturn(RoleName.ROLE_PATIENT); when(user.getPatientId()).thenReturn(patient);
         assertThat(service.linkPatientProfile(id, patient)).isSameAs(user);
         verify(users, never()).save(any()); verifyNoInteractions(keycloak);
@@ -43,6 +46,20 @@ class PublicIdentityBoundaryTest {
                 "victim@example.test", "Victim", "unverified-id", null, null, null, null, null)))
                 .isInstanceOf(AuthValidationException.class);
         verifyNoInteractions(users, keycloak, provision);
+    }
+    @Test void verifiedOwnActiveProfileCanBeLinkedButAnotherProfileCannot() {
+        var id = UUID.randomUUID(); var subject = UUID.randomUUID(); var patient = UUID.randomUUID();
+        var user = mock(User.class);
+        when(users.lockById(id)).thenReturn(java.util.Optional.of(user));
+        when(user.isActive()).thenReturn(true); when(user.getRoleName()).thenReturn(RoleName.ROLE_PATIENT);
+        when(user.getKeycloakId()).thenReturn(subject); when(users.save(user)).thenReturn(user);
+        assertThatThrownBy(() -> service.linkPatientProfile(id, patient, "Bearer verified"))
+                .isInstanceOf(org.springframework.security.access.AccessDeniedException.class);
+        verify(user, never()).linkPatientId(any());
+        when(ownership.owns(subject, patient, "Bearer verified")).thenReturn(true);
+        assertThat(service.linkPatientProfile(id, patient, "Bearer verified")).isSameAs(user);
+        verify(user).linkPatientId(patient); verify(users).save(user);
+        verify(keycloak).updateUserProfile(eq(subject), any(), any(), any(), any(), any());
     }
     @Test void publicRegistrationNeverBindsAClientChosenPatient() {
         var stop = new AuthValidationException("stop before external provisioning");

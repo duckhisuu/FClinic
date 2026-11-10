@@ -69,3 +69,9 @@ CLAUDE.md
 !ClinicAppointmentBE/services/notification-service/src/test/**
 !ClinicAppointmentFE/src/notification/__tests__/
 !ClinicAppointmentFE/src/notification/__tests__/**
+
+# Keep self-service profile regression coverage in source control.
+!ClinicAppointmentBE/services/auth-service/src/test/
+!ClinicAppointmentBE/services/auth-service/src/test/**
+!ClinicAppointmentFE/src/patient/__tests__/
+!ClinicAppointmentFE/src/patient/__tests__/self-profile.test.jsx

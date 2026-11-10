@@ -182,10 +182,11 @@ public class AuthController {
     @PutMapping("/me/patient-profile")
     public ResponseEntity<ApiResponse<UserResponse>> linkPatientProfile(
             @AuthenticationPrincipal AuthenticatedCaller caller,
+            @RequestHeader("Authorization") String authorization,
             @Valid @RequestBody LinkPatientProfileRequest request
     ) {
         UUID userId = requireCallerId(caller);
-        UserResponse response = mapper.toResponse(updateProfileUseCase.linkPatientProfile(userId, request.patientId()));
+        UserResponse response = mapper.toResponse(updateProfileUseCase.linkPatientProfile(userId, request.patientId(), authorization));
         return ResponseEntity.ok(ApiResponse.success("Liên kết hồ sơ bệnh nhân thành công", response));
     }
 
@@ -220,4 +221,3 @@ public class AuthController {
         return caller.userId();
     }
 }
-

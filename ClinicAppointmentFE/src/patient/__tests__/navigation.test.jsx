@@ -11,13 +11,29 @@ vi.mock('../../pages/StaffWalkinPage', () => ({ StaffWalkinPage: ({ onSelectPati
 vi.mock('../../patient/PatientModule', () => ({ PatientModule: ({ session }) => <h2>Patient session {typeof session?.getAccessToken}</h2> }));
 vi.mock('../../components/NotificationDrawer', () => ({ NotificationDrawer: () => null }));
 import App from '../../App';
-beforeEach(() => { auth.user = { id: 'staff-a', fullName: 'Same Name', role: 'ROLE_STAFF' }; });
+beforeEach(() => { window.history.replaceState({}, '', '/'); auth.user = { id: 'staff-a', fullName: 'Same Name', role: 'ROLE_STAFF' }; });
 it('uses role navigation and supplies the Patient host session', async () => {
   const user = userEvent.setup(); render(<App />);
   await user.click(screen.getByRole('button', { name: /Bác sĩ & giờ khám/ })); expect(screen.getByText('Existing Doctor Directory')).toBeVisible();
   await user.click(screen.getByRole('button', { name: /Đặt lịch tại quầy/ })); expect(screen.getByText(/Booking/)).toBeVisible();
   await user.click(screen.getByRole('button', { name: /Quản lý lịch hẹn/ })); expect(screen.getByText('Existing Appointment History')).toBeVisible();
-  await user.click(screen.getByRole('button', { name: /Quản lý bệnh nhân/ })); expect(screen.getByText('Patient session function')).toBeVisible();
+  await user.click(screen.getByRole('button', { name: /Tra cứu bệnh nhân/ })); expect(screen.getByText('Patient session function')).toBeVisible();
+});
+it('opens the actual /profile URL and supports direct visits', async () => {
+  const user = userEvent.setup(); const view = render(<App />);
+  await user.click(screen.getByRole('button', { name: 'Hồ sơ của tôi' }));
+  expect(window.location.pathname).toBe('/profile');
+  expect(screen.getByRole('heading', { name: 'Thông tin cá nhân' })).toBeVisible();
+  view.unmount(); render(<App />);
+  expect(screen.getByRole('heading', { name: 'Thông tin cá nhân' })).toBeVisible();
+});
+it('requires first-login profile setup before entering booking', async () => {
+  auth.user = { id: 'new-patient', role: 'ROLE_PATIENT', fullName: 'New Patient' };
+  const user = userEvent.setup(); render(<App />);
+  expect(screen.getByRole('heading', { name: 'Hoàn tất hồ sơ để đặt lịch khám' })).toBeVisible();
+  await user.click(screen.getByRole('button', { name: /Đặt lịch khám/ }));
+  expect(screen.getByRole('heading', { name: 'Hoàn tất hồ sơ để đặt lịch khám' })).toBeVisible();
+  expect(screen.queryByText(/Booking/)).not.toBeInTheDocument();
 });
 it('clears walk-in selection when switching to an account with the same name', async () => {
   const user = userEvent.setup(); const view = render(<App />);

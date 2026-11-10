@@ -25,7 +25,14 @@ public class PatientApplicationService {
     }
     public Patient create(TrustedCaller c, ProfileData data) {
         policy.createProfile(c);
-        return writer.create(data, c.subject());
+        if (data.status() != ProfileData.Status.ACTIVE) throw new PatientError(FORBIDDEN);
+        return writer.createOwn(data, c.subject());
+    }
+    public Patient own(TrustedCaller c) {
+        policy.authenticated(c);
+        PatientPolicy.allow(c.userRole("ROLE_PATIENT"));
+        if (c.patientId() != null) return get(c, c.patientId());
+        return repository.findByCreator(c.subject()).orElseThrow(() -> new PatientError(PATIENT_NOT_FOUND));
     }
     public Patient get(TrustedCaller c, UUID id) {
         policy.readProfile(c, id);
@@ -36,6 +43,7 @@ public class PatientApplicationService {
     }
     public Patient replace(TrustedCaller c, UUID id, long version, ProfileData data) {
         policy.replaceProfile(c, id);
+        if (data.status() != parent(id).status()) throw new PatientError(FORBIDDEN);
         return writer.replace(id, version, data, c.subject());
     }
     public MedicalRecord createRecord(TrustedCaller c, UUID patientId, UUID doctorId, UUID appointmentId,

@@ -98,7 +98,7 @@ class PatientScopeTcpIT {
                 .header("Content-Type","application/json").POST(HttpRequest.BodyPublishers.ofString(JSON.writeValueAsString(profile("Forged")))).build();
         expect(HTTP.send(req,HttpResponse.BodyHandlers.ofString()),403,"FORBIDDEN");
         assertThat(snapshot()).isEqualTo(before);
-        assertThat(SCOPE.requests.getFirst().keySet()).doesNotContain("X-Scope","clinicId");
+        assertThat(SCOPE.requests).isEmpty();
     }
     @Test void administrativeObjectGrantCannotReadOrUpdateAnotherPatient() {
         UUID other=create("Outside scope");
@@ -138,12 +138,12 @@ class PatientScopeTcpIT {
         expect(request("PUT","/api/v3/patients/"+own,"staff",replacement("Changed")),403,"FORBIDDEN");
         assertThat(snapshot()).isEqualTo(before);
     }
-    @Test void currentGrantIsRecheckedBetweenControllerAndUseCaseBeforeWriter() {
+    @Test void evenAnActiveAdministrativeGrantCannotAllowStaffProfileWrites() {
         var checks=new AtomicInteger(); var before=snapshot();
         SCOPE.handler=(kind,q) -> TestAuthServer.Reply.json(200,bytes("ADMIN_PROFILE_UPDATE".equals(q.get("operation"))
                 && checks.incrementAndGet()>1?deny(q):grant(q,authorized)));
         expect(request("PUT","/api/v3/patients/"+own,"staff",replacement("Changed")),403,"FORBIDDEN");
-        assertThat(checks.get()).isEqualTo(2); assertThat(snapshot()).isEqualTo(before);
+        assertThat(checks.get()).isZero(); assertThat(snapshot()).isEqualTo(before);
     }
     @Test void clinicalReadCreateUpdateRemainDistinctAndAuthorStillRequired() {
         SCOPE.handler=(kind,q) -> TestAuthServer.Reply.json(200,bytes("MEDICAL_UPDATE".equals(q.get("operation"))?deny(q):grant(q,authorized)));
@@ -228,14 +228,14 @@ class PatientScopeTcpIT {
     @Test void technicalCredentialFailureOutageAndMalformedPayloadAre503WithoutLeak() {
         var before=snapshot();
         SCOPE.rejectAuthentication=true;
-        expect(request("POST","/api/v3/patients","staff",profile("Denied")),503,"DEPENDENCY_UNAVAILABLE");
+        expect(request("GET","/api/v3/patients/"+own,"staff",null),503,"DEPENDENCY_UNAVAILABLE");
         SCOPE.rejectAuthentication=false;
         for(var reply:new TestAuthServer.Reply[]{
                 TestAuthServer.Reply.json(503,bytes(Map.of("error","private-scope-detail"))),
                 TestAuthServer.Reply.json(200,"not-json".getBytes()),
                 TestAuthServer.Reply.json(200,"x".repeat(262145).getBytes())}) {
             SCOPE.handler=(kind,q) -> reply;
-            var response=request("POST","/api/v3/patients","staff",profile("Denied"));
+            var response=request("GET","/api/v3/patients/"+own,"staff",null);
             expect(response,503,"DEPENDENCY_UNAVAILABLE");
             assertThat(response.body()).doesNotContain("private-scope-detail",SCOPE.adminSecret,SCOPE.clinicalSecret,
                     AUTH.clientSecret,SCOPE.endpoint(ScopeQuery.Authority.ADMINISTRATIVE).toString(),"stackTrace");
@@ -250,7 +250,7 @@ class PatientScopeTcpIT {
             return TestAuthServer.Reply.json(200,bytes(grant(q,authorized)));
         };
         try(var pool=Executors.newVirtualThreadPerTaskExecutor()) {
-            var result=pool.submit(() -> request("POST","/api/v3/patients","staff",profile("Denied")));
+            var result=pool.submit(() -> request("GET","/api/v3/patients/"+own,"staff",null));
             assertThat(entered.await(5,TimeUnit.SECONDS)).isTrue();
             expect(result.get(6,TimeUnit.SECONDS),503,"DEPENDENCY_UNAVAILABLE");
         } finally { release.countDown(); }
@@ -259,7 +259,7 @@ class PatientScopeTcpIT {
     @Test void f06UntypedScopeFaultIs503AndNoWrite() {
         var before=snapshot();
         doThrow(new IllegalStateException("private-scope-fault")).when(scopeAdapter).receptionist(any(),any(AdministrativeAction.class));
-        expect(request("POST","/api/v3/patients","staff",profile("Denied")),503,"DEPENDENCY_UNAVAILABLE");
+        expect(request("GET","/api/v3/patients/"+own,"staff",null),503,"DEPENDENCY_UNAVAILABLE");
         assertThat(snapshot()).isEqualTo(before);
     }
     @Test void medicalNoOpThenRevocationKeepsDataVersionAndRevision() {
@@ -289,12 +289,15 @@ class PatientScopeTcpIT {
             }
             case "admin" -> data.put("authorities",List.of("ROLE_ADMIN"));
             case "service" -> data=IdentityFixtures.service();
-            default -> { return TestAuthServer.Reply.json(200,bytes(Map.of("active",false))); }
+            default -> {
+                if (!token.startsWith("new-patient-")) return TestAuthServer.Reply.json(200,bytes(Map.of("active",false)));
+                data.put("sub",token); data.put("authorities",List.of("ROLE_PATIENT"));
+            }
         }
         return TestAuthServer.Reply.json(200,bytes(data));
     }
     private UUID create(String name) {
-        var response=request("POST","/api/v3/patients","staff",profile(name));
+        var response=request("POST","/api/v3/patients","new-patient-"+UUID.randomUUID(),profile(name));
         assertThat(response.statusCode()).as(response.body()).isEqualTo(201);
         return UUID.fromString(json(response).at("/data/id").asText());
     }
@@ -352,4 +355,3 @@ class PatientScopeTcpIT {
         } catch(Exception e) { throw new ExceptionInInitializerError(e); }
     }
 }
-

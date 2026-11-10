@@ -24,12 +24,11 @@ public class PatientPolicy {
     }
     public void createProfile(TrustedCaller c) {
         authenticated(c);
-        allow((c.userRole("ROLE_STAFF") && scope(() -> scopes.receptionist(c, AdministrativeAction.CREATE)))
-                || (c.userRole("ROLE_PATIENT") && c.patientId() == null));
+        allow(c.userRole("ROLE_PATIENT") && c.patientId() == null);
     }
     public void replaceProfile(TrustedCaller c, UUID id) {
-        administrative(c,AdministrativeAction.UPDATE);
-        allow(scope(() -> scopes.profile(c,id,ProfileAction.ADMIN_UPDATE)));
+        authenticated(c);
+        allow(c.userRole("ROLE_PATIENT") && id.equals(c.patientId()));
     }
     public void readProfile(TrustedCaller c, UUID id) {
         authenticated(c);
@@ -80,4 +79,3 @@ public class PatientPolicy {
     }
     public static void allow(boolean condition) { if (!condition) throw new PatientError(FORBIDDEN); }
 }
-

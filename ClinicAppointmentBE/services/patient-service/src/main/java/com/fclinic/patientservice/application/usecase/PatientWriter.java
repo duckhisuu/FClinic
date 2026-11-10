@@ -21,6 +21,13 @@ public class PatientWriter {
         this.repository = repository; this.revisions = revisions; this.clock = clock;
     }
     @Transactional
+    public Patient createOwn(ProfileData data, String actor) {
+        repository.lockCreator(actor);
+        var existing = repository.findByCreator(actor);
+        if (existing.isPresent()) return existing.get();
+        return create(data, actor);
+    }
+    @Transactional
     public Patient create(ProfileData data, String actor) {
         Patient saved = repository.insert(Patient.create(data, actor, clock.instant().truncatedTo(ChronoUnit.MICROS)));
         revisions.patient(null, saved);

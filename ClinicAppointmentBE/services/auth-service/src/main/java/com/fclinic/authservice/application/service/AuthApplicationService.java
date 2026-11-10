@@ -54,15 +54,18 @@ public class AuthApplicationService implements
     private final UserRepositoryPort userRepository;
     private final KeycloakIdentityPort keycloakIdentityPort;
     private final UserProvisioningSupport provisioningSupport;
+    private final com.fclinic.authservice.application.port.out.PatientOwnershipPort patientOwnership;
 
     public AuthApplicationService(
             UserRepositoryPort userRepository,
             KeycloakIdentityPort keycloakIdentityPort,
-            UserProvisioningSupport provisioningSupport
+            UserProvisioningSupport provisioningSupport,
+            com.fclinic.authservice.application.port.out.PatientOwnershipPort patientOwnership
     ) {
         this.userRepository = userRepository;
         this.keycloakIdentityPort = keycloakIdentityPort;
         this.provisioningSupport = provisioningSupport;
+        this.patientOwnership = patientOwnership;
     }
 
     @Override
@@ -203,15 +206,25 @@ public class AuthApplicationService implements
     @Override
     @Transactional
     public User linkPatientProfile(UUID userId, UUID patientId) {
-        User user = getCurrentUser(userId);
-        // Browser UUID possession is not proof of Patient ownership. Until a
-        // trusted provisioning contract exists, only acknowledge an existing
-        // identical binding; never claim/rebind a profile through this route.
-        if (user.getRoleName() != RoleName.ROLE_PATIENT || user.getPatientId() == null
-                || !user.getPatientId().equals(patientId)) {
+        return linkPatientProfile(userId, patientId, null);
+    }
+
+    @Override
+    @Transactional
+    public User linkPatientProfile(UUID userId, UUID patientId, String authorization) {
+        User user = userRepository.lockById(userId).orElseThrow(() -> new UserNotFoundException("Không tìm thấy tài khoản"));
+        if (!user.isActive() || user.getRoleName() != RoleName.ROLE_PATIENT || patientId == null) {
             throw new org.springframework.security.access.AccessDeniedException("Trusted Patient provisioning required");
         }
-        return user;
+        if (patientId.equals(user.getPatientId())) return user;
+        if (user.getPatientId() != null || !patientOwnership.owns(user.getKeycloakId(), patientId, authorization)) {
+            throw new org.springframework.security.access.AccessDeniedException("Không có quyền liên kết hồ sơ này");
+        }
+        user.linkPatientId(patientId);
+        User saved = userRepository.save(user);
+        keycloakIdentityPort.updateUserProfile(saved.getKeycloakId(), saved.getEmail(), saved.getFullName(),
+                saved.getPhoneNumber(), saved.getPatientId(), saved.getDoctorId());
+        return saved;
     }
 
     @Override
@@ -253,4 +266,3 @@ public class AuthApplicationService implements
         return "Fc#G0_" + Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
     }
 }
-

@@ -26,6 +26,7 @@ import { AppointmentHistory } from "./appointment/AppointmentHistory";
 import { NotificationDrawer } from "./components/NotificationDrawer";
 import { PatientModule } from "./patient/PatientModule";
 import { PatientOnboardingPage } from "./pages/PatientOnboardingPage";
+import { ProfilePage } from "./pages/ProfilePage";
 
 function getRoleLabel(role) {
   switch (role) {
@@ -81,7 +82,7 @@ function getRoleMenu(userOrRole) {
           title: "Quản lý lịch hẹn",
           desc: "Lịch hẹn trong phạm vi phân công",
         },
-        { id: "patient-records", icon: UsersRound, title: "Quản lý bệnh nhân", desc: "Hồ sơ theo quyền được cấp" },
+        { id: "patient-records", icon: UsersRound, title: "Tra cứu bệnh nhân", desc: "Chỉ xem hồ sơ trong phạm vi được cấp" },
       ];
 
     case "ROLE_ADMIN":
@@ -170,23 +171,23 @@ function MainApp() {
       const requested = window.location.hash.slice(1).split('?')[0];
       const allowed = getRoleMenu(user).map(item => item.id);
       if (user.role === 'ROLE_DOCTOR' || (user.role === 'ROLE_PATIENT' && user.patientId)) allowed.push('patient-records');
-      setTab(allowed.includes(requested) ? requested : getDefaultTab(user));
+      setTab(window.location.pathname === '/profile' ? 'profile' : allowed.includes(requested) ? requested : getDefaultTab(user));
     }
   }, [user?.role, user?.patientId]);
 
   const selectTab = (next) => {
-    if (tab !== "patient-records" || !patientLeave.current || patientLeave.current()) {
-      window.history.pushState({}, "", "#" + next);
+    if (!["patient-records", "profile"].includes(tab) || !patientLeave.current || patientLeave.current()) {
+      window.history.pushState({}, "", next === 'profile' ? '/profile' : '/#' + next);
       setTab(next);
     }
   };
 
   useEffect(() => {
     const restore = () => {
-      const requested = window.location.hash.slice(1).split('?')[0];
-      const allowed = getRoleMenu(user).map(item => item.id);
+      const requested = window.location.pathname === '/profile' ? 'profile' : window.location.hash.slice(1).split('?')[0];
+      const allowed = [...getRoleMenu(user).map(item => item.id), 'profile'];
       if (user?.role === 'ROLE_DOCTOR' || (user?.role === 'ROLE_PATIENT' && user.patientId)) allowed.push('patient-records');
-      if (allowed.includes(requested) && (tab !== "patient-records" || !patientLeave.current || patientLeave.current())) setTab(requested);
+      if (allowed.includes(requested) && (!["patient-records", "profile"].includes(tab) || !patientLeave.current || patientLeave.current())) setTab(requested);
     };
     window.addEventListener('popstate', restore);
     return () => window.removeEventListener('popstate', restore);
@@ -215,6 +216,7 @@ function MainApp() {
   }
 
   const menu = getRoleMenu(user);
+  menu.push({ id: 'profile', icon: User, title: 'Thông tin cá nhân', desc: 'Tài khoản và hồ sơ của tôi' });
   if (user?.role === 'ROLE_DOCTOR' || (user?.role === 'ROLE_PATIENT' && user.patientId)) menu.push({ id: 'patient-records', icon: UsersRound, title: 'Hồ sơ & bệnh án', desc: 'Hồ sơ trong phạm vi được cấp' });
   const roleBadge = getRoleLabel(user?.role);
   const patientId = user?.role === "ROLE_STAFF" ? walkinPatient?.id || null : user?.patientId || null;
@@ -254,6 +256,9 @@ function MainApp() {
           </div>
 
           {/* Notifications button */}
+          <button type="button" className="button secondary" onClick={() => selectTab('profile')} title="Thông tin cá nhân">
+            <User size={16} /><span>Hồ sơ của tôi</span>
+          </button>
           <button
             type="button"
             className="noti-btn"
@@ -281,7 +286,7 @@ function MainApp() {
           <button
             type="button"
             className="btn-logout"
-            onClick={() => { if (tab !== "patient-records" || !patientLeave.current || patientLeave.current()) logout(); }}
+            onClick={() => { if (!["patient-records", "profile"].includes(tab) || !patientLeave.current || patientLeave.current()) logout(); }}
             title="Đăng xuất khỏi hệ thống"
           >
             <LogOut size={15} />
@@ -331,7 +336,11 @@ function MainApp() {
             <div className="notice"><span>Hồ sơ đang chọn: {walkinPatient.fullName} · {walkinPatient.patientCode}</span>
               <button className="text-button" onClick={() => { setWalkinPatient(null); setSelection(null); }}>Bỏ chọn hồ sơ</button></div>}
           {/* ROLE ADMIN VIEW */}
-          {tab === "admin-users" ? (
+          {tab === 'profile' ? (
+            <ProfilePage key={user?.id} onBeforeLeave={registerPatientGuard} />
+          ) : user?.role === 'ROLE_PATIENT' && !user.patientId ? (
+            <PatientOnboardingPage key={user?.id} onComplete={() => selectTab('doctors')} />
+          ) : tab === "admin-users" ? (
             <AdminUsersPage />
           ) : tab === "staff-walkin" ? (
             /* ROLE STAFF VIEW */

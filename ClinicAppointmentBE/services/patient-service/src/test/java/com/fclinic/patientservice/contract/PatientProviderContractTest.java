@@ -8,7 +8,7 @@ import java.util.*;
 import static org.assertj.core.api.Assertions.*;
 
 class PatientProviderContractTest {
-    @Test void allEightRuntimeMappingsEqualCanonicalPathsAndMethods() throws Exception {
+    @Test void runtimeMappingsEqualCanonicalPathsAndMethods() throws Exception {
         var json=JsonMapper.builder().build();
         try(var in=getClass().getResourceAsStream("/contracts/patient.uuid-proposed.openapi.json")) {
             var paths=json.readTree(in).path("paths");
@@ -22,7 +22,7 @@ class PatientProviderContractTest {
                 if(method.isAnnotationPresent(PostMapping.class)) add(actual,"post",root,method.getAnnotation(PostMapping.class).value());
                 if(method.isAnnotationPresent(PutMapping.class)) add(actual,"put",root,method.getAnnotation(PutMapping.class).value());
             }
-            assertThat(actual).hasSize(8).isEqualTo(canonical);
+            assertThat(actual).hasSize(9).isEqualTo(canonical);
         }
     }
     @Test void fullValidatorChecksStructuredErrorsAndPatientFormatsAndBounds() {
@@ -64,4 +64,3 @@ class PatientProviderContractTest {
         out.add(verb+" "+root+(suffix.length==0?"":suffix[0]));
     }
 }
-

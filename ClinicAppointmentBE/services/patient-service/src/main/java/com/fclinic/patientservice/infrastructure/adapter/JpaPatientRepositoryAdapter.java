@@ -17,6 +17,17 @@ public class JpaPatientRepositoryAdapter implements PatientRepositoryPort {
     @PersistenceContext private EntityManager em;
 
     public Optional<Patient> find(UUID id) { return Optional.ofNullable(em.find(JpaPatientEntity.class, id)).map(this::patient); }
+    public Optional<Patient> findByCreator(String subject) {
+        var rows = em.createQuery("select p from JpaPatientEntity p where p.createdBy = :subject", JpaPatientEntity.class)
+                .setParameter("subject", subject).setMaxResults(2).getResultList();
+        if (rows.size() > 1) throw new PatientError(PatientError.Code.FORBIDDEN);
+        return rows.stream().findFirst().map(this::patient);
+    }
+    public void lockCreator(String subject) {
+        // Serialize first-login retries across service instances, including before a row exists.
+        em.createNativeQuery("select 1 from pg_advisory_xact_lock(hashtextextended(cast(:subject as text), 0))")
+                .setParameter("subject", subject).getSingleResult();
+    }
     public Optional<Patient> lock(UUID id) {
         return Optional.ofNullable(em.find(JpaPatientEntity.class, id, LockModeType.PESSIMISTIC_WRITE)).map(this::patient);
     }

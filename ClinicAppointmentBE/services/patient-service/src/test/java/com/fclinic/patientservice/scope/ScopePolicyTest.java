@@ -24,7 +24,7 @@ class ScopePolicyTest {
     }
     @Test void administrativeActionDoesNotGrantOtherOperations() {
         when(scopes.receptionist(STAFF,AdministrativeAction.CREATE)).thenReturn(true);
-        policy.createProfile(STAFF);
+        denied(() -> policy.createProfile(STAFF));
         denied(() -> policy.replaceProfile(STAFF,PATIENT)); denied(() -> policy.readProfile(STAFF,PATIENT));
         denied(() -> policy.search(STAFF)); denied(() -> policy.readMedical(STAFF,PATIENT));
     }
@@ -46,4 +46,3 @@ class ScopePolicyTest {
         assertThatThrownBy(r::run).isInstanceOfSatisfying(PatientError.class,e -> assertThat(e.code()).isEqualTo(PatientError.Code.FORBIDDEN));
     }
 }
-

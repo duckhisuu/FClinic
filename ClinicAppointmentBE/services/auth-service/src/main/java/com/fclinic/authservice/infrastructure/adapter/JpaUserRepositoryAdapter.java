@@ -58,6 +58,10 @@ public class JpaUserRepositoryAdapter implements UserRepositoryPort {
     public Optional<User> findById(UUID id) {
         return userRepository.findById(id).map(mapper::toDomain);
     }
+    @Override
+    public Optional<User> lockById(UUID id) {
+        return userRepository.lockById(id).map(mapper::toDomain);
+    }
 
     @Override
     public Optional<User> findByKeycloakId(UUID keycloakId) {
@@ -131,4 +135,3 @@ public class JpaUserRepositoryAdapter implements UserRepositoryPort {
         return userRepository.lookupPatient(query).map(mapper::toDomain);
     }
 }
-

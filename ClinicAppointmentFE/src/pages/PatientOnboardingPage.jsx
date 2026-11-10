@@ -1,238 +1,31 @@
-import React, { useState } from 'react';
-import { UserRound, Calendar, MapPin, Phone, User, CheckCircle2, AlertCircle, ArrowRight, Loader2 } from 'lucide-react';
-import { patientApi } from '../appointment/api';
-import { authApi } from '../services/authApi';
+import React, { useMemo, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { authApi } from '../services/authApi';
+import { createPatientApi } from '../patient/api/patientApi';
+import { PatientForm } from '../patient/components/PatientForm';
+import '../patient/patient.css';
 
 export function PatientOnboardingPage({ onComplete }) {
   const { user, updateUserSession } = useAuth();
-
-  const [fullName, setFullName] = useState(user?.fullName || '');
-  const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber || '');
-  const [dateOfBirth, setDateOfBirth] = useState('');
-  const [gender, setGender] = useState('MALE');
-  const [address, setAddress] = useState('');
-
-  const [busy, setBusy] = useState(false);
-  const [errorMsg, setErrorMsg] = useState('');
-  const [successMsg, setSuccessMsg] = useState('');
-  const [pendingPatient, setPendingPatient] = useState(() => {
-    try {
-      const stored = sessionStorage.getItem('fclinic.pending.patient');
-      return stored ? JSON.parse(stored) : null;
-    } catch {
-      return null;
-    }
-  });
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setErrorMsg('');
-    setSuccessMsg('');
-
-    if (!fullName.trim()) {
-      setErrorMsg('Vui lòng nhập họ và tên');
-      return;
-    }
-    const cleanPhone = phoneNumber.replace(/[\s()-]/g, '');
-    if (!cleanPhone.match(/^(0[0-9]{9}|\+[1-9][0-9]{7,14})$/)) {
-      setErrorMsg('Số điện thoại không hợp lệ. Vui lòng nhập số điện thoại 10 chữ số (VD: 0912345678 hoặc +84...)');
-      return;
-    }
-
-    setBusy(true);
-    try {
-      let patient = pendingPatient;
-      if (!patient) {
-        // 1. Tạo hồ sơ bệnh nhân mới bên patient-service
-        const payload = {
-          fullName: fullName.trim(),
-          phoneNumber: cleanPhone,
-          dateOfBirth: dateOfBirth,
-          gender: gender,
-          ...(address.trim() ? { address: address.trim() } : {}),
-          ...(user?.email ? { email: user.email.trim() } : {}),
-        };
-
-        patient = await patientApi.create(payload);
+  const [revision, setRevision] = useState(0);
+  const [pendingPatient, setPendingPatient] = useState(null);
+  const api = useMemo(() => createPatientApi({ getAccessToken: () => localStorage.getItem('fclinic_token') }), []);
+  const initial = useMemo(() => ({ fullName: user?.fullName || '', phoneNumber: user?.phoneNumber || '', email: user?.email || '' }), [user]);
+  return <section className="pt-module" aria-label="Khởi tạo hồ sơ cá nhân">
+    <div className="page-heading"><div><span className="eyebrow">CHÀO MỪNG BẠN ĐẾN VỚI FCLINIC</span>
+      <h1>Hoàn tất hồ sơ để đặt lịch khám</h1>
+      <p>Bạn chỉ cần khởi tạo một hồ sơ cho tài khoản của mình. Bạn có thể cập nhật thông tin cá nhân tại /profile.</p>
+    </div></div>
+    {pendingPatient && <p role="status" className="notice">Hồ sơ {pendingPatient.patientCode} đã được lưu. Nếu liên kết thất bại, bấm Tạo hồ sơ để thử lại liên kết hồ sơ này.</p>}
+    <PatientForm key={revision} initialValues={initial} selfService fieldsDisabled={!!pendingPatient} allowed={user?.role === 'ROLE_PATIENT'}
+      onReload={() => setRevision(value => value + 1)}
+      onSave={async body => {
+        // Creation is idempotent per verified subject, so retries cannot create another profile.
+        const patient = pendingPatient || await api.createPatient(body);
         setPendingPatient(patient);
-        sessionStorage.setItem('fclinic.pending.patient', JSON.stringify(patient));
-      }
-
-      // 2. Liên kết patientId vào tài khoản trong auth-service
-      const updatedUser = await authApi.linkPatientProfile(patient.id);
-      sessionStorage.removeItem('fclinic.pending.patient');
-
-      // 3. Cập nhật lại session trong AuthContext
-      updateUserSession(updatedUser);
-
-      setSuccessMsg(`Khởi tạo hồ sơ thành công! Mã hồ sơ của bạn là ${patient.patientCode || 'PAT-' + patient.id.slice(0, 8)}`);
-
-      setTimeout(() => {
-        if (onComplete) onComplete(patient);
-      }, 1200);
-    } catch (err) {
-      if (err.fieldErrors && err.fieldErrors.length > 0) {
-        const fields = err.fieldErrors.map(f => f.field === 'phoneNumber' ? 'Số điện thoại' : f.field === 'fullName' ? 'Họ tên' : f.field).join(', ');
-        setErrorMsg(`Thông tin không hợp lệ ở trường: ${fields}. Vui lòng kiểm tra lại.`);
-      } else if (err.code === 'DEPENDENCY_UNAVAILABLE') {
-        setErrorMsg('Dịch vụ xác thực danh tính chưa được kết nối (DEPENDENCY_UNAVAILABLE). Vui lòng restart Patient Service.');
-      } else if (err.status === 403) {
-        setErrorMsg('Liên kết cần provisioning tin cậy. Vui lòng thử lại hoặc liên hệ quản trị viên.');
-      } else {
-        setErrorMsg(err.message || 'Không thể tạo hồ sơ bệnh nhân. Vui lòng kiểm tra lại thông tin.');
-      }
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <div style={{ maxWidth: '680px', margin: '2rem auto', padding: '0 1rem' }}>
-      <div className="page-heading">
-        <div>
-          <span className="eyebrow">CHÀO MỪNG BẠN ĐẾN VỚI FCLINIC</span>
-          <h1>Khởi tạo hồ sơ bệnh nhân</h1>
-          <p>
-            Vui lòng hoàn tất thông tin người khám bệnh để hệ thống kích hoạt quyền đặt lịch khám và quản lý hồ sơ y tế.
-          </p>
-        </div>
-      </div>
-
-      <section className="panel">
-        {errorMsg && (
-          <div className="login-alert error" style={{ marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1rem', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '0.5rem', color: '#991b1b' }}>
-            <AlertCircle size={18} />
-            <span>{errorMsg}</span>
-          </div>
-        )}
-
-        {successMsg && (
-          <div className="login-alert success" style={{ marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1rem', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '0.5rem', color: '#166534' }}>
-            <CheckCircle2 size={18} />
-            <span>{successMsg}</span>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-          <div>
-            <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.35rem', color: '#1e293b' }}>
-              Họ và tên bệnh nhân <span style={{ color: '#dc2626' }}>*</span>
-            </label>
-            <div className="input-with-icon" style={{ position: 'relative' }}>
-              <input
-                type="text"
-                required
-                placeholder="Ví dụ: Nguyễn Văn An"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                disabled={busy}
-                style={{ width: '100%', padding: '0.65rem 0.75rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', fontSize: '0.95rem' }}
-              />
-            </div>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-            <div>
-              <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.35rem', color: '#1e293b' }}>
-                Số điện thoại liên hệ <span style={{ color: '#dc2626' }}>*</span>
-              </label>
-              <input
-                type="tel"
-                required
-                placeholder="0900000001"
-                value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value)}
-                disabled={busy}
-                style={{ width: '100%', padding: '0.65rem 0.75rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', fontSize: '0.95rem' }}
-              />
-              <small style={{ color: '#64748b', fontSize: '0.8rem', marginTop: '4px', display: 'block' }}>
-                10 chữ số (VD: 0912345678 hoặc +84...)
-              </small>
-            </div>
-
-            <div>
-              <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.35rem', color: '#1e293b' }}>
-                Ngày sinh <span style={{ color: '#dc2626' }}>*</span>
-              </label>
-              <input
-                type="date"
-                required
-                max={new Date().toISOString().slice(0, 10)}
-                value={dateOfBirth}
-                onChange={(e) => setDateOfBirth(e.target.value)}
-                disabled={busy}
-                style={{ width: '100%', padding: '0.65rem 0.75rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', fontSize: '0.95rem' }}
-              />
-            </div>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-            <div>
-              <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.35rem', color: '#1e293b' }}>
-                Giới tính
-              </label>
-              <select
-                value={gender}
-                onChange={(e) => setGender(e.target.value)}
-                disabled={busy}
-                style={{ width: '100%', padding: '0.65rem 0.75rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', fontSize: '0.95rem', background: '#fff' }}
-              >
-                <option value="MALE">Nam</option>
-                <option value="FEMALE">Nữ</option>
-                <option value="OTHER">Khác</option>
-              </select>
-            </div>
-
-            <div>
-              <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.35rem', color: '#1e293b' }}>
-                Email (từ tài khoản)
-              </label>
-              <input
-                type="email"
-                value={user?.email || ''}
-                disabled
-                style={{ width: '100%', padding: '0.65rem 0.75rem', borderRadius: '0.5rem', border: '1px solid #e2e8f0', background: '#f8fafc', color: '#64748b', fontSize: '0.95rem' }}
-              />
-            </div>
-          </div>
-
-          <div>
-            <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.35rem', color: '#1e293b' }}>
-              Địa chỉ liên hệ
-            </label>
-            <textarea
-              rows={3}
-              placeholder="Nhập địa chỉ cư trú của bạn..."
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              disabled={busy}
-              style={{ width: '100%', padding: '0.65rem 0.75rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', fontSize: '0.95rem', resize: 'vertical' }}
-            />
-          </div>
-
-          <div style={{ marginTop: '0.5rem', display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
-            <button
-              type="submit"
-              className="button primary"
-              disabled={busy}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.5rem', fontWeight: 600 }}
-            >
-              {busy ? (
-                <>
-                  <Loader2 size={17} className="spin" />
-                  Đang khởi tạo hồ sơ...
-                </>
-              ) : (
-                <>
-                  Lưu & Tiếp tục đặt lịch
-                  <ArrowRight size={17} />
-                </>
-              )}
-            </button>
-          </div>
-        </form>
-      </section>
-    </div>
-  );
+        const updated = await authApi.linkPatientProfile(patient.id);
+        if (!updateUserSession(updated)) throw new Error('Phiên đăng nhập đã thay đổi. Vui lòng đăng nhập lại.');
+        onComplete?.(patient);
+      }} />
+  </section>;
 }

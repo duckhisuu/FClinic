@@ -31,6 +31,10 @@ public class PatientController {
         policy.search(c);
         return ApiResponse.success(service.search(c,input.query(params,false)).map(PatientResponse::from));
     }
+    @GetMapping("/me")
+    public Object own(@RequestAttribute("patientCaller") TrustedCaller c) {
+        return ApiResponse.success(PatientResponse.from(service.own(c)));
+    }
     @GetMapping("/{id}")
     public Object get(@RequestAttribute("patientCaller") TrustedCaller c, @PathVariable String id) {
         return ApiResponse.success(PatientResponse.from(service.get(c,input.uuid(id,"id"))));

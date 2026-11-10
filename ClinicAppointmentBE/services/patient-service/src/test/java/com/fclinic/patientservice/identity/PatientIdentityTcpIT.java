@@ -73,7 +73,7 @@ class PatientIdentityTcpIT {
         });
         when(doctors.find(fixture(12))).thenReturn(Optional.of(new DoctorClientPort.DoctorReference(fixture(12),true)));
         AUTH.handler=this::reply;
-        own=UUID.fromString(json(request("POST","/api/v3/patients","staff",profile())).at("/data/id").asText());
+        own=UUID.fromString(json(request("POST","/api/v3/patients","unlinked",profile())).at("/data/id").asText());
         AUTH.calls.set(0); AUTH.authenticatedCalls.set(0);
     }
     @AfterAll static void stop() throws Exception { HTTP.close(); AUTH.close(); PG.close(); }
@@ -158,7 +158,7 @@ class PatientIdentityTcpIT {
                 .isEqualTo("opaque-doctor-fixture");
         assertThat(jdbc.queryForObject("select count(*) from medical_record_revisions",Integer.class)).isEqualTo(1);
         assertThat(request("GET","/api/v3/patients/"+own+"/medical-records/"+id,"doctor",null).statusCode()).isEqualTo(200);
-        UUID other=UUID.fromString(json(request("POST","/api/v3/patients","staff",profile())).at("/data/id").asText());
+        UUID other=UUID.fromString(json(request("POST","/api/v3/patients","other-unlinked",profile())).at("/data/id").asText());
         var before=snapshot();
         expect(request("GET","/api/v3/patients/"+other+"/medical-records/"+id,"doctor",null),404,"MEDICAL_RECORD_NOT_FOUND");
         var edited=new LinkedHashMap<>(medical()); edited.remove("doctorId"); edited.put("version",0); edited.put("changeReason","Synthetic review");
@@ -167,12 +167,12 @@ class PatientIdentityTcpIT {
     }
     @Test void profilePutKeepsNoOpVersionAndStaleConflictWithRealIdentityTransport() {
         var replace=new LinkedHashMap<>(profile()); replace.put("gender","UNKNOWN"); replace.put("status","ACTIVE"); replace.put("version",0);
-        var noop=request("PUT","/api/v3/patients/"+own,"staff",replace);
+        var noop=request("PUT","/api/v3/patients/"+own,"patient",replace);
         assertThat(noop.statusCode()).isEqualTo(200); assertThat(json(noop).at("/data/version").asInt()).isZero();
         replace.put("fullName","Synthetic changed");
-        var changed=request("PUT","/api/v3/patients/"+own,"staff",replace);
+        var changed=request("PUT","/api/v3/patients/"+own,"patient",replace);
         assertThat(changed.statusCode()).isEqualTo(200); assertThat(json(changed).at("/data/version").asInt()).isEqualTo(1);
-        expect(request("PUT","/api/v3/patients/"+own,"staff",replace),409,"VERSION_CONFLICT");
+        expect(request("PUT","/api/v3/patients/"+own,"patient",replace),409,"VERSION_CONFLICT");
         assertThat(jdbc.queryForObject("select count(*) from patient_revisions",Integer.class)).isEqualTo(2);
     }
     @Test void providerActivationChangeIsEffectiveOnNextTcpRequest() {
@@ -223,7 +223,7 @@ class PatientIdentityTcpIT {
         profilePut.put("gender","UNKNOWN"); profilePut.put("status","ACTIVE"); profilePut.put("version",0);
         var medicalPut=new LinkedHashMap<>(medical()); medicalPut.remove("doctorId");
         medicalPut.put("version",0); medicalPut.put("changeReason","Synthetic revocation regression");
-        assertThat(request("PUT","/api/v3/patients/"+own,"staff",profilePut).statusCode()).isEqualTo(200);
+        assertThat(request("PUT","/api/v3/patients/"+own,"patient",profilePut).statusCode()).isEqualTo(200);
         assertThat(request("PUT","/api/v3/patients/"+own+"/medical-records/"+recordId,"doctor",medicalPut).statusCode()).isEqualTo(200);
         var before=contentSnapshot(); clearInvocations(scopes,doctors,appointments); AUTH.calls.set(0);
         // Test-only authority transition models the wire result of revocation; it proves no token lifecycle/signature.
@@ -284,6 +284,7 @@ class PatientIdentityTcpIT {
             case "unknown-service" -> { data=service(); data.put("sub","appointment-service"); }
             case "excess-service-authority" -> { data=service(); data.put("authorities",List.of("SVC_PATIENT_WRITE")); }
             case "unlinked" -> data.put("patientId",null);
+            case "other-unlinked" -> { data.put("patientId",null); data.put("sub","opaque-other-patient"); }
             case "expired" -> data.put("exp",CLOCK.instant().minusSeconds(1).getEpochSecond());
             case "wrong-issuer" -> data.put("iss","https://wrong.example.test");
             case "wrong-audience" -> data.put("aud","other-service");
@@ -336,4 +337,3 @@ class PatientIdentityTcpIT {
         } catch(Exception e) { throw new ExceptionInInitializerError(e); }
     }
 }
-

@@ -26,11 +26,11 @@ public class PatientCapabilitiesController {
         assignments.grants().values().stream().filter(g -> identity.subject().equals(g.subject()) && !g.allPatients())
                 .forEach(g -> candidates.addAll(g.patientIds()));
         Map<String, Object> result = new LinkedHashMap<>();
-        result.put("createPatient", allowed(identity, "ADMINISTRATIVE", "ADMIN_ASSIGNMENT_CREATE", null));
+        result.put("createPatient", caller.patientId() == null && caller.role() == com.fclinic.authservice.domain.valueobject.RoleName.ROLE_PATIENT);
         result.put("searchPatients", (allowed(identity, "ADMINISTRATIVE", "ADMIN_ASSIGNMENT_SEARCH", null)
                 && allowed(identity, "ADMINISTRATIVE", "ADMIN_SEARCH", null)) || allowed(identity, "CLINICAL", "DOCTOR_SEARCH", null));
-        result.put("updatePatientIds", candidates.stream().filter(id -> allowed(identity, "ADMINISTRATIVE", "ADMIN_ASSIGNMENT_UPDATE", null)
-                && allowed(identity, "ADMINISTRATIVE", "ADMIN_PROFILE_UPDATE", id)).toList());
+        result.put("updatePatientIds", caller.patientId() != null && caller.role() == com.fclinic.authservice.domain.valueobject.RoleName.ROLE_PATIENT
+                ? List.of(caller.patientId()) : List.of());
         result.put("createRecordPatientIds", candidates.stream().filter(id -> allowed(identity, "CLINICAL", "MEDICAL_CREATE", id)).toList());
         result.put("updateRecordPatientIds", candidates.stream().filter(id -> allowed(identity, "CLINICAL", "MEDICAL_UPDATE", id)).toList());
         return ApiResponse.success(result);

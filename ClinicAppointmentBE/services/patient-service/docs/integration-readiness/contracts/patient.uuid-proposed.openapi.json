@@ -24,6 +24,20 @@
     }
   ],
   "paths": {
+    "/api/v3/patients/me": {
+      "get": {
+        "tags": ["Patients"],
+        "operationId": "getOwnPatient",
+        "summary": "Đọc hồ sơ của tài khoản bệnh nhân đang đăng nhập",
+        "description": "Chỉ PATIENT. Trả hồ sơ đã liên kết, hoặc hồ sơ do chính subject đã xác minh tạo để khôi phục liên kết sau lỗi. Không nhận patientId từ trình duyệt.",
+        "responses": {
+          "200": {"description": "Hồ sơ cá nhân", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/PatientResponse"}}}},
+          "401": {"description": "Chưa xác thực"},
+          "403": {"description": "Không có quyền"},
+          "404": {"description": "Chưa có hồ sơ"}
+        }
+      }
+    },
     "/api/v3/patients": {
       "get": {
         "tags": [
@@ -215,8 +229,8 @@
           "Patients"
         ],
         "operationId": "createPatientV2",
-        "summary": "T\u1ea1o m\u1edbi, kh\u00f4ng upsert",
-        "description": "RECEPTIONIST; code/id/status ACTIVE/version0/actors server sinh; shared phone \u0111\u01b0\u1ee3c ph\u00e9p sau cutover; POST kh\u00f4ng idempotent",
+        "summary": "Bệnh nhân khởi tạo hồ sơ cá nhân lần đầu",
+        "description": "Chỉ PATIENT chưa liên kết hồ sơ. ID UUIDv4, mã hồ sơ, trạng thái ACTIVE, version và actor do máy chủ sinh. Khóa theo subject đã xác minh để yêu cầu lặp hoặc đồng thời trả cùng hồ sơ, không ghi đè thông tin. Nhân viên không được tạo hồ sơ. Auth xác minh createdBy qua GET /api/v3/patients/me trước khi liên kết.",
         "requestBody": {
           "required": true,
           "content": {
@@ -491,8 +505,8 @@
           "Patients"
         ],
         "operationId": "replacePatientV2",
-        "summary": "Thay to\u00e0n b\u1ed9 mutable profile",
-        "description": "RECEPTIONIST; version required; optional omitted/null x\u00f3a. INACTIVE ch\u1eb7n m\u1edbi nh\u01b0ng gi\u1eef \u0111\u1ecdc/s\u1eeda medical c\u0169; kh\u00f4ng t\u1ef1 h\u1ee7y l\u1ecbch PUT ki\u1ec3m version tr\u01b0\u1edbc so s\u00e1nh n\u1ed9i dung chu\u1ea9n h\u00f3a: stale lu\u00f4n409; no-op200 gi\u1eef version/updatedAt/updatedBy, kh\u00f4ng UPDATE revision. C\u00f3 thay \u0111\u1ed5i th\u00ec flush entity v\u00e0 ghi revision \u0111\u00fang persisted version trong c\u00f9ng transaction. M\u1ea5t response ph\u1ea3i GET/\u0111\u1ed1i chi\u1ebfu, kh\u00f4ng blind retry v\u1edbi version m\u1edbi.",
+        "summary": "Bệnh nhân cập nhật thông tin hồ sơ của chính mình",
+        "description": "Chỉ PATIENT có patientId đã xác minh trùng ID hồ sơ. Nhân viên không được cập nhật. Bệnh nhân không được đổi trạng thái ACTIVE/INACTIVE. Bắt buộc version; trường tùy chọn bị bỏ qua hoặc null sẽ bị xóa. Version cũ trả 409; cập nhật không đổi nội dung trả 200 và giữ nguyên version, không thêm revision. Thay đổi và revision được ghi trong cùng giao dịch. Mất phản hồi phải đọc lại trước khi cập nhật tiếp.",
         "parameters": [
           {
             "name": "id",
