@@ -29,3 +29,7 @@ Runtime acceptance and current test evidence are recorded at the top of PATIENT_
 ## Resolved this run
 
 Main e94d652 merged with 2 conflicts resolved. Notification 316944c file hunks received; 860b433 legacy Auth/mock excluded. V4/V5 rehearsed on database copies, including one archived numeric fixture and eight preserved templates, then applied to the actual local Notification DB (initial notifications=0). No volumes/realm/DLQ reset. Old 3 DLQ messages retained; one malformed test event increased DLQ to 4. Real booking → outbox → RabbitMQ → UUID PostgreSQL → JWT REST → React and MailHog passed. Patient/clinical/version/security/provider-outage regression passed. All 8 application health checks passed.
+
+## Doctor schedules — 2026-11-10
+
+New overlapping slot writes are blocked transactionally, including concurrent requests (409 DOCTOR_SLOT_OVERLAP). Real API/PostgreSQL and React checks passed. One pre-existing 16:00-17:00 overlap pair on 2026-11-10 is preserved; reconcile Appointment references before retiring a specific old UUID. See FULL_APP_INTEGRATION.md and doctor-slot-overlap-evidence.json.

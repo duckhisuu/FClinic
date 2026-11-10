@@ -65,6 +65,7 @@ export const DoctorSchedulePage = ({ onSelectSlot, onNotify }) => {
   const [showAddSlotModal, setShowAddSlotModal] = useState(false);
   const [slotTargetDoctor, setSlotTargetDoctor] = useState(null);
   const [addSlotLoading, setAddSlotLoading] = useState(false);
+  const [addSlotError, setAddSlotError] = useState('');
   const [newSlotForm, setNewSlotForm] = useState({
     slotDate: new Date().toISOString().split('T')[0],
     startTime: '08:00',
@@ -150,6 +151,7 @@ export const DoctorSchedulePage = ({ onSelectSlot, onNotify }) => {
 
   // Create slot handler
   const handleOpenAddSlotModal = (doc) => {
+    setAddSlotError('');
     setSlotTargetDoctor(doc);
     setNewSlotForm({
       slotDate: selectedDate,
@@ -161,7 +163,8 @@ export const DoctorSchedulePage = ({ onSelectSlot, onNotify }) => {
 
   const handleCreateSlotSubmit = async (e) => {
     e.preventDefault();
-    if (!slotTargetDoctor) return;
+    if (!slotTargetDoctor || addSlotLoading) return;
+    setAddSlotError('');
     setAddSlotLoading(true);
     try {
       await doctorApi.createDoctorSlot(slotTargetDoctor.id, newSlotForm);
@@ -174,6 +177,7 @@ export const DoctorSchedulePage = ({ onSelectSlot, onNotify }) => {
       const slots = await doctorApi.getDoctorSlots(slotTargetDoctor.id, selectedDate);
       setDoctorSlots((prev) => ({ ...prev, [slotTargetDoctor.id]: slots || [] }));
     } catch (err) {
+      setAddSlotError(err.message || 'Không thể thêm khung giờ.');
       notify(err.message || 'Không thể thêm khung giờ.', 'error');
     } finally {
       setAddSlotLoading(false);
@@ -841,6 +845,7 @@ export const DoctorSchedulePage = ({ onSelectSlot, onNotify }) => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
           <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
             <form onSubmit={handleCreateSlotSubmit} className="p-6 space-y-4">
+              {addSlotError && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{addSlotError}</p>}
               <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                 <div className="flex items-center gap-2 text-teal-800 font-bold text-sm">
                   <PlusCircle className="w-4 h-4 text-teal-600" />

@@ -17,6 +17,12 @@ import java.util.stream.Collectors;
 @Slf4j
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(com.fclinic.doctorservice.application.exception.SlotOverlapException.class)
+    public ResponseEntity<ReferenceError> handleSlotOverlap(com.fclinic.doctorservice.application.exception.SlotOverlapException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ReferenceError(409, ex.getMessage(), null, "DOCTOR_SLOT_OVERLAP", java.util.List.of()));
+    }
+
     @ExceptionHandler(DoctorNotFoundException.class)
     public ResponseEntity<ReferenceError> handleNotFound(DoctorNotFoundException ex) {
         log.warn("[NotFound] {}", ex.getMessage());

@@ -21,7 +21,7 @@
     "failures": 0,
     "skipped": 0,
     "errors": 0,
-    "tests": 9
+    "tests": 13
   },
   "services/appointment-service": {
     "failures": 0,

@@ -1,0 +1,65 @@
+{
+  "checkedAt": "2026-11-10T08:45:39.087Z",
+  "checks": [
+    {
+      "label": "Real Doctor login",
+      "pass": true
+    },
+    {
+      "label": "Create synthetic Doctor fixture",
+      "pass": true
+    },
+    {
+      "label": "Concurrent identical slots have exactly one winner",
+      "pass": true,
+      "statuses": [
+        409,
+        409,
+        409,
+        409,
+        409,
+        409,
+        409,
+        201
+      ]
+    },
+    {
+      "label": "All competing writes return explicit overlap conflict",
+      "pass": true
+    },
+    {
+      "label": "Adjacent slot allowed",
+      "pass": true
+    },
+    {
+      "label": "Same hour on another date allowed",
+      "pass": true
+    },
+    {
+      "label": "Create synthetic Doctor fixture",
+      "pass": true
+    },
+    {
+      "label": "Different Doctor same hour allowed",
+      "pass": true
+    },
+    {
+      "label": "Sequential duplicate rejected",
+      "pass": true
+    },
+    {
+      "label": "Readback contains exactly two adjacent slots",
+      "pass": true
+    },
+    {
+      "label": "PostgreSQL has one row for contended slot",
+      "pass": true
+    },
+    {
+      "label": "No new overlap pairs and existing rows preserved",
+      "pass": true
+    }
+  ],
+  "preexistingOverlapPairs": 1,
+  "doctorId": "0cedaf1a-7d79-4346-9d8d-aec72949203e"
+}

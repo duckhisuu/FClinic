@@ -7,6 +7,12 @@ import com.fclinic.doctorservice.infrastructure.entity.JpaTimeSlotEntity;
 import com.fclinic.doctorservice.infrastructure.mapper.TimeSlotPersistenceMapper;
 import com.fclinic.doctorservice.infrastructure.persistence.SpringDataJpaTimeSlotRepository;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
+import com.fclinic.doctorservice.infrastructure.entity.JpaDoctorEntity;
+import com.fclinic.doctorservice.application.exception.DoctorNotFoundException;
+import com.fclinic.doctorservice.application.exception.SlotOverlapException;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -17,15 +23,29 @@ import java.util.UUID;
 public class JpaTimeSlotRepositoryAdapter implements TimeSlotRepositoryPort, TimeSlotRepository {
 
     private final SpringDataJpaTimeSlotRepository repository;
+    private final EntityManager entityManager;
 
-    public JpaTimeSlotRepositoryAdapter(SpringDataJpaTimeSlotRepository repository) {
+    public JpaTimeSlotRepositoryAdapter(SpringDataJpaTimeSlotRepository repository, EntityManager entityManager) {
         this.repository = repository;
+        this.entityManager = entityManager;
     }
 
     @Override
+    @Transactional
     public TimeSlot save(TimeSlot domain) {
+        // Lock the parent, including when no slots exist yet. All writers for this
+        // doctor serialize across application instances until commit/rollback.
+        if (entityManager.find(JpaDoctorEntity.class, domain.getDoctorId(), LockModeType.PESSIMISTIC_WRITE) == null) {
+            throw new DoctorNotFoundException("Không tìm thấy bác sĩ với ID: " + domain.getDoctorId());
+        }
+        if (repository.findByDoctorIdAndSlotDateOrderByStartTimeAsc(domain.getDoctorId(), domain.getSlotDate())
+                .stream().anyMatch(existing -> !existing.getId().equals(domain.getId())
+                    && existing.getStartTime().isBefore(domain.getEndTime())
+                    && domain.getStartTime().isBefore(existing.getEndTime()))) {
+            throw new SlotOverlapException();
+        }
         JpaTimeSlotEntity entity = TimeSlotPersistenceMapper.toEntity(domain);
-        JpaTimeSlotEntity saved = repository.save(entity);
+        JpaTimeSlotEntity saved = repository.saveAndFlush(entity);
         return TimeSlotPersistenceMapper.toDomain(saved);
     }
 
