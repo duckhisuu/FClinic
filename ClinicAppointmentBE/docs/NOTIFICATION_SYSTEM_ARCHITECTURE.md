@@ -1,582 +1,889 @@
-# FClinic Notification Subsystem: End-to-End Architecture & Technical Deep-Dive
+# Hệ thống thông báo FClinic — Kế hoạch, cơ chế và hướng dẫn vận hành
 
-This document provides a comprehensive technical breakdown of the **Notification Subsystem** in the **FClinic Enterprise Healthcare Management Platform**. It details how domain events are originated, reliably published, routed, ingested, rendered, delivered via SMTP, tracked, and managed across the microservices ecosystem.
+> Tài liệu này mô tả **hệ thống thông báo đang có trong code**, không phải thiết kế đề xuất.
+> Đã đối chiếu với source code, cấu hình và môi trường local ngày **2026-11-10**.
+> Phạm vi: appointment-service → RabbitMQ → notification-service → SMTP/MailHog, cùng API tra cứu và retry.
 
 ---
 
-## 1. High-Level Architectural Overview
+## 1. Mục tiêu và phạm vi
 
-The notification subsystem is architected around the **Event-Driven Architecture (EDA)**, **Transactional Outbox Pattern**, and **Two-Phase Async Delivery Pipeline (Phase A Ingestion & Phase B Delivery)**. This ensures zero data loss, strict idempotency, decoupled microservice lifecycles, and zero impact on end-user HTTP response times.
+Hệ thống thông báo chịu trách nhiệm:
+
+1. Phát sự kiện khi lịch hẹn được **tạo**, **hủy**, **đổi lịch** hoặc **sắp đến giờ**.
+2. Chuyển sự kiện đó thành **email xác nhận/hủy/đổi lịch/nhắc lịch** cho bệnh nhân và bác sĩ.
+3. Không làm chậm API đặt lịch nếu SMTP hoặc RabbitMQ chậm/hỏng.
+4. Không mất sự kiện khi một service tạm thời không khả dụng.
+5. Không gửi trùng email khi RabbitMQ redeliver hoặc consumer crash.
+6. Cho phép tra cứu trạng thái và gửi lại email thất bại.
+
+Ngoài phạm vi hiện tại:
+
+- Chưa có SMS, push notification hay in-app notification.
+- Chưa có gửi email cho người thân, lễ tân hoặc cơ sở y tế.
+- Chưa có template đa ngôn ngữ; template hiện là tiếng Việt trong database.
+
+---
+
+## 2. Kiến trúc tổng thể
 
 ```mermaid
-flowchart TD
-    subgraph ClientLayer["Frontend & Client Layer"]
-        FE["React 18 SPA<br/>(NotificationDrawer / OutboxMonitor)"]
-        Gateway["Spring Cloud Gateway<br/>(Port 8080)"]
-    end
+flowchart LR
+    FE["React SPA<br/>localhost:5173"]
+    GW["API Gateway<br/>localhost:8080<br/>(tùy chọn)"]
+    APPT["appointment-service<br/>localhost:8083"]
+    APPTDB[("appointment_db<br/>PostgreSQL :5435")]
+    RELAY["OutboxRelayJob<br/>mỗi 5 giây"]
+    RESOLVE["Resolve người nhận<br/>Patient + Auth"]
+    RABBIT{{"RabbitMQ<br/>clinic.events<br/>topic exchange"}}
+    Q["notification.appointment.q"]
+    DLX{{"clinic.dlx"}}
+    DLQ[("notification.appointment.dlq")]
+    NOTI["notification-service<br/>localhost:8084"]
+    NOTIDB[("notification_db<br/>PostgreSQL :5436")]
+    SCHED["NotificationDeliveryScheduler<br/>mỗi 5 giây"]
+    SMTP["SMTP<br/>MailHog :1025"]
+    UI["MailHog UI<br/>localhost:8025"]
 
-    subgraph AppService["appointment-service (Port 8083)"]
-        Controller["AppointmentController<br/>POST /api/v1/appointments"]
-        AppSvc["AppointmentApplicationService<br/>(Redisson Distributed Lock)"]
-        AppDB[("appointment_db<br/>(PostgreSQL 5435)<br/>appointments & outbox_events")]
-        OutboxRelay["OutboxRelayJob<br/>(Scheduled 3s Polling)"]
-    end
-
-    subgraph MessageBroker["RabbitMQ Cluster (Port 5672)"]
-        TopicEx["TopicExchange<br/>'clinic.events'"]
-        MainQueue["Durable Queue<br/>'notification.appointment.q'"]
-        DLX["Direct Exchange (DLX)<br/>'clinic.dlx'"]
-        DLQ["Dead Letter Queue (DLQ)<br/>'notification.appointment.dlq'"]
-    end
-
-    subgraph NotiService["notification-service (Port 8084)"]
-        EventListener["AppointmentEventListener<br/>(@RabbitListener)"]
-        PhaseA["NotificationIngestionService<br/>(Idempotency & Template Render)"]
-        NotiDB[("notification_db<br/>(PostgreSQL 5436)<br/>notifications & processed_events")]
-        Scheduler["NotificationDeliveryScheduler<br/>(Scheduled 5s)"]
-        PhaseB["NotificationDeliveryService<br/>(Atomic Claim & Worker)"]
-        Recovery["StuckNotificationRecovery<br/>(Scheduled 5m)"]
-        AdminController["NotificationController<br/>(Admin & User Query/Retry API)"]
-    end
-
-    subgraph MailInfra["SMTP Infrastructure"]
-        JavaMail["SmtpEmailSender<br/>(JavaMailSender)"]
-        MailHog["MailHog SMTP Sink & Web UI<br/>(Ports 1025 / 8025)"]
-    end
-
-    FE -->|HTTP / WebSocket| Gateway
-    Gateway -->|Forward /api/v1/appointments| Controller
-    Gateway -->|Forward /api/v1/admin/notifications| AdminController
-
-    Controller --> AppSvc
-    AppSvc -->|Atomic Transaction Commit| AppDB
-    OutboxRelay -->|Pessimistic Read FOR UPDATE| AppDB
-    OutboxRelay -->|Publish UTF-8 JSON| TopicEx
-
-    TopicEx -->|Key: appointment.*| MainQueue
-    MainQueue -->|Poison Pill / Invalid Payload| DLX
-    DLX -->|Key: notification.appointment.dead| DLQ
-
-    MainQueue -->|Consume Event| EventListener
-    EventListener --> PhaseA
-    PhaseA -->|Check & Insert processed_events + Create PENDING| NotiDB
-
-    Scheduler --> PhaseB
-    PhaseB -->|Atomic UPDATE ... WHERE status=PENDING| NotiDB
-    PhaseB -->|Dispatch HTML| JavaMail
-    JavaMail -->|SMTP Port 1025| MailHog
-
-    Recovery -->|Reset Stale PROCESSING rows| NotiDB
-    AdminController -->|Query & Manual Retry| NotiDB
+    FE -->|"POST /api/v2/appointments"| GW
+    GW --> APPT
+    APPT -->|"appointment + outbox<br/>cùng 1 transaction"| APPTDB
+    RELAY -->|"claim PENDING_ENRICHMENT/READY"| APPTDB
+    RELAY --> RESOLVE
+    RESOLVE -->|"patient profile"| APPT
+    RESOLVE -->|"account mapping"| GW
+    RELAY -->|"publish JSON schemaVersion 3"| RABBIT
+    RABBIT --> Q
+    Q -->|"@RabbitListener"| NOTI
+    NOTI -->|"processed_events + notifications"| NOTIDB
+    SCHED -->|"claim & gửi"| NOTIDB
+    SCHED --> SMTP
+    SMTP --> UI
+    Q -.->|"lỗi quá 3 lần"| DLX
+    DLX --> DLQ
 ```
+
+### Thành phần chính
+
+| Thành phần | Vai trò | Công nghệ |
+|---|---|---|
+| `appointment-service` | Nguồn phát sự kiện lịch hẹn | Java 21, Spring Boot, PostgreSQL |
+| `outbox_events` | Hàng đợi bền vững nội bộ của appointment-service | PostgreSQL, JSONB |
+| `OutboxRelayJob` | Chuyển outbox → RabbitMQ | Spring `@Scheduled` |
+| `clinic.events` | Exchange phân phối sự kiện | RabbitMQ topic exchange |
+| `notification.appointment.q` | Queue chính của notification-service | RabbitMQ durable queue |
+| `notification-service` | Validate, render template, tạo job gửi email | Java 21, Spring Boot, Thymeleaf |
+| `notification_db` | Lưu job gửi, template, idempotency ledger | PostgreSQL |
+| `SmtpEmailSender` | Gửi email HTML | Spring `JavaMailSender` |
+| MailHog | SMTP sink và UI kiểm thử local | MailHog |
+| `NotificationController` | Tra cứu và retry thủ công | Spring REST |
+
+### Nguyên tắc thiết kế
+
+- **Transactional Outbox**: appointment và outbox được ghi trong cùng transaction; không publish trực tiếp trong request.
+- **At-least-once delivery**: RabbitMQ có thể giao lại; notification-service chống trùng bằng `processed_events`.
+- **Two-phase notification**: Phase A chỉ ghi database và ACK nhanh; Phase B gửi SMTP ngoài transaction.
+- **Fail closed**: event sai schema bị đẩy DLQ, không cố đoán dữ liệu.
+- **Không dùng Redis** trong luồng thông báo. Redis chỉ liên quan đến các phần khác của hệ thống, không phải notification delivery.
 
 ---
 
-## 2. End-to-End Workflow & Event Lifecycle
-
-The lifecycle of a clinical notification spans **7 discrete, highly decoupled stages**:
+## 3. Luồng end-to-end
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Patient as Patient / Staff
-    participant FE as React 18 UI
-    participant AppSvc as Appointment Service
-    participant AppDB as appointment_db (PostgreSQL)
+    actor User as Bệnh nhân/Lễ tân
+    participant FE as React SPA
+    participant APPT as appointment-service
+    participant ADB as appointment_db
     participant Relay as OutboxRelayJob
-    participant Rabbit as RabbitMQ (clinic.events)
-    participant Listener as AppointmentEventListener
-    participant Ingestion as NotificationIngestionService
-    participant NotiDB as notification_db (PostgreSQL)
-    participant Worker as NotificationDeliveryScheduler
-    participant SMTP as SmtpEmailSender (MailHog)
+    participant Resolver as Patient + Auth
+    participant MQ as RabbitMQ
+    participant Noti as notification-service
+    participant NDB as notification_db
+    participant Sched as DeliveryScheduler
+    participant SMTP as MailHog
 
-    Note over Patient,AppDB: STAGE 1 & 2: Domain Booking & Transactional Outbox
-    Patient->>FE: Submits booking form
-    FE->>AppSvc: POST /api/v1/appointments
-    AppSvc->>AppSvc: Acquire Redisson Lock (doctor + slot)
-    AppSvc->>AppDB: BEGIN TRANSACTION
-    AppSvc->>AppDB: INSERT INTO appointments (...)
-    AppSvc->>AppDB: INSERT INTO outbox_events (type='APPOINTMENT_CREATED', payload=JSON)
-    AppSvc->>AppDB: COMMIT TRANSACTION (Atomic)
-    AppSvc-->>FE: 201 Created (Appointment ID)
+    User->>FE: Đặt lịch
+    FE->>APPT: POST /api/v2/appointments + Idempotency-Key
+    APPT->>ADB: BEGIN
+    APPT->>ADB: INSERT appointment + history + outbox_events
+    APPT->>ADB: COMMIT
+    APPT-->>FE: 201 CONFIRMED
+    Note over APPT,ADB: API trả về trước khi email được gửi
 
-    Note over Relay,Rabbit: STAGE 3: Outbox Polling & AMQP Dispatch
-    Relay->>AppDB: SELECT FOR UPDATE pending outbox events (limit 50)
-    Relay->>Rabbit: Publish byte[] payload (exchange='clinic.events', key='appointment.created')
-    Relay->>AppDB: UPDATE outbox_events SET status='COMPLETED'
+    Relay->>ADB: claim 1 dòng PENDING_ENRICHMENT/READY
+    Relay->>Resolver: lấy patient profile + account mapping
+    Resolver-->>Relay: recipients PATIENT/DOCTOR
+    Relay->>ADB: lưu payload, status READY
+    Relay->>MQ: publish appointment.created
+    MQ-->>Relay: publisher confirm ACK
+    Relay->>ADB: status PUBLISHED
 
-    Note over Rabbit,NotiDB: STAGE 4: Phase A Ingestion & Deduplication
-    Rabbit->>Listener: Deliver message to notification.appointment.q
-    Listener->>Ingestion: ingest(AppointmentNotificationEvent)
-    Ingestion->>Ingestion: Validate Bean Constraints (@Valid)
-    Ingestion->>NotiDB: BEGIN TRANSACTION
-    Ingestion->>NotiDB: Check if event_id exists in processed_events
-    alt Duplicate Event Detected
-        Ingestion-->>Listener: ACK message (Ignore duplicate)
-    else First Time Event
-        Ingestion->>NotiDB: INSERT INTO processed_events (event_id, source, occurred_at)
-        Ingestion->>NotiDB: Render HTML & INSERT 2 rows into notifications (PATIENT & DOCTOR, status='PENDING')
-        Ingestion->>NotiDB: COMMIT TRANSACTION
-        Ingestion-->>Listener: ACK message immediately (Zero SMTP blocking)
-    end
+    MQ->>Noti: delivery tới notification.appointment.q
+    Noti->>NDB: BEGIN
+    Noti->>NDB: INSERT processed_events (event_id)
+    Noti->>NDB: render template + INSERT notifications PENDING
+    Noti->>NDB: COMMIT
+    Noti-->>MQ: ACK
 
-    Note over Worker,SMTP: STAGE 5: Phase B Scheduled Delivery & Dispatch
-    Worker->>NotiDB: Find due IDs (status IN ('PENDING', 'RETRY_SCHEDULED') AND next_attempt_at <= now)
-    Worker->>NotiDB: ATOMIC UPDATE status='PROCESSING' WHERE id=:id AND status IN ('PENDING', 'RETRY_SCHEDULED')
-    alt Atomic Claim Succeeded
-        Worker->>SMTP: sendHtml(recipientEmail, subject, htmlBody)
-        alt SMTP Success
-            Worker->>NotiDB: UPDATE notifications SET status='SENT', sent_at=now
-        else SMTP Error (Network / Down)
-            Worker->>NotiDB: Calculate Backoff (1m, 5m) -> SET status='RETRY_SCHEDULED' or 'PERMANENT_FAILURE'
-        end
-    end
-
-    Note over FE,NotiDB: STAGE 6: Real-time UI Inspection & Manual Retry
-    Patient->>FE: Opens Notification Drawer
-    FE->>NotiDB: GET /api/v1/admin/notifications?status=ALL
-    FE-->>Patient: Displays live audit trail (SENT, PENDING, FAILED)
-    Patient->>FE: Clicks "Thử lại" (Retry) on Failed Item
-    FE->>NotiDB: POST /api/v1/admin/notifications/{id}/retry
-    NotiDB-->>FE: status reset to RETRY_SCHEDULED (Worker delivers immediately)
+    Sched->>NDB: tìm notification đến hạn
+    Sched->>NDB: UPDATE status PROCESSING (atomic claim)
+    Sched->>SMTP: gửi email HTML
+    SMTP-->>Sched: SMTP 250 OK
+    Sched->>NDB: status SENT, sent_at
 ```
 
-### Detailed Stage Breakdown
+### Điểm quan trọng
 
-#### Stage 1: Domain Execution & Distributed Locking
-- The booking request enters [`AppointmentApplicationService.bookAppointment`](file:///media/simpi/program-files/Program%20Files/Documents/Study/Code/MSS301/FClinic/ClinicAppointmentBE/services/appointment-service/src/main/java/com/fclinic/appointmentservice/application/usecase/AppointmentApplicationService.java).
-- A **Redisson distributed lock** (`lock:doctor:{doctorId}:slot:{slotId}`) is acquired with a 5-second wait time and 10-second lease time. This prevents race conditions and slot double-booking across concurrent service instances.
-- Business rules are validated (doctor schedule validity, slot availability, patient active status).
-
-#### Stage 2: Transactional Outbox Atomic Commit
-- Directly addressing the **Dual-Write Problem**: Writing to a database and publishing to a message broker cannot be joined in a single ACID transaction without inefficient distributed 2PC (Two-Phase Commit).
-- Within the local PostgreSQL database transaction:
-  1. The appointment record is created in `appointments`.
-  2. The domain event [`AppointmentBookedDomainEvent`](file:///media/simpi/program-files/Program%20Files/Documents/Study/Code/MSS301/FClinic/ClinicAppointmentBE/services/appointment-service/src/main/java/com/fclinic/appointmentservice/domain/event/AppointmentBookedDomainEvent.java) is translated into [`AppointmentNotificationPayload`](file:///media/simpi/program-files/Program%20Files/Documents/Study/Code/MSS301/FClinic/ClinicAppointmentBE/services/appointment-service/src/main/java/com/fclinic/appointmentservice/infrastructure/messaging/dto/AppointmentNotificationPayload.java).
-  3. The record is inserted into `outbox_events` with status `PENDING`.
-- If the database rolls back, no message is ever sent. If the broker is offline, the transaction still succeeds and the event remains safely persisted in PostgreSQL.
-
-#### Stage 3: Outbox Relay Job (Asynchronous Dispatch)
-- [`OutboxRelayJob`](file:///media/simpi/program-files/Program%20Files/Documents/Study/Code/MSS301/FClinic/ClinicAppointmentBE/services/appointment-service/src/main/java/com/fclinic/appointmentservice/infrastructure/adapter/OutboxRelayJob.java) polls the `outbox_events` table every 3,000 ms using a pessimistic batch query:
-  ```sql
-  SELECT * FROM outbox_events WHERE status = 'PENDING' ORDER BY created_at ASC LIMIT 50 FOR UPDATE SKIP LOCKED
-  ```
-- It maps the event type to an explicit routing key:
-  - `APPOINTMENT_CREATED` $\rightarrow$ `appointment.created`
-  - `APPOINTMENT_CANCELLED` $\rightarrow$ `appointment.cancelled`
-  - `APPOINTMENT_RESCHEDULED` $\rightarrow$ `appointment.rescheduled`
-  - `APPOINTMENT_REMINDER` $\rightarrow$ `appointment.reminder`
-- The payload is serialized into raw UTF-8 bytes and published using Spring `RabbitTemplate`:
-  ```java
-  Message message = MessageBuilder
-          .withBody(event.getPayload().getBytes(StandardCharsets.UTF_8))
-          .setContentType(MessageProperties.CONTENT_TYPE_JSON)
-          .setContentEncoding(StandardCharsets.UTF_8.name())
-          .build();
-  rabbitTemplate.send(exchange, routingKey, message);
-  ```
-  *(Crucial Architectural Fix: Sending raw bytes with `CONTENT_TYPE_JSON` avoids Jackson double-escaping strings into `""{...}""`)*.
-- Once broker receipt is confirmed, the outbox record transitions to `COMPLETED`.
-
-#### Stage 4: Phase A Ingestion & Deduplication
-- [`AppointmentEventListener`](file:///media/simpi/program-files/Program%20Files/Documents/Study/Code/MSS301/FClinic/ClinicAppointmentBE/services/notification-service/src/main/java/com/fclinic/notificationservice/infrastructure/messaging/AppointmentEventListener.java) receives the message from `notification.appointment.q`.
-- **Constraint Validation**: Executes Jakarta Bean Validation (`@Valid`). If fields are malformed (e.g. invalid UUID, empty email, missing dates), it throws [`InvalidNotificationEventException`](file:///media/simpi/program-files/Program%20Files/Documents/Study/Code/MSS301/FClinic/ClinicAppointmentBE/services/notification-service/src/main/java/com/fclinic/notificationservice/application/exception/InvalidNotificationEventException.java). The listener retries 3 times, after which Spring AMQP routes the message directly to `clinic.dlx` $\rightarrow$ `notification.appointment.dlq`.
-- **Idempotency Guard**:
-  ```java
-  if (processedEventPort.exists(event.eventId())) {
-      log.warn("duplicate_event_ignored eventId={}", event.eventId());
-      return; // Acknowledged cleanly, no duplicates created
-  }
-  ```
-- **Template Rendering**: [`ThymeleafTemplateAdapter`](file:///media/simpi/program-files/Program%20Files/Documents/Study/Code/MSS301/FClinic/ClinicAppointmentBE/services/notification-service/src/main/java/com/fclinic/notificationservice/infrastructure/adapter/ThymeleafTemplateAdapter.java) fetches active templates from `notification_templates` and injects localized variables (`patientName`, `doctorName`, `appointmentDate`, `appointmentTime`, `clinicName`, `roomName`).
-- **Atomic Creation**: Inserts 1 row into `processed_events` and 2 separate rows into `notifications` (one for `RecipientType.PATIENT`, one for `RecipientType.DOCTOR`) with `status = PENDING`.
-- **Immediate Broker ACK**: The RabbitMQ transaction commits and ACKs immediately. The queue stays completely free of slow network I/O.
-
-#### Stage 5: Phase B Scheduled Delivery & Delivery Backoff
-- [`NotificationDeliveryScheduler`](file:///media/simpi/program-files/Program%20Files/Documents/Study/Code/MSS301/FClinic/ClinicAppointmentBE/services/notification-service/src/main/java/com/fclinic/notificationservice/infrastructure/scheduler/NotificationDeliveryScheduler.java) fires every 5,000 ms.
-- Queries up to 100 due IDs where `status IN ('PENDING', 'RETRY_SCHEDULED') AND next_attempt_at <= NOW()`.
-- **Lock-Free Atomic Claiming**:
-  ```sql
-  UPDATE notifications
-     SET status = 'PROCESSING',
-         last_attempt_at = :now,
-         updated_at = :now,
-         version = version + 1
-   WHERE id = :id AND status IN ('PENDING', 'RETRY_SCHEDULED');
-  ```
-  If another concurrent scheduler thread or node claims it first, the update affects 0 rows and the thread skips it. No database row locks are held during the subsequent email transmission.
-- **SMTP Transmission**: [`SmtpEmailSender`](file:///media/simpi/program-files/Program%20Files/Documents/Study/Code/MSS301/FClinic/ClinicAppointmentBE/services/notification-service/src/main/java/com/fclinic/notificationservice/infrastructure/mail/SmtpEmailSender.java) invokes Spring `JavaMailSender.send(...)` with a 5-second socket connection and read timeout.
-- **Outcome Handling**:
-  - **Success**: Status updated to `SENT`, `sent_at = NOW()`, `next_attempt_at = NULL`.
-  - **Failure (Attempt 1 or 2)**: Next attempt scheduled with exponential backoff (`+1m`, then `+5m`), status set to `RETRY_SCHEDULED`, `attempt_count` incremented.
-  - **Permanent Failure (Attempt $\ge$ 3)**: Status set to `PERMANENT_FAILURE`, `next_attempt_at = NULL`. Alert metrics incremented.
-
-#### Stage 6: Self-Healing & Stuck Recovery
-- If a container or JVM crashes in the middle of SMTP transmission, a record might remain stuck in `PROCESSING` forever.
-- [`StuckNotificationRecoveryScheduler`](file:///media/simpi/program-files/Program%20Files/Documents/Study/Code/MSS301/FClinic/ClinicAppointmentBE/services/notification-service/src/main/java/com/fclinic/notificationservice/infrastructure/scheduler/StuckNotificationRecoveryScheduler.java) runs every 5 minutes:
-  - Queries records with `status = 'PROCESSING'` and `last_attempt_at < NOW() - 10 minutes`.
-  - Resets them to `RETRY_SCHEDULED` with `next_attempt_at = NOW()` and `last_error_code = 'RECOVERED_STUCK_PROCESSING'`.
-  - It does **not** increment `attempt_count`, ensuring workers that crash do not penalize the retry budget.
-
-#### Stage 7: Administrative Visibility & Manual Intervention
-- Front-desk staff or administrators view delivery metrics and real-time status in [`NotificationDrawer.jsx`](file:///media/simpi/program-files/Program%20Files/Documents/Study/Code/MSS301/FClinic/ClinicAppointmentFE/src/components/NotificationDrawer.jsx) and [`OutboxMonitorPage.jsx`](file:///media/simpi/program-files/Program%20Files/Documents/Study/Code/MSS301/FClinic/ClinicAppointmentFE/src/pages/OutboxMonitorPage.jsx).
-- For notifications marked `PERMANENT_FAILURE` (e.g., mail server was down for extended maintenance or invalid address corrected), the user clicks **"Thử lại"**.
-- Hits `POST /api/v1/admin/notifications/{id}/retry`.
-- The notification's attempt count is reset to 0, status reset to `RETRY_SCHEDULED`, and scheduled for immediate processing.
+- API đặt lịch **không gửi email trực tiếp**. Nó chỉ ghi appointment + outbox.
+- Outbox relay lấy **một event mỗi lần chạy**, mặc định mỗi 5 giây (`appointment.outbox-poll-ms`).
+- Việc resolve người nhận xảy ra **trong lúc relay**, không phải lúc booking.
+- Payload cuối được **đóng băng** trong `outbox_events.payload`; retry sau đó dùng lại payload này.
+- Notification-service chỉ tạo job; scheduler gửi SMTP sau đó vài giây.
 
 ---
 
-## 3. Technology Stack Breakdown & Justifications
+## 4. Cơ chế theo từng giai đoạn
 
-| Technology | Role in Notification System | Why This Technology? (Architectural Justification) |
-| :--- | :--- | :--- |
-| **Java 21 LTS & Spring Boot 3.4** | Core Microservice Framework | Modern LTS features (virtual threads ready, switch pattern matching, record types), enterprise dependency injection, mature ecosystem, Spring Data JPA, and actuator metrics. |
-| **Hexagonal / Clean Architecture** | Structural Code Organization | Decouples core notification domain (`Notification.java`, `DeliveryResult.java`) from external infrastructure (AMQP, SMTP, PostgreSQL). Allows swapping delivery providers or test mocks with zero core domain edits. |
-| **RabbitMQ 3.13 (AMQP 0-9-1)** | Asynchronous Message Broker | **Topic Exchange** allows wildcard pattern routing (`appointment.*`). Durable queues survive broker restarts. Native Dead Letter Exchanges (`x-dead-letter-exchange`) guarantee failed messages are never dropped silently. Prefetch control (`prefetch=20`) prevents worker starvation. |
-| **PostgreSQL 16** | Relational Event Store & Audit Log | ACID compliant. Native JSONB and UUID support. Provides atomic conditional row updates (`WHERE status IN (...)`) and row locking (`FOR UPDATE SKIP LOCKED`) essential for transactional outbox and worker claiming. |
-| **Flyway** | Database Migration & Version Control | Version-controlled, reproducible database migrations (`V1__create_notification_tables.sql`, `V2__create_indexes.sql`, `V3__seed_notification_templates.sql`). Prevents drift between local, staging, and production environments. |
-| **Thymeleaf** | Dynamic HTML Template Engine | Produces clean, standards-compliant HTML emails with natural templating syntax. Decouples localized Vietnamese clinical text from Java code. Templates are stored in PostgreSQL and rendered dynamically at runtime. |
-| **JavaMailSender (Jakarta Mail)** | Email Dispatch Engine | Native Spring integration for MIME multi-part messages with UTF-8 support. Configured with strict network timeouts (5s connection timeout, 5s socket timeout) to prevent thread exhaustion during network degradation. |
-| **MailHog** | Developer SMTP Sink & Web Viewer | Lightweight, containerized SMTP server on port 1025 with HTTP REST/Web UI on port 8025. Captures all outgoing emails locally, eliminating the risk of accidental spam to real patients or hitting external SMTP provider rate limits during development and E2E testing. |
-| **Redisson & Redis 7** | Distributed Concurrency Lock | Prevents slot double-booking at the domain trigger in `appointment-service`. Ensures duplicate booking clicks or race conditions never produce conflicting appointments or duplicate outbox events. |
-| **Spring Cloud Gateway** | API Gateway & Routing Proxy | Single entry point for frontend clients on port 8080. Routes `/api/v1/appointments/**` to port 8083 and `/api/v1/notifications/**` to port 8084 while handling CORS, path rewrites, and unified error responses. |
-| **React 18 & Vite SPA** | User Interface & Operational Console | Fast rendering, reactive state hooks, live polling intervals (8s in `NotificationDrawer`), Tailwind CSS for responsive clinical dashboard styling, and Lucide icon feedback. |
+### 4.1. Giai đoạn 1 — Booking tạo domain event
 
----
+**Trigger**
 
-## 4. AMQP Topology & Routing Specification
+```http
+POST /api/v2/appointments
+Authorization: Bearer <access-token>
+Idempotency-Key: <uuid>
+Content-Type: application/json
 
-The RabbitMQ broker topology enforces clear boundary separation between operational traffic and dead-lettered diagnostics:
-
-```mermaid
-flowchart LR
-    Publisher["OutboxRelayJob<br/>(appointment-service)"]
-    TopicEx{{"TopicExchange<br/>'clinic.events'<br/>(durable)"}}
-    
-    Q_Main[("Queue<br/>'notification.appointment.q'<br/>x-dead-letter-exchange: clinic.dlx<br/>x-dead-letter-routing-key: notification.appointment.dead")]
-    Consumer["AppointmentEventListener<br/>(notification-service)"]
-
-    DLX{{"DirectExchange<br/>'clinic.dlx'<br/>(durable)"}}
-    Q_DLQ[("Queue<br/>'notification.appointment.dlq'<br/>(durable)")]
-    AdminInspect["Admin / SRE Queue Inspection"]
-
-    Publisher -->|routing key: appointment.created| TopicEx
-    Publisher -->|routing key: appointment.cancelled| TopicEx
-    Publisher -->|routing key: appointment.rescheduled| TopicEx
-    Publisher -->|routing key: appointment.reminder| TopicEx
-
-    TopicEx -->|Binding: appointment.created| Q_Main
-    TopicEx -->|Binding: appointment.cancelled| Q_Main
-    TopicEx -->|Binding: appointment.rescheduled| Q_Main
-    TopicEx -->|Binding: appointment.reminder| Q_Main
-
-    Q_Main -->|Normal Consumption| Consumer
-    Q_Main -.->|Poison Pill / Rejection after 3 retries| DLX
-    DLX -->|Binding: notification.appointment.dead| Q_DLQ
-    Q_DLQ --> AdminInspect
-```
-
-### Routing Key Definitions
-
-| Event Type | Routing Key | Exchange | Bound Queue |
-| :--- | :--- | :--- | :--- |
-| `APPOINTMENT_CREATED` | `appointment.created` | `clinic.events` | `notification.appointment.q` |
-| `APPOINTMENT_CANCELLED` | `appointment.cancelled` | `clinic.events` | `notification.appointment.q` |
-| `APPOINTMENT_RESCHEDULED` | `appointment.rescheduled` | `clinic.events` | `notification.appointment.q` |
-| `APPOINTMENT_REMINDER` | `appointment.reminder` | `clinic.events` | `notification.appointment.q` |
-| Poison Pill / Invalid Event | `notification.appointment.dead` | `clinic.dlx` | `notification.appointment.dlq` |
-
----
-
-## 5. Message Contracts & Payload Schemas
-
-### Standard AMQP Message Contract (`AppointmentNotificationEvent`)
-
-Dispatched by `appointment-service` and consumed by `notification-service`:
-
-```json
 {
-  "eventId": "a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d",
-  "eventType": "APPOINTMENT_CREATED",
-  "occurredAt": "2026-10-27T10:15:30Z",
-  "source": "appointment-service",
-  "appointment": {
-    "appointmentId": 42,
-    "appointmentDate": "2026-11-05",
-    "startTime": "09:00:00",
-    "endTime": "09:30:00",
-    "clinicName": "FClinic Health Center",
-    "roomName": "Phòng khám 101",
-    "reason": "Khám sức khỏe tổng quát định kỳ",
-    "cancellationReason": null
-  },
-  "patient": {
-    "userId": 1001,
-    "displayName": "Nguyễn Văn An",
-    "email": "nguyen.van.an@example.com",
-    "phoneNumber": "0901234567",
-    "recipientType": "PATIENT"
-  },
-  "doctor": {
-    "userId": 2002,
-    "displayName": "BS. Trần Thị Mai",
-    "email": "bs.mai.tran@fclinic.vn",
-    "phoneNumber": "0987654321",
-    "recipientType": "DOCTOR"
-  },
-  "previousSlot": null
+  "patientId": "999624ee-0cbb-47c6-9326-1efd55974622",
+  "doctorId": "33333333-3333-4333-8333-333333333301",
+  "slotId": "<slot-uuid>",
+  "reasonForVisit": "..."
 }
 ```
 
-*Note: In the case of `APPOINTMENT_RESCHEDULED`, `previousSlot` contains the original date and time to allow the template to display "Đã dời từ ngày ... sang ngày ...".*
+**Cơ chế**
 
----
+1. Controller yêu cầu header `Idempotency-Key`.
+2. Application service resolve patient, doctor, slot từ service khác.
+3. Trong một transaction PostgreSQL:
+   - insert `appointments`;
+   - insert `appointment_history`;
+   - insert `outbox_events` với `status = PENDING_ENRICHMENT`;
+   - lưu `intent` JSON schemaVersion 3.
+4. Transaction commit xong mới trả `201`.
 
-## 6. Database Schemas & Data Model
+**Vì sao dùng outbox**
 
-The notification subsystem maintains a dedicated schema in PostgreSQL (`notification_db`, port 5436) managed via Flyway migrations.
+Nếu ghi database thành công rồi publish RabbitMQ thất bại, email sẽ mất. Nếu publish trước rồi database rollback, email sẽ báo một lịch hẹn không tồn tại. Outbox đưa cả hai việc vào cùng transaction PostgreSQL, tránh dual-write và không cần distributed transaction.
 
-```mermaid
-erDiagram
-    processed_events {
-        uuid event_id PK
-        varchar event_type
-        varchar source
-        timestamptz occurred_at
-        timestamptz processed_at
-    }
+**Vì sao không dùng Redis lock**
 
-    notification_templates {
-        bigserial id PK
-        varchar notification_type
-        varchar recipient_type
-        varchar channel
-        varchar subject_template
-        text body_template
-        boolean active
-        timestamptz created_at
-        timestamptz updated_at
-    }
+Phiên bản hiện tại dùng PostgreSQL partial unique index để chống trùng slot (`APPOINTMENT_LOCK_PROVIDER=postgres`). Notification không cần lock phân tán; outbox claim dùng `FOR UPDATE SKIP LOCKED`.
 
-    notifications {
-        bigserial id PK
-        uuid event_id FK
-        bigint appointment_id
-        bigint recipient_user_id
-        varchar recipient_type
-        varchar recipient_name
-        varchar recipient_email
-        varchar notification_type
-        varchar channel
-        varchar subject
-        text html_body
-        varchar status
-        integer attempt_count
-        timestamptz next_attempt_at
-        timestamptz last_attempt_at
-        timestamptz sent_at
-        varchar last_error_code
-        varchar last_error_message
-        timestamptz created_at
-        timestamptz updated_at
-        bigint version
-    }
+### 4.2. Giai đoạn 2 — Outbox relay và enrich người nhận
 
-    processed_events ||--o{ notifications : "idempotency reference"
-```
+**Mã chính**
 
-### Schema Definitions
+- `OutboxRelayJob` — chạy `relay()` mỗi 5 giây và `reminders()` mỗi 30 giây.
+- `PublishOutboxService` — claim, enrich, publish, cập nhật trạng thái.
+- `JdbcOutboxStoreAdapter` — SQL claim/ready/published/retry/suppress.
+- `NotificationPayloadAdapter` — thêm `recipients` vào payload.
+- `HttpAppointmentReferenceAdapter.recipients(...)` — gọi Patient và Auth.
 
-#### 1. `notifications` Table (Core Delivery Jobs)
+**Claim SQL**
+
 ```sql
-CREATE TABLE notifications (
-    id BIGSERIAL PRIMARY KEY,
-    event_id UUID NOT NULL,
-    appointment_id BIGINT NOT NULL,
-    recipient_user_id BIGINT NOT NULL,
-    recipient_type VARCHAR(20) NOT NULL,      -- 'PATIENT' | 'DOCTOR'
-    recipient_name VARCHAR(200) NOT NULL,
-    recipient_email VARCHAR(320) NOT NULL,
-    notification_type VARCHAR(50) NOT NULL,  -- 'APPOINTMENT_CONFIRMATION' | 'APPOINTMENT_CANCELLATION'
-    channel VARCHAR(20) NOT NULL,            -- 'EMAIL' | 'SMS'
-    subject VARCHAR(500) NOT NULL,
-    html_body TEXT NOT NULL,
-    status VARCHAR(30) NOT NULL,             -- 'PENDING' | 'PROCESSING' | 'SENT' | 'RETRY_SCHEDULED' | 'PERMANENT_FAILURE'
-    attempt_count INTEGER NOT NULL DEFAULT 0,
-    next_attempt_at TIMESTAMPTZ NULL,
-    last_attempt_at TIMESTAMPTZ NULL,
-    sent_at TIMESTAMPTZ NULL,
-    last_error_code VARCHAR(100) NULL,
-    last_error_message VARCHAR(1000) NULL,
-    created_at TIMESTAMPTZ NOT NULL,
-    updated_at TIMESTAMPTZ NOT NULL,
-    version BIGINT NOT NULL DEFAULT 0,
-    CONSTRAINT uk_notification_event_recipient_type_channel
-        UNIQUE (event_id, recipient_email, notification_type, channel)
-);
-
-CREATE INDEX idx_notification_delivery_due ON notifications(status, next_attempt_at);
-CREATE INDEX idx_notification_recipient_user ON notifications(recipient_user_id, created_at DESC);
-CREATE INDEX idx_notification_appointment ON notifications(appointment_id);
-CREATE INDEX idx_notification_event ON notifications(event_id);
+UPDATE outbox_events
+SET claim_token = ?, claimed_until = ?, updated_at = ?
+WHERE id IN (
+  SELECT id
+  FROM outbox_events
+  WHERE status IN ('PENDING_ENRICHMENT', 'READY')
+    AND (next_attempt_at IS NULL OR next_attempt_at <= ?)
+    AND (claimed_until IS NULL OR claimed_until < ?)
+  ORDER BY created_at, id
+  FOR UPDATE SKIP LOCKED
+  LIMIT 1
+)
+RETURNING *;
 ```
 
-#### 2. `processed_events` Table (Idempotency Ledger)
+**Trạng thái outbox**
+
+| Trạng thái | Ý nghĩa |
+|---|---|
+| `PENDING_ENRICHMENT` | Đã có intent, chưa resolve được người nhận |
+| `READY` | Đã có payload đầy đủ, sẵn sàng publish |
+| `PUBLISHED` | RabbitMQ đã confirm |
+| `SUPPRESSED` | Reminder cũ, không còn hợp lệ |
+
+**Enrich người nhận**
+
+1. `GET /api/v3/patients/{patientId}` lấy `fullName`, `email` từ Patient-service.
+2. `POST /api/v1/auth/internal/appointment-recipient-accounts` lấy:
+   - `patientUserId` (có thể `null` nếu bệnh nhân walk-in chưa có tài khoản);
+   - đúng một tài khoản bác sĩ `doctor.userId`, `doctor.name`, `doctor.email`.
+3. Gắn danh sách `recipients` gồm đúng một `PATIENT` và một `DOCTOR` vào payload.
+
+**Điều kiện tiên quyết**
+
+- Bác sĩ phải có **đúng một** tài khoản Auth active, role `ROLE_DOCTOR`, và `doctor_id` khớp.
+- Bệnh nhân có thể không có tài khoản; khi đó `patientUserId = null` và email lấy từ Patient profile.
+- Nếu bác sĩ chưa được map tài khoản, `AppointmentRecipientService` trả `503`, outbox ghi `DEPENDENCY_UNAVAILABLE` và retry sau 30 giây.
+- Endpoint mapping tài khoản là endpoint **chỉ dành cho service**, dùng Basic credential riêng (`appointment-recipient-accounts`) và header contract `appointment-recipient-accounts/1`; token người dùng không gọi được endpoint này.
+
+**Ví dụ mapping hiện có**
+
+| Doctor ID | Auth account | Email |
+|---|---|---|
+| `33333333-3333-4333-8333-333333333301` | `bs_an` | `doctor.an@fclinic.vn` |
+
+Các bác sĩ còn lại trong directory chưa có mapping thì không thể nhận email.
+
+### 4.3. Giai đoạn 3 — Publish RabbitMQ
+
+**Routing key**
+
+| Domain event | Routing key | Notification type |
+|---|---|---|
+| `APPOINTMENT_CREATED` | `appointment.created` | `APPOINTMENT_CONFIRMATION` |
+| `APPOINTMENT_CANCELLED` | `appointment.cancelled` | `APPOINTMENT_CANCELLATION` |
+| `APPOINTMENT_RESCHEDULED` | `appointment.rescheduled` | `APPOINTMENT_RESCHEDULED` |
+| `APPOINTMENT_REMINDER` | `appointment.reminder` | `APPOINTMENT_REMINDER` |
+
+**Cơ chế publish**
+
+- Message body là JSON UTF-8 thô, không lồng thành string.
+- `content_type = application/json`, `content_encoding = UTF-8`.
+- `delivery_mode = 2` (persistent).
+- `message_id = eventId`.
+- `publisher-confirm-type: correlated` và `publisher-returns: true`.
+- Nếu broker không ACK hoặc message bị return, outbox ghi `BROKER_UNAVAILABLE` và retry sau 30 giây.
+
+**Vì sao dùng RabbitMQ topic exchange**
+
+- Appointment-service không cần biết Notification-service đang chạy ở đâu.
+- Có thể thêm consumer khác (audit, analytics) mà không sửa producer.
+- Durable queue + persistent message giúp message sống qua restart broker.
+- DLX/DLQ tách message lỗi khỏi luồng chính.
+
+### 4.4. Giai đoạn 4 — Ingestion và chống trùng
+
+**Mã chính**
+
+- `AppointmentEventListener` — nhận message, không gửi SMTP.
+- `NotificationIngestionService` — validate, render template, tạo job.
+- `ThymeleafTemplateAdapter` — render subject/body.
+- `ProcessedEventPort` — ledger chống trùng.
+
+**Transaction ingestion**
+
+```text
+BEGIN
+  nếu event_id đã có trong processed_events:
+      COMMIT, bỏ qua
+  INSERT processed_events(event_id, event_type, source, occurred_at, processed_at)
+  INSERT notifications(PATIENT, PENDING) nếu có email
+  INSERT notifications(DOCTOR, PENDING) nếu có email
+COMMIT
+```
+
+Marker `processed_events` được insert **trước** các notification row. Nếu hai consumer xử lý cùng event, một bên sẽ vi phạm primary key; bên còn lại kiểm tra lại và bỏ qua. Nhờ vậy không tạo email trùng.
+
+**Validate**
+
+- `schemaVersion` phải bằng `3`.
+- `source` phải bằng `appointment-service`.
+- Nếu có `recipients`, phải đúng 2 phần tử: một `PATIENT`, một `DOCTOR`.
+- Không được vừa có `patient`/`doctor` lồng nhau vừa có `recipients`.
+- `doctor.userId` bắt buộc và phải là UUIDv4.
+- `appointmentId` phải là UUIDv4.
+- Nếu event là `APPOINTMENT_RESCHEDULED`, phải có `previousSlot`.
+
+**Vì sao validate chặt**
+
+Message sai schema không được đoán hoặc tự sửa, vì có thể gửi nhầm người hoặc nhầm lịch. Message sai bị đẩy DLQ để điều tra.
+
+**Retry và DLQ**
+
+- `spring.rabbitmq.listener.simple.retry.enabled = true`.
+- `max-attempts = 3`, backoff `1s → 2s` (initial 1s, multiplier 2, tối đa 10s).
+- `default-requeue-rejected = false`.
+- Sau 3 lần lỗi, message bị reject và RabbitMQ chuyển qua `clinic.dlx` → `notification.appointment.dlq`.
+- Message trong DLQ không tự retry; phải sửa nguyên nhân rồi publish lại hoặc move thủ công.
+- Listener dùng `acknowledge-mode: auto`, `prefetch: 20`, `concurrency: 1`, `max-concurrency: 4`.
+
+### 4.5. Giai đoạn 5 — Render template
+
+- Template lưu trong bảng `notification_templates`, không nằm trong file.
+- Mỗi cặp `(notification_type, recipient_type, channel=EMAIL)` có một template active.
+- Subject render bằng `TemplateMode.TEXT`; body render bằng `TemplateMode.HTML`.
+- Dùng `StringTemplateResolver`, tức là template được truyền trực tiếp từ database, không đọc file.
+- Biến HTML được escape mặc định, giảm rủi ro XSS trong email.
+- Subject được chuẩn hóa khoảng trắng liên tiếp thành một space.
+
+**Biến template hiện có**
+
+| Biến | Nguồn |
+|---|---|
+| `recipientName` | tên người nhận |
+| `patientName` | Patient profile |
+| `doctorName` | Auth mapping |
+| `appointmentId` | event |
+| `appointmentDate` | `dd/MM/yyyy` |
+| `appointmentTime` | `HH:mm` |
+| `appointmentEndTime` | `HH:mm` |
+| `clinicName` | mặc định `FClinic` |
+| `roomName` | hiện lấy từ `doctorSpecialty` trong fallback |
+| `reason` | hiện thường rỗng |
+| `cancellationReason` | hiện thường rỗng |
+| `previousAppointmentDate` | chỉ event đổi lịch |
+| `previousAppointmentTime` | chỉ event đổi lịch |
+
+> **Giới hạn hiện tại:** payload sự kiện không chứa `reasonForVisit`, lý do hủy, `clinicName` hay `roomName` thật. Database outbox còn có CHECK cấm các trường tự do như `reason`, `diagnosis`, `notes`. Vì vậy template có thể hiển thị “Lý do khám” hoặc “Lý do hủy” rỗng. Đây là lựa chọn bảo vệ dữ liệu lâm sàng, không phải lỗi gửi mail.
+
+### 4.6. Giai đoạn 6 — Gửi email
+
+**Scheduler**
+
+- `NotificationDeliveryScheduler` chạy mỗi 5 giây (`app.notification.delivery.scheduler-delay-ms`).
+- Mỗi lần lấy tối đa 100 job đến hạn (`batch-size`).
+- Job đến hạn là `PENDING` hoặc `RETRY_SCHEDULED` có `next_attempt_at <= now`.
+
+**Claim nguyên tử**
+
 ```sql
-CREATE TABLE processed_events (
-    event_id UUID PRIMARY KEY,
-    event_type VARCHAR(50) NOT NULL,
-    source VARCHAR(100) NOT NULL,
-    occurred_at TIMESTAMPTZ NOT NULL,
-    processed_at TIMESTAMPTZ NOT NULL
-);
+UPDATE notifications
+SET status = 'PROCESSING',
+    last_attempt_at = :now,
+    updated_at = :now,
+    version = version + 1
+WHERE id = :id
+  AND status IN ('PENDING', 'RETRY_SCHEDULED');
 ```
 
-#### 3. `notification_templates` Table (HTML Templates)
-```sql
-CREATE TABLE notification_templates (
-    id BIGSERIAL PRIMARY KEY,
-    notification_type VARCHAR(50) NOT NULL,
-    recipient_type VARCHAR(20) NOT NULL,
-    channel VARCHAR(20) NOT NULL,
-    subject_template VARCHAR(500) NOT NULL,
-    body_template TEXT NOT NULL,
-    active BOOLEAN NOT NULL DEFAULT TRUE,
-    created_at TIMESTAMPTZ NOT NULL,
-    updated_at TIMESTAMPTZ NOT NULL,
-    CONSTRAINT uk_template_type_recipient_channel
-        UNIQUE (notification_type, recipient_type, channel)
-);
+Chỉ một worker UPDATE thành công. Không giữ row lock trong lúc gửi SMTP.
+
+**Gửi**
+
+- `SmtpEmailSender` dùng `MimeMessageHelper` với UTF-8.
+- From lấy từ `MAIL_FROM_ADDRESS`, `MAIL_FROM_NAME`.
+- Timeout kết nối/đọc/ghi đều 5 giây.
+- Local dùng MailHog tại `localhost:1025`; xem mail tại `http://localhost:8025`.
+
+**Kết quả**
+
+| Kết quả | Trạng thái | Ghi chú |
+|---|---|---|
+| SMTP thành công | `SENT` | lưu `sent_at` |
+| Lỗi lần 1 | `RETRY_SCHEDULED` | retry sau 1 phút |
+| Lỗi lần 2 | `RETRY_SCHEDULED` | retry sau 5 phút |
+| Lỗi lần 3 | `PERMANENT_FAILURE` | cần retry thủ công |
+| Worker crash | `RETRY_SCHEDULED` | phục hồi sau 10 phút, không tăng attempt |
+
+**Mã lỗi thường gặp**
+
+- `SMTP_CONNECTION_ERROR`: MailHog/SMTP không chạy hoặc sai host/port.
+- `SMTP_AUTH_ERROR`: sai username/password hoặc SMTP yêu cầu auth.
+- `INVALID_RECIPIENT`: email không hợp lệ.
+- `RECOVERED_STUCK_PROCESSING`: job bị treo và được phục hồi.
+- `UNKNOWN_EMAIL_ERROR`: lỗi không phân loại.
+
+### 4.7. Giai đoạn 7 — Phục hồi job treo
+
+- `StuckNotificationRecoveryScheduler` chạy mỗi 60 giây.
+- Tìm notification `PROCESSING` có `last_attempt_at < now - 10 phút`.
+- Chuyển về `RETRY_SCHEDULED`, `next_attempt_at = now`, `last_error_code = RECOVERED_STUCK_PROCESSING`.
+- Không tăng `attempt_count`, vì không biết SMTP đã gửi hay chưa. Đây là đánh đổi chấp nhận **at-least-once**; email hiếm khi bị gửi trùng nếu worker chết sau khi SMTP đã nhận.
+
+### 4.8. Giai đoạn 8 — Tra cứu và retry thủ công
+
+| Method | Endpoint | Quyền | Mục đích |
+|---|---|---|---|
+| `GET` | `/api/v1/notifications/me` | authenticated | danh sách notification của chính mình |
+| `GET` | `/api/v1/notifications/{id}` | authenticated | chi tiết notification của chính mình |
+| `GET` | `/api/v1/admin/notifications` | `ROLE_ADMIN` | tra cứu toàn bộ, lọc `status` |
+| `GET` | `/api/v1/admin/notifications/{id}` | `ROLE_ADMIN` | chi tiết bất kỳ |
+| `POST` | `/api/v1/admin/notifications/{id}/retry` | `ROLE_ADMIN` | reset job `PERMANENT_FAILURE` để gửi lại |
+
+Retry thủ công:
+
+- Chỉ áp dụng cho `PERMANENT_FAILURE`.
+- Reset `attempt_count = 0`, `status = RETRY_SCHEDULED`, `next_attempt_at = now`.
+- Không tạo event mới, không đổi `event_id`.
+
+---
+
+## 5. Ma trận trigger
+
+| Nghiệp vụ | Cách trigger | Domain event | Notification type | Ai nhận | Thời điểm gửi |
+|---|---|---|---|---|---|
+| Đặt lịch | `POST /api/v2/appointments` | `APPOINTMENT_CREATED` | `APPOINTMENT_CONFIRMATION` | PATIENT + DOCTOR | sau relay + scheduler, thường 5–10 giây |
+| Hủy lịch | `PUT /api/v2/appointments/{id}/cancel` | `APPOINTMENT_CANCELLED` | `APPOINTMENT_CANCELLATION` | PATIENT + DOCTOR | như trên |
+| Đổi lịch | `PUT /api/v2/appointments/{id}/reschedule` | `APPOINTMENT_RESCHEDULED` | `APPOINTMENT_RESCHEDULED` | PATIENT + DOCTOR | như trên |
+| Nhắc lịch | scheduler nội bộ appointment-service | `APPOINTMENT_REMINDER` | `APPOINTMENT_REMINDER` | PATIENT + DOCTOR | khi `start - reminderLead <= now` |
+| Gửi lại | `POST /api/v1/admin/notifications/{id}/retry` | không có event mới | giữ nguyên | giữ nguyên | scheduler kế tiếp |
+| Test trực tiếp | publish RabbitMQ | bất kỳ event hợp lệ | theo `eventType` | theo `recipients` | scheduler kế tiếp |
+
+### Điều kiện cho reminder
+
+Reminder **không bật mặc định**. Cần đặt:
+
+```properties
+appointment.reminder-lead=PT24H
+```
+
+hoặc biến môi trường:
+
+```bash
+APPOINTMENT_REMINDER_LEAD=PT24H
+```
+
+Sau đó restart appointment-service. Điều kiện tạo reminder:
+
+- appointment `CONFIRMED`;
+- `startInstant > now`;
+- `startInstant - lead <= now`;
+- chưa có bản ghi `reminder_publications` cho cùng `(appointment_id, aggregate_version, reminder_due_at)`.
+
+Nếu appointment bị hủy/đổi lịch trước khi reminder được publish, relay sẽ thấy reminder không còn “current” và chuyển outbox sang `SUPPRESSED`.
+
+---
+
+## 6. Hợp đồng message
+
+### 6.1. Payload schemaVersion 3
+
+```json
+{
+  "eventId": "4b8f3d8e-7b8a-4f2e-9c1d-2a6f0b7c9d11",
+  "eventType": "APPOINTMENT_CREATED",
+  "schemaVersion": 3,
+  "occurredAt": "2026-11-10T05:00:00Z",
+  "source": "appointment-service",
+  "appointmentId": "a14eecd4-4c0f-4d99-a26c-d89b3d5c646c",
+  "aggregateVersion": 0,
+  "bookingCode": "FC-802A985995AF4B8EBE2E231AEDCD1F82",
+  "patientId": "999624ee-0cbb-47c6-9326-1efd55974622",
+  "patientName": "user01",
+  "patientPhone": "0900000000",
+  "doctorId": "33333333-3333-4333-8333-333333333301",
+  "doctorName": "BS. CKII Nguyễn Văn An",
+  "doctorSpecialty": "Tim mạch",
+  "slotId": "2aafdd6a-21c4-4035-a129-7724cc9b9447",
+  "appointmentDate": "2026-11-10",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "timezone": "Asia/Saigon",
+  "recipients": [
+    {
+      "recipientType": "PATIENT",
+      "userId": "a0b1c2d3-e4f5-4678-9abc-def012345678",
+      "name": "user01",
+      "email": "simplification02@gmail.com"
+    },
+    {
+      "recipientType": "DOCTOR",
+      "userId": "b1c2d3e4-f5a6-4789-abcd-ef0123456789",
+      "name": "BS. CKII Nguyễn Văn An",
+      "email": "doctor.an@fclinic.vn"
+    }
+  ]
+}
+```
+
+Các trường bổ sung:
+
+- `APPOINTMENT_RESCHEDULED`: thêm `previousSlotId`, `previousAppointmentDate`, `previousStartTime`, `previousEndTime`.
+- `APPOINTMENT_REMINDER`: thêm `reminderDueAt`.
+
+### 6.2. Vì sao event không có lý do khám
+
+`V1__appointment_v2.sql` đặt CHECK cấm các khóa `reasonForVisit`, `reason`, `diagnosis`, `treatment`, `notes` trong `intent` và `payload`. Mục tiêu là không đưa nội dung lâm sàng tự do vào message broker và email. Vì vậy template phải chấp nhận các trường này rỗng.
+
+---
+
+## 7. Cấu hình local
+
+### 7.1. Biến môi trường chính
+
+| Biến | Mặc định | Ý nghĩa |
+|---|---|---|
+| `APPOINTMENT_OUTBOX_ENABLED` | `true` | bật relay outbox |
+| `APPOINTMENT_OUTBOX_POLL_MS` | `5000` | chu kỳ relay |
+| `APPOINTMENT_REMINDER_LEAD` | rỗng | tắt reminder nếu rỗng |
+| `APPOINTMENT_REMINDER_POLL_MS` | `30000` | chu kỳ quét reminder |
+| `APPOINTMENT_RECIPIENT_URL` | `http://localhost:8085/api/v1/auth/internal/appointment-recipient-accounts` | endpoint mapping tài khoản |
+| `APPOINTMENT_PATIENT_TOKEN_CLIENT_ID` | `appointment-service` | client lấy token đọc Patient |
+| `RABBITMQ_HOST` | `localhost` | broker host |
+| `RABBITMQ_PORT` | `5672` | broker port |
+| `MAIL_HOST` | `localhost` | SMTP host |
+| `MAIL_PORT` | `1025` | SMTP port |
+| `MAIL_FROM_ADDRESS` | `no-reply@fclinic.local` | địa chỉ gửi |
+| `MAIL_FROM_NAME` | `FClinic` | tên hiển thị |
+| `DELIVERY_SCHEDULER_DELAY_MS` | `5000` | chu kỳ gửi |
+| `DELIVERY_BATCH_SIZE` | `100` | số job mỗi lần |
+| `DELIVERY_MAX_ATTEMPTS` | `3` | số lần thử tối đa |
+| `DELIVERY_PROCESSING_TIMEOUT` | `10m` | timeout job treo |
+
+### 7.2. Cấu hình quan trọng
+
+`ClinicAppointmentBE/services/appointment-service/src/main/resources/application.yml`:
+
+```yaml
+appointment:
+  outbox-enabled: ${APPOINTMENT_OUTBOX_ENABLED:true}
+  reminder-lead: ${APPOINTMENT_REMINDER_LEAD:}
+  outbox-poll-ms: ${APPOINTMENT_OUTBOX_POLL_MS:5000}
+  reminder-poll-ms: ${APPOINTMENT_REMINDER_POLL_MS:30000}
+```
+
+`ClinicAppointmentBE/services/notification-service/src/main/resources/application.yml`:
+
+```yaml
+app:
+  notification:
+    delivery:
+      scheduler-delay-ms: ${DELIVERY_SCHEDULER_DELAY_MS:5000}
+      batch-size: ${DELIVERY_BATCH_SIZE:100}
+      max-attempts: ${DELIVERY_MAX_ATTEMPTS:3}
+      processing-timeout: ${DELIVERY_PROCESSING_TIMEOUT:10m}
+      retry-delays:
+        - 1m
+        - 5m
 ```
 
 ---
 
-## 7. State Machine & Delivery Lifecycle
+## 8. Cách trigger và kiểm thử
 
-The notification job progresses through a deterministic, strictly validated state machine:
+### 8.1. Trigger end-to-end bằng API
 
-```mermaid
-stateDiagram-v2
-    [*] --> PENDING: Ingestion (Phase A)
-    
-    PENDING --> PROCESSING: Atomic claim by Delivery Worker
-    RETRY_SCHEDULED --> PROCESSING: Atomic claim when nextAttemptAt <= NOW()
-    
-    PROCESSING --> SENT: SMTP Success (sentAt recorded)
-    
-    PROCESSING --> RETRY_SCHEDULED: SMTP Transient Error & attemptCount < 3 (Backoff: 1m, 5m)
-    PROCESSING --> PERMANENT_FAILURE: SMTP Error & attemptCount >= 3
-    
-    PROCESSING --> RETRY_SCHEDULED: Stuck Worker Recovery (stale > 10m)
-    
-    PERMANENT_FAILURE --> RETRY_SCHEDULED: Admin Manual Retry (POST /retry)
-    
-    SENT --> [*]
+**Bước 1 — đăng nhập**
+
+```bash
+BASE=http://localhost:8080
+read -rsp "Password: " PASSWORD
+TOKEN=$(curl -s -X POST "$BASE/api/v1/auth/login" \
+  -H 'Content-Type: application/json' \
+  -d "{\"username\":\"user01\",\"password\":\"$PASSWORD\"}" \
+  | jq -r '.data.accessToken')
 ```
 
-### State Definitions & Transitions
+Có thể gọi trực tiếp appointment-service `http://localhost:8083` nếu không chạy Gateway.
 
-| From State | To State | Trigger / Condition | Action / Side Effect |
-| :--- | :--- | :--- | :--- |
-| *(None)* | `PENDING` | Phase A Event Ingestion | Notification persisted with `attemptCount = 0`, `nextAttemptAt = now`. |
-| `PENDING` / `RETRY_SCHEDULED` | `PROCESSING` | Worker claim query | Atomic conditional update sets `lastAttemptAt = now`, `version = version + 1`. |
-| `PROCESSING` | `SENT` | SMTP returns HTTP/SMTP 250 OK | `sentAt = now`, `nextAttemptAt = null`, error fields cleared. |
-| `PROCESSING` | `RETRY_SCHEDULED` | SMTP network/connection error and `attempt < 3` | `attemptCount++`, `nextAttemptAt = now + delay` (1 min, then 5 min), error logged. |
-| `PROCESSING` | `PERMANENT_FAILURE` | SMTP error and `attempt >= 3` | `attemptCount++`, `nextAttemptAt = null`, alert metric fired, requires manual intervention. |
-| `PROCESSING` | `RETRY_SCHEDULED` | Worker crashed (> 10m in `PROCESSING`) | `lastErrorCode = 'RECOVERED_STUCK_PROCESSING'`, `attemptCount` not incremented. |
-| `PERMANENT_FAILURE` | `RETRY_SCHEDULED` | Admin clicks "Thử lại" in UI | `attemptCount` reset to 0, `nextAttemptAt = now`, error fields cleared. |
+**Bước 2 — tìm slot**
 
----
-
-## 8. Resilience, Fault Tolerance & Edge Cases
-
-The FClinic notification architecture is engineered to remain resilient under severe infrastructure failures:
-
-```mermaid
-flowchart TD
-    subgraph Failures["Possible Failure Scenarios"]
-        F1["1. Database Rollback during Booking"]
-        F2["2. RabbitMQ Broker Unreachable"]
-        F3["3. Malformed / Poison-Pill Message"]
-        F4["4. Duplicate Message Arrival (Network Replay)"]
-        F5["5. SMTP Server Outage (MailHog Down)"]
-        F6["6. Worker Container Crash during SMTP"]
-    end
-
-    subgraph Mitigations["Built-in Architectural Safeguards"]
-        M1["Transactional Outbox: Outbox row rolled back; no message is ever sent."]
-        M2["Outbox Relay Resilience: Events remain PENDING in PostgreSQL; sent automatically once RabbitMQ recovers."]
-        M3["Bean Validation & DLQ: Failed parsing routes message to 'clinic.dlx' -> 'notification.appointment.dlq'."]
-        M4["ProcessedEvents Ledger: Unique primary key check discards duplicate before generating notifications."]
-        M5["Exponential Backoff: Transitions to RETRY_SCHEDULED (1m, 5m), then PERMANENT_FAILURE with manual retry."]
-        M6["Stuck Notification Recovery: Scheduled task recovers stale PROCESSING rows (> 10m) back to RETRY_SCHEDULED."]
-    end
-
-    F1 --> M1
-    F2 --> M2
-    F3 --> M3
-    F4 --> M4
-    F5 --> M5
-    F6 --> M6
+```bash
+curl -s "$BASE/api/v2/appointments/available-slots?doctorId=33333333-3333-4333-8333-333333333301&date=2026-11-10" \
+  -H "Authorization: Bearer $TOKEN" | jq
 ```
 
-### Detailed Resilience Strategies
+Chọn slot có `"available": true`.
 
-1. **Transactional Outbox for Zero Phantom Messages**:
-   - In traditional architectures, publishing directly to RabbitMQ inside a controller method can cause phantom notifications if the subsequent database commit fails.
-   - In FClinic, the outbox record commits in the **exact same transaction** as the appointment. If the booking fails, the outbox record never exists.
-2. **Two-Phase Delivery Decoupling (Queue Starvation Prevention)**:
-   - SMTP is notoriously slow (typically 200ms to 5,000ms per email).
-   - If `@RabbitListener` called SMTP directly, an SMTP latency spike or outage would cause RabbitMQ queues to pile up, consumers to block, and message timeouts to occur.
-   - FClinic's **Phase A** only writes to local PostgreSQL tables (< 5ms) and ACKs RabbitMQ immediately. **Phase B** handles delivery asynchronously in batches.
-3. **Strict Idempotency via Deduplication Ledger**:
-   - Network re-transmissions or broker re-deliveries can present the same AMQP message twice.
-   - The `processed_events` table enforces a primary key constraint on `event_id`. Any subsequent delivery is detected in `doIngest(...)` and discarded with a warning log (`duplicate_event_ignored`), preventing patients from receiving duplicate emails.
-4. **Poison-Pill Isolation via Dead Letter Exchange (DLX)**:
-   - If a payload fails schema validation or contains unparsable JSON, it should never block other messages in the queue.
-   - Spring AMQP rejects the message with `requeue = false` after 3 internal attempts. RabbitMQ's dead-letter routing rules immediately shunt the message into `notification.appointment.dlq` for operator investigation.
-5. **Crash-Resilient Worker Execution**:
-   - Because workers use atomic conditional updates (`UPDATE ... WHERE status IN ('PENDING', 'RETRY_SCHEDULED')`), multiple worker instances never send the same email twice.
-   - If an instance crashes while sending, `StuckNotificationRecoveryScheduler` automatically recovers the orphaned job after 10 minutes.
+**Bước 3 — đặt lịch**
+
+```bash
+IDEMPOTENCY_KEY=$(uuidgen)
+curl -s -X POST "$BASE/api/v2/appointments" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Idempotency-Key: $IDEMPOTENCY_KEY" \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "patientId":"999624ee-0cbb-47c6-9326-1efd55974622",
+    "doctorId":"33333333-3333-4333-8333-333333333301",
+    "slotId":"<slot-uuid>",
+    "reasonForVisit":"Kiểm thử hệ thống thông báo"
+  }' | jq
+```
+
+Kỳ vọng: `201`, `status: CONFIRMED`, có `id` và `bookingCode`.
+
+**Bước 4 — kiểm tra outbox**
+
+```bash
+docker exec fclinic-postgres-appointment sh -c \
+ 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -P pager=off -c \
+ "SELECT id,event_type,status,attempt_count,last_error_code,published_at
+  FROM outbox_events ORDER BY created_at DESC LIMIT 10;"'
+```
+
+Kỳ vọng: event `APPOINTMENT_CREATED` chuyển `PUBLISHED`, `last_error_code` rỗng.
+
+**Bước 5 — kiểm tra notification**
+
+```bash
+docker exec fclinic-postgres-notification sh -c \
+ 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -P pager=off -c \
+ "SELECT id,appointment_id,recipient_type,notification_type,status,
+         attempt_count,last_error_code,sent_at
+  FROM notifications ORDER BY created_at DESC LIMIT 10;"'
+```
+
+Kỳ vọng: hai dòng `PATIENT` và `DOCTOR`, `status = SENT`.
+
+**Bước 6 — xem mail**
+
+```bash
+curl -s http://localhost:8025/api/v2/messages | jq '.items | length'
+```
+
+Mở `http://localhost:8025` để xem nội dung.
+
+### 8.2. Trigger hủy lịch
+
+```bash
+APPOINTMENT_ID=<appointment-uuid>
+VERSION=0
+curl -s -X PUT "$BASE/api/v2/appointments/$APPOINTMENT_ID/cancel" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Idempotency-Key: $(uuidgen)" \
+  -H 'Content-Type: application/json' \
+  -d "{\"version\":$VERSION,\"reason\":\"Bệnh nhân bận\"}" | jq
+```
+
+Kỳ vọng: `200`, `status: CANCELLED`; phát sinh event `APPOINTMENT_CANCELLED` và email hủy.
+
+### 8.3. Trigger đổi lịch
+
+```bash
+APPOINTMENT_ID=<appointment-uuid>
+VERSION=0
+curl -s -X PUT "$BASE/api/v2/appointments/$APPOINTMENT_ID/reschedule" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Idempotency-Key: $(uuidgen)" \
+  -H 'Content-Type: application/json' \
+  -d "{\"version\":$VERSION,\"slotId\":\"<new-slot-uuid>\",\"reason\":\"Đổi giờ\"}" | jq
+```
+
+Kỳ vọng: `200`, `status: CONFIRMED`; event `APPOINTMENT_RESCHEDULED` có `previousSlot...`; email hiển thị giờ cũ/mới.
+
+### 8.4. Trigger reminder
+
+```bash
+# 1. Bật lead 24 giờ trong .env
+APPOINTMENT_REMINDER_LEAD=PT24H
+
+# 2. Restart appointment-service
+
+# 3. Tạo appointment có startTime > now và nằm trong 24 giờ
+# 4. Chờ tối đa 30 giây
+
+docker exec fclinic-postgres-appointment sh -c \
+ 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -P pager=off -c \
+ "SELECT id,event_type,status,last_error_code
+  FROM outbox_events WHERE event_type='\''APPOINTMENT_REMINDER'\''
+  ORDER BY created_at DESC LIMIT 5;"'
+```
+
+### 8.5. Publish trực tiếp để test notification-service
+
+Chỉ dùng khi muốn test ingestion/delivery mà không qua booking. Cách này bỏ qua outbox và bước enrich của appointment-service, nên payload phải có `recipients` đầy đủ.
+
+```bash
+RABBIT_USER=fclinic_rabbit
+RABBIT_PASS=<rabbit-password>
+cat >/tmp/notification-event.json <<'JSON'
+{
+  "eventId": "4b8f3d8e-7b8a-4f2e-9c1d-2a6f0b7c9d11",
+  "eventType": "APPOINTMENT_CREATED",
+  "schemaVersion": 3,
+  "occurredAt": "2026-11-10T05:00:00Z",
+  "source": "appointment-service",
+  "appointmentId": "a14eecd4-4c0f-4d99-a26c-d89b3d5c646c",
+  "aggregateVersion": 0,
+  "bookingCode": "FC-TEST-001",
+  "patientId": "999624ee-0cbb-47c6-9326-1efd55974622",
+  "patientName": "user01",
+  "patientPhone": "0900000000",
+  "doctorId": "33333333-3333-4333-8333-333333333301",
+  "doctorName": "BS. CKII Nguyễn Văn An",
+  "doctorSpecialty": "Tim mạch",
+  "slotId": "2aafdd6a-21c4-4035-a129-7724cc9b9447",
+  "appointmentDate": "2026-11-10",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "timezone": "Asia/Saigon",
+  "recipients": [
+    {"recipientType":"PATIENT","userId":"a0b1c2d3-e4f5-4678-9abc-def012345678","name":"user01","email":"simplification02@gmail.com"},
+    {"recipientType":"DOCTOR","userId":"b1c2d3e4-f5a6-4789-abcd-ef0123456789","name":"BS. CKII Nguyễn Văn An","email":"doctor.an@fclinic.vn"}
+  ]
+}
+JSON
+
+PAYLOAD=$(jq -Rs . </tmp/notification-event.json)
+curl -s -u "$RABBIT_USER:$RABBIT_PASS" \
+  -H 'Content-Type: application/json' \
+  -X POST http://localhost:15672/api/exchanges/%2F/clinic.events/publish \
+  -d "{\"properties\":{\"delivery_mode\":2,\"content_type\":\"application/json\",\"content_encoding\":\"UTF-8\",\"message_id\":\"$(uuidgen)\"},\"routing_key\":\"appointment.created\",\"payload\":$PAYLOAD,\"payload_encoding\":\"string\"}" | jq
+```
+
+Lưu ý: UUID trong payload phải là UUIDv4; `doctor.userId` không được null; `recipients` phải đúng một PATIENT và một DOCTOR.
 
 ---
 
-## 9. REST API & UI Control Integration
+## 9. Kiểm tra, giám sát và xử lý sự cố
 
-### Key Endpoints
+### 9.1. Lệnh kiểm tra nhanh
 
-| Method | Endpoint | Description | Role Required |
-| :--- | :--- | :--- | :--- |
-| `GET` | `/api/v1/notifications/me?userId={id}&page=0&size=20` | Retrieve personal notification history for a patient or doctor | Owner / User |
-| `GET` | `/api/v1/notifications/{id}` | Get full notification details (including subject and rendered HTML body) | Owner / Admin |
-| `GET` | `/api/v1/admin/notifications?status={status}&page=0&size=50` | Search and audit all system notifications with optional status filter | Admin / Receptionist |
-| `POST` | `/api/v1/admin/notifications/{id}/retry` | Manually reschedule a failed notification for immediate delivery | Admin |
+```bash
+# Service health
+curl -s http://localhost:8081/actuator/health | jq
+curl -s http://localhost:8083/actuator/health | jq
+curl -s http://localhost:8084/actuator/health | jq
 
-### Frontend UI Integration
+# RabbitMQ queue
+docker exec fclinic-rabbitmq rabbitmqctl list_queues name messages consumers
 
-1. **Notification Drawer ([`NotificationDrawer.jsx`](file:///media/simpi/program-files/Program%20Files/Documents/Study/Code/MSS301/FClinic/ClinicAppointmentFE/src/components/NotificationDrawer.jsx))**:
-   - Accessible from the top navigation bar bell icon.
-   - Includes real-time status tabs: **Tất cả**, **Đã gửi (SENT)**, **Thất bại (FAILED)**, **Đang chờ (PENDING)**.
-   - Recipient filter toggle: **Tất cả người nhận**, **Bệnh nhân (PATIENT)**, **Bác sĩ (DOCTOR)**.
-   - Live polling every 8 seconds while drawer is active.
-   - One-click **"Thử lại"** button that issues `POST /api/v1/admin/notifications/{id}/retry` and immediately updates the UI badge.
-2. **Global Navigation Bar Badge ([`Navbar.jsx`](file:///media/simpi/program-files/Program%20Files/Documents/Study/Code/MSS301/FClinic/ClinicAppointmentFE/src/components/Navbar.jsx))**:
-   - Displays real-time pending notification counts.
-   - Displays a red warning badge indicator if any notification fails delivery, alerting clinical staff to check recipient email addresses.
-3. **Outbox Monitor ([`OutboxMonitorPage.jsx`](file:///media/simpi/program-files/Program%20Files/Documents/Study/Code/MSS301/FClinic/ClinicAppointmentFE/src/pages/OutboxMonitorPage.jsx))**:
-   - Dedicated administrative screen providing visibility into `outbox_events` and AMQP broker publishing latency.
+# Outbox gần nhất
+docker exec fclinic-postgres-appointment sh -c \
+ 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -P pager=off -c \
+ "SELECT event_type,status,attempt_count,last_error_code,next_attempt_at,
+         created_at,published_at
+  FROM outbox_events ORDER BY created_at DESC LIMIT 20;"'
+
+# Notification gần nhất
+docker exec fclinic-postgres-notification sh -c \
+ 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -P pager=off -c \
+ "SELECT notification_type,recipient_type,status,attempt_count,
+         last_error_code,next_attempt_at,sent_at
+  FROM notifications ORDER BY created_at DESC LIMIT 20;"'
+```
+
+### 9.2. Bảng chẩn đoán
+
+| Triệu chứng | Nguyên nhân thường gặp | Cách xử lý |
+|---|---|---|
+| Outbox `PENDING_ENRICHMENT`, `DEPENDENCY_UNAVAILABLE` | Patient lookup lỗi hoặc bác sĩ chưa có mapping Auth | Kiểm tra token `appointment-service`, role `SVC_PATIENT_READ`, mapping `doctor_id` trong Auth |
+| Outbox `READY`/`PENDING_ENRICHMENT`, `BROKER_UNAVAILABLE` | RabbitMQ down, sai credential, exchange/queue không tồn tại | Kiểm tra `docker compose ps`, `rabbitmqctl`, log appointment-service |
+| Queue `notification.appointment.q` tăng, consumer = 0 | notification-service down hoặc listener lỗi | Kiểm tra health 8084, log `AppointmentEventListener` |
+| Message nằm trong `notification.appointment.dlq` | Payload sai schema, thiếu UUID, sai recipients, lỗi sau 3 lần retry | Đọc message, đối chiếu contract, sửa producer rồi publish lại cùng `eventId` |
+| Không tạo được notification, message vào DLQ | Thiếu template active hoặc template sai cặp type/recipient | Kiểm tra `notification_templates` với `notification_type`, `recipient_type='PATIENT'/'DOCTOR'`, `channel='EMAIL'`, `active=true` |
+| Notification `PERMANENT_FAILURE`, `SMTP_CONNECTION_ERROR` | MailHog/SMTP down hoặc sai host/port | Bật MailHog, kiểm tra `MAIL_HOST`, `MAIL_PORT`; retry qua API |
+| Notification `PERMANENT_FAILURE`, `SMTP_AUTH_ERROR` | Sai `MAIL_USERNAME`/`MAIL_PASSWORD` | Sửa cấu hình SMTP; retry |
+| Notification `PROCESSING` quá lâu | Worker crash giữa lúc gửi | Chờ recovery 10 phút hoặc restart notification-service |
+| Không có reminder | `APPOINTMENT_REMINDER_LEAD` rỗng | Đặt `PT24H`/`PT1H`, restart appointment-service |
+| Email có “Lý do khám” rỗng | Payload cố ý không chứa lý do khám | Chấp nhận hoặc bổ sung contract có kiểm soát |
+| Email có “Phòng” là chuyên khoa | Fallback `appointment()` dùng `doctorSpecialty` làm `roomName` | Bổ sung `roomName` thật vào contract nếu cần |
+
+### 9.3. Metrics và log
+
+Metrics Micrometer:
+
+- `notification.events.ingested`
+- `notification.events.duplicate`
+- `notification.delivery.sent`
+- `notification.delivery.retry`
+- `notification.delivery.permanent_failure`
+- `notification.delivery.recovered_stuck`
+
+Log có cấu trúc:
+
+- `event_ingested eventId=... appointmentId=...`
+- `duplicate_event_ignored eventId=...`
+- `notification_created notificationId=... eventId=...`
+- `delivery_started notificationId=...`
+- `delivery_sent notificationId=...`
+- `delivery_retry notificationId=... nextAttemptAt=...`
+- `delivery_permanent_failure notificationId=...`
 
 ---
 
-## 10. Summary & Production Readiness Checklist
+## 10. Hiện trạng local và các điểm cần lưu ý
 
-The notification architecture delivers enterprise-grade reliability, clear auditability, and complete decoupling:
+### 10.1. Hiện trạng đã kiểm chứng
 
-- [x] **Zero Phantom Messages**: Guaranteed by the Transactional Outbox Pattern in `appointment-service`.
-- [x] **Zero Queue Starvation**: Achieved by the Two-Phase Ingestion & Delivery split.
-- [x] **Strict Idempotency**: Enforced by the `processed_events` deduplication ledger.
-- [x] **Fail-Safe Poison Message Handling**: Handled via `clinic.dlx` and `notification.appointment.dlq`.
-- [x] **Transient Error Recovery**: Supported by 3-attempt exponential backoff (1m, 5m).
-- [x] **Crash Protection**: Provided by `StuckNotificationRecoveryScheduler` (10m timeout).
-- [x] **Operational Control**: Delivered through full admin REST endpoints and React 18 UI Drawer.
+- Auth, Patient, Appointment, Notification đều healthy.
+- Đặt lịch qua frontend proxy trả `201`.
+- Outbox event `APPOINTMENT_CREATED` chuyển `PUBLISHED`.
+- Notification-service tạo hai job `PATIENT` và `DOCTOR`, cả hai `SENT`.
+- MailHog nhận đủ email xác nhận và email hủy.
+- Hủy lịch trả `200`, tạo email hủy cho cả hai phía.
+
+### 10.2. Queue legacy đang tồn đọng
+
+Appointment-service vẫn khai báo queue `fclinic.appointment.notifications` và bind 4 routing key, nhưng **không có consumer** cho queue này. Notification-service dùng queue `notification.appointment.q`.
+
+Hệ quả:
+
+- Mọi event được nhân bản sang queue legacy.
+- Message tích tụ vô hạn, tốn disk.
+- Không ảnh hưởng luồng chính vì queue đó không được đọc.
+
+Kiểm tra:
+
+```bash
+docker exec fclinic-rabbitmq rabbitmqctl list_queues name messages consumers | grep fclinic.appointment
+```
+
+Khuyến nghị:
+
+1. Xác nhận không còn consumer/dashboard nào đọc `fclinic.appointment.notifications`.
+2. Xóa declaration queue/binding trong `appointment-service` `RabbitMQConfig`.
+3. Sau khi đối soát, xóa queue legacy trên broker.
+4. Không xóa nếu chưa kiểm tra, vì có thể còn message cần điều tra.
+
+### 10.3. Giới hạn contract hiện tại
+
+- Không có `reason`, `cancellationReason`, `clinicName`, `roomName` thật trong payload.
+- `roomName` trong fallback đang là `doctorSpecialty`.
+- Chỉ gửi email; chưa có SMS/push.
+- Reminder mặc định tắt.
+- Bác sĩ chưa có Auth mapping sẽ làm outbox retry vô hạn, không gửi được thông báo.
+- Outbox relay chỉ claim 1 event mỗi 5 giây; throughput khoảng 12 event/phút. Với tải cao cần tăng batch hoặc giảm poll.
+- Không có cơ chế dead-letter cho outbox; event lỗi dependency sẽ retry mãi. Cần giám sát `attempt_count` và `last_error_code`.
+
+---
+
+## 11. Checklist trước khi coi là “chạy được”
+
+- [ ] `appointment-service` health UP.
+- [ ] `notification-service` health UP.
+- [ ] RabbitMQ có exchange `clinic.events`, queue `notification.appointment.q` có consumer.
+- [ ] `notification.appointment.dlq` không tăng bất thường.
+- [ ] Patient lookup bằng token `appointment-service` trả `200`.
+- [ ] Bác sĩ được đặt lịch có đúng một tài khoản Auth active.
+- [ ] Bệnh nhân có email hợp lệ trong Patient profile.
+- [ ] `outbox_events` chuyển `PUBLISHED`.
+- [ ] `processed_events` có `event_id`.
+- [ ] `notifications` có đúng hai dòng `PATIENT`/`DOCTOR`.
+- [ ] Trạng thái cuối là `SENT`, `sent_at` có giá trị.
+- [ ] MailHog nhận đúng subject và người nhận.
+- [ ] Nếu bật reminder: `APPOINTMENT_REMINDER_LEAD` có giá trị và `reminder_publications` có bản ghi.
+
+---
+
+## 12. Công nghệ nào dùng ở đâu và vì sao
+
+| Công nghệ / pattern | Dùng ở giai đoạn | Lý do chọn | Đánh đổi |
+|---|---|---|---|
+| PostgreSQL + `outbox_events` | Booking, cancel, reschedule, reminder | Ghi appointment và event trong cùng transaction; tránh dual-write; JSONB lưu payload; UUIDv4 | Cần job relay và giám sát outbox |
+| `FOR UPDATE SKIP LOCKED` | Outbox relay | Nhiều instance cùng poll mà không tranh một row; không cần lock phân tán | Mỗi lần chỉ claim 1 row, throughput thấp |
+| RabbitMQ topic exchange | Publish và route sự kiện | Decouple producer/consumer; durable queue; routing key rõ ràng; publisher confirm | Có thể giao trùng, cần idempotency |
+| Publisher confirm + return | Outbox publish | Chỉ đánh dấu `PUBLISHED` khi broker đã nhận và route được | Tăng độ trễ publish; cần xử lý timeout |
+| Dead Letter Exchange/Queue | Message lỗi schema | Không để poison message chặn queue; giữ message để điều tra | Cần vận hành DLQ, không tự retry |
+| Transactional Outbox + retry | Outbox | Không mất event khi broker/service tạm hỏng | Retry vô hạn nếu cấu hình sai, cần alert |
+| `processed_events` + unique key | Ingestion | Chống gửi trùng khi Rabbit redeliver hoặc consumer crash | Tốn thêm bảng và transaction |
+| Phase A / Phase B | Notification-service | ACK Rabbit nhanh; SMTP chậm không làm nghẽn queue | Email đến trễ vài giây |
+| Atomic `UPDATE ... WHERE status IN (...)` | Delivery claim | Nhiều worker không gửi trùng cùng một job | Nếu worker chết sau SMTP, có thể gửi lại |
+| `@Scheduled` fixedDelay | Outbox relay, reminder, delivery, recovery | Đơn giản, không cần scheduler ngoài; phù hợp local/small scale | Không scale ngang hoàn hảo; cần claim nguyên tử |
+| Thymeleaf + DB template | Render email | Sửa nội dung không cần deploy; HTML an toàn; hỗ trợ tiếng Việt | Template nằm trong DB, cần migration/quản trị |
+| `StringTemplateResolver` | Render template | Template lấy trực tiếp từ cột `body_template`, không cần file | Không có hot reload file |
+| Spring `JavaMailSender` | Gửi email | Tích hợp sẵn, MIME UTF-8, timeout cấu hình được | Phụ thuộc SMTP; lỗi mạng phải retry |
+| MailHog | Local SMTP | Bắt toàn bộ email local, xem UI/API, không gửi ra ngoài | Không dùng cho production |
+| UUIDv4 | Event, appointment, recipient | Không lộ thứ tự; phù hợp microservice; validate chặt | Cần kiểm tra version/variant |
+| Auth recipient mapping | Enrich người nhận | Không suy đoán tài khoản từ email/phone; bác sĩ phải có mapping chính xác | Bác sĩ chưa map sẽ chặn thông báo |
+| Patient profile lookup | Lấy tên/email bệnh nhân | Patient-service là nguồn dữ liệu bệnh nhân | Phụ thuộc token/service; lỗi làm outbox retry |
+| REST query/admin API | Tra cứu, retry | Tách vận hành khỏi luồng gửi; phân quyền rõ | Không dùng để trigger gửi trực tiếp |
+
+**Không dùng Redis trong luồng này.** Redis không tham gia outbox, RabbitMQ, ingestion hay SMTP. Việc chống trùng slot dùng PostgreSQL; việc chống trùng email dùng `processed_events`.
+
+---
+
+## 13. Tóm tắt một câu
+
+FClinic dùng **transactional outbox + RabbitMQ + hai pha ingestion/delivery** để biến thao tác lịch hẹn thành email bất đồng bộ, bền vững và chống trùng; appointment-service chỉ ghi database và phát sự kiện, notification-service render template và gửi SMTP qua scheduler, còn API REST chỉ dùng để tra cứu và retry.
