@@ -60,3 +60,7 @@ Login A → real Doctor → 11 November 13:00 slot → confirm → persisted CON
 Reactor verify **379 tests**, 0 failures/errors/skips: Gateway 1, Auth 15, Patient 295, Doctor 9, Appointment 29, Notification 30. Patient-only verify PASS. **13** contracts PASS. Frontend **46 tests / 10 files PASS**, build PASS. Logs: sync-backend-final.log, sync-patient-verify.log, sync-contracts.log, sync-frontend-final.log and sync-frontend-build.log (ignored). Counts: test-counts.json. No skipped tests or runtime mock success.
 
 Public linking is not described as safe autonomous onboarding. Registration UI, wall-clock expiry, full unsaved-change Cancel branch and Admin CRUD were not all rerun in browser. Notification reminders/latest-reference retry and immediate JWT revocation are not fully verified.
+
+## Medical-record read-only UI correction — 2026-11-10
+
+Patient self-read was permitted by backend, but the records list incorrectly displayed a blocker whenever CREATE permission was absent. Removed that warning from read views and hid create/edit controls for read-only users. Real browser self-read now shows the successful empty state (0 records), rather than a permissions warning. Detail read has the same separation from write permission. Backend access policies remain unchanged. Two regression tests cover empty-list and detail read-only rendering; frontend 49 tests / 11 files and production build PASS. Browser proof is retained only in ignored .runtime because it contains the user's displayed profile details.
