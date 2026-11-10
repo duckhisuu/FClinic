@@ -1,0 +1,34 @@
+[
+  {
+    "port": 8761,
+    "up": true
+  },
+  {
+    "port": 8081,
+    "up": true
+  },
+  {
+    "port": 8082,
+    "up": true
+  },
+  {
+    "port": 8083,
+    "up": true
+  },
+  {
+    "port": 8084,
+    "up": true
+  },
+  {
+    "port": 8080,
+    "up": true
+  },
+  {
+    "port": 8085,
+    "up": true
+  },
+  {
+    "port": 5173,
+    "up": true
+  }
+]

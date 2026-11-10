@@ -10,6 +10,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface SpringDataJpaUserRepository extends JpaRepository<JpaUserEntity, UUID>, JpaSpecificationExecutor<JpaUserEntity> {
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @Query("select u from JpaUserEntity u where u.id = :id")
+    Optional<JpaUserEntity> lockById(@Param("id") UUID id);
 
     java.util.List<JpaUserEntity> findTop2ByPatientIdAndActiveTrueAndRole_RoleName(UUID patientId, String roleName);
 

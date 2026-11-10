@@ -49,7 +49,13 @@ export function PatientOnboardingPage({ onComplete }) {
 
       const pendingKey = `fclinic.pending.onboarding.${user.id}`;
       const pending = sessionStorage.getItem(pendingKey);
-      const patient = pending ? JSON.parse(pending) : await patientApi.create(payload);
+      let patient = pending ? JSON.parse(pending) : null;
+      if (!patient) {
+        try { patient = await patientApi.selfProfile(); }
+        catch (error) { if (error.status !== 404) throw error; }
+      }
+      // The server keys initial creation by verified identity, including lost-response retries.
+      if (!patient) patient = await patientApi.create(payload);
       sessionStorage.setItem(pendingKey, JSON.stringify({ id: patient.id, patientCode: patient.patientCode }));
 
       // 2. Liên kết patientId vào tài khoản trong auth-service
@@ -68,7 +74,7 @@ export function PatientOnboardingPage({ onComplete }) {
       }, 1200);
     } catch (err) {
       setErrorMsg(err.status === 403
-        ? 'Liên kết cần provisioning tin cậy từ quản trị viên. Hồ sơ đã tạo được giữ để thử lại, không tạo thêm bản sao.'
+        ? 'Không thể xác minh quyền sở hữu hồ sơ. Hồ sơ đã lưu được giữ để thử lại; vui lòng liên hệ nhân viên nếu lỗi tiếp diễn.'
         : err.message || 'Không thể tạo hồ sơ bệnh nhân. Vui lòng kiểm tra lại thông tin.');
     } finally {
       setBusy(false);

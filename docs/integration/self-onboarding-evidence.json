@@ -1,0 +1,183 @@
+{
+  "verifiedAt": "2026-11-10T04:39:22.570Z",
+  "checks": [
+    {
+      "label": "Register api",
+      "pass": true,
+      "expected": 201,
+      "actual": 201
+    },
+    {
+      "label": "Register browser",
+      "pass": true,
+      "expected": 201,
+      "actual": 201
+    },
+    {
+      "label": "Real login",
+      "pass": true,
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "label": "Real login",
+      "pass": true,
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "label": "Initially unlinked",
+      "pass": true
+    },
+    {
+      "label": "No initial self profile",
+      "pass": true,
+      "expected": 404,
+      "actual": 404
+    },
+    {
+      "label": "Concurrent self creation",
+      "pass": true,
+      "expected": 201,
+      "actual": 201
+    },
+    {
+      "label": "Concurrent self creation",
+      "pass": true,
+      "expected": 201,
+      "actual": 201
+    },
+    {
+      "label": "Concurrent requests return one UUID",
+      "pass": true
+    },
+    {
+      "label": "Lost-response creation retry",
+      "pass": true,
+      "expected": 201,
+      "actual": 201
+    },
+    {
+      "label": "Retry same UUID",
+      "pass": true
+    },
+    {
+      "label": "Canonical Patient DB row",
+      "pass": true
+    },
+    {
+      "label": "Durable owner association",
+      "pass": true
+    },
+    {
+      "label": "Exactly one profile revision",
+      "pass": true
+    },
+    {
+      "label": "No MedicalRecord needed",
+      "pass": true
+    },
+    {
+      "label": "Other account cannot claim profile",
+      "pass": true,
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "label": "Arbitrary UUID cannot be linked",
+      "pass": true,
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "label": "Trusted automatic account linking",
+      "pass": true,
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "label": "Link retry is idempotent",
+      "pass": true,
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "label": "Linked UUID matches",
+      "pass": true
+    },
+    {
+      "label": "Verified current user",
+      "pass": true,
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "label": "Me exposes binding",
+      "pass": true
+    },
+    {
+      "label": "Auth DB binding persisted",
+      "pass": true
+    },
+    {
+      "label": "Other Patient cannot read profile",
+      "pass": true,
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "label": "Anonymous read denied",
+      "pass": true,
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "label": "Owner reads canonical profile",
+      "pass": true,
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "label": "Refresh real session",
+      "pass": true,
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "label": "Refresh preserves identity",
+      "pass": true
+    },
+    {
+      "label": "Logout",
+      "pass": true,
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "label": "Real login",
+      "pass": true,
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "label": "Relogin retains binding",
+      "pass": true
+    },
+    {
+      "label": "Cannot rebind linked account",
+      "pass": true,
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "label": "Recover server-owned profile after relogin",
+      "pass": true,
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "label": "Same durable profile",
+      "pass": true
+    }
+  ]
+}

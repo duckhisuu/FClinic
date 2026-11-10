@@ -90,13 +90,30 @@ class PatientServiceIT {
         });
     }
     @AfterAll static void stop() throws Exception { PG.close(); }
+    @Test void selfRegistrationIsDurableAndConcurrentRetriesDoNotDuplicate() throws Exception {
+        var self = caller("self-registration-subject", "ROLE_PATIENT", null, null);
+        var results = race(() -> service.create(self, profile("Self synthetic")),
+                () -> service.create(self, profile("Self synthetic")));
+        assertThat(results).allSatisfy(result -> assertThat(result).isInstanceOf(Patient.class));
+        var first = (Patient) results.getFirst();
+        assertThat(((Patient) results.get(1)).id()).isEqualTo(first.id());
+        assertThat(service.selfProfile(self).id()).isEqualTo(first.id());
+        assertThat(service.create(self, profile("Retry payload")).id()).isEqualTo(first.id());
+        assertThat(count("patients")).isEqualTo(1);
+        assertThat(count("patient_revisions")).isEqualTo(1);
+        assertThat(count("patient_self_registrations")).isEqualTo(1);
+        assertThat(count("medical_records")).isZero();
+        assertCode(PatientError.Code.PATIENT_NOT_FOUND, () -> service.selfProfile(
+                caller("different-subject", "ROLE_PATIENT", null, null)));
+        assertCode(PatientError.Code.FORBIDDEN, () -> service.selfProfile(staff));
+    }
     @Test void uuidSchemaColumnsRevisionKeysAndForeignKeysAreRealPostgres() {
         UUID patient=create("UUID synthetic");
         var medical=service.createRecord(doctor,patient,fixture(12),null,clinical());
         assertThat(medical.id().version()).isEqualTo(4); assertThat(medical.id().variant()).isEqualTo(2);
         assertThat(repository.findRecord(patient,medical.id()).orElseThrow()).isEqualTo(medical);
         var types=jdbc.queryForList("select data_type from information_schema.columns where table_schema='public' and column_name in ('id','patient_id','doctor_id','appointment_id','medical_record_id')");
-        assertThat(types).hasSize(9).allSatisfy(row -> assertThat(row.get("data_type")).isEqualTo("uuid"));
+        assertThat(types).hasSize(10).allSatisfy(row -> assertThat(row.get("data_type")).isEqualTo("uuid"));
         for(String table:List.of("patient_revisions","medical_record_revisions")) {
             UUID revision=jdbc.queryForObject("select id from "+table,UUID.class);
             assertThat(revision.version()).isEqualTo(4);assertThat(revision.variant()).isEqualTo(2);

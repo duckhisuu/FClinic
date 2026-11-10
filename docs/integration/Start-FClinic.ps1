@@ -81,6 +81,8 @@ if ($tables.Trim() -eq '0') {
     $type = & docker exec fclinic-postgres-patient psql -U $env:DB_USERNAME -d $env:PATIENT_DB_NAME -Atc "SELECT data_type FROM information_schema.columns WHERE table_schema='public' AND table_name='patients' AND column_name='id'"
     if ($type.Trim() -ne 'uuid') { throw 'Existing Patient schema requires an owner-approved legacy ID mapping; preserved without changes.' }
 }
+Get-Content 'ClinicAppointmentBE/services/patient-service/src/main/resources/db/schema/uuid/V002__self_registration.sql' -Raw | & docker exec -i fclinic-postgres-patient psql -v ON_ERROR_STOP=1 -U $env:DB_USERNAME -d $env:PATIENT_DB_NAME | Out-Null
+if ($LASTEXITCODE) { throw 'Patient self-registration schema migration failed' }
 if ($Build) {
     & (Join-Path $PSScriptRoot 'Stop-FClinic.ps1')
     & mvn -f ClinicAppointmentBE/pom.xml verify -B -ntp

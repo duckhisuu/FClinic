@@ -9,6 +9,6 @@ public interface UpdateProfileUseCase {
 
     User updateProfile(UUID userId, UpdateProfileCommand command);
 
-    User linkPatientProfile(UUID userId, UUID patientId);
+    User linkPatientProfile(UUID userId, UUID patientId, String authorization);
 }
 

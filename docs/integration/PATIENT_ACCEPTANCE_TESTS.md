@@ -1,4 +1,28 @@
-# Patient acceptance — 2026-11-09 latest main/Notification
+# Patient acceptance — current self-service onboarding, 2026-11-10
+
+**Self-service profile creation: PASS (real HTTP, PostgreSQL and React browser).**
+
+- Canonical persistence: `patient_db.patients` plus one `patient_revisions` row. Ownership is stored in additive `patient_self_registrations`; account linkage is in `auth_db.users.patient_id`. No profile is stored in medical_records or in a replacement database.
+- API acceptance: **34/34** checks in `self-onboarding-evidence.json`. Register/login → concurrent initial creation returns the same UUID → lost-response retry → verified self-owned linking → /me → refresh/logout/re-login. Cross-account claim/read, arbitrary UUID and rebind are denied. The record and owner association were checked using PostgreSQL queries.
+- Browser: new synthetic Patient logged in, completed the onboarding form, saved, automatically reached Doctor Directory, refreshed, then opened its actual Patient detail. UUID `ce88f75b-442b-4d3c-b8aa-5e4107e65b34`, version 0, entered date/address persisted. Evidence: `self-onboarding-browser.jpg`. No manual ADMIN provisioning was used for either new account.
+- Runtime extension: **24/24** checks in `self-onboarding-runtime-evidence.json`: browser form fields and ownership in PostgreSQL, Auth V3 applied, both automatically linked Patients book real CONFIRMED appointments without MedicalRecords, booking/history persists, and the browser-created Patient receives its actual UUID Notification.
+- Fixture correction: the first API-only profile omitted optional contact email. Its booking succeeded; Notification correctly skipped the Patient email and delivered the Doctor notification. That original booking was retained. The browser profile includes account email and its separate genuine booking produced the correct Patient notification. No consumer change, fabricated success or event replay was used.
+- Health: **8/8 UP**, `self-onboarding-health.json`; Auth HTTPS checked with the trusted CA certificate, not SSL bypass. Current consumer queue is drained; DLQ remains 4 with no replay/purge, and the additional legacy queue has 13 ready copies. The first attempt after the overnight interruption found Docker/services stopped; Docker Desktop and the same stack were restarted before acceptance.
+- Backend full verify: **382 tests**, zero failures/errors/skips (Gateway 1, Auth 17, Patient 296, Doctor 9, Appointment 29, Notification 30). Patient-only verify PASS; security contracts **13/13** PASS. Frontend **47 tests / 10 files PASS**, production build PASS. Logs are retained in ignored `.runtime/self-onboarding-*.log`.
+
+Repeat with healthy services and synthetic data only:
+
+```powershell
+node docs/integration/Test-SelfOnboarding.cjs
+# After creating the retained browser test account's profile via React:
+node docs/integration/Test-SelfOnboarding.cjs runtime
+```
+
+Historical unlinked profiles lacking the new ownership association are preserved for explicit owner-reviewed reconciliation; UUID/name/phone/email alone never permits a claim. Existing trusted linked accounts continue to work. Staff/Doctor finite grants and VALID_VISIT policies are unchanged. Existing clinical regression evidence below remains historical; browser registration, full expiration timing and Admin CRUD were not rerun in this change.
+
+## Historical integration acceptance — 2026-11-09
+
+The following describes the earlier fail-closed implementation; its automatic-link blocker is superseded by the verified update above.
 
 **Overall PARTIAL: ordinary self-service account linking is blocked safely; operator-provisioned booking and UUID Notification work.** All data is synthetic; services/providers/databases are real.
 

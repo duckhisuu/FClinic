@@ -94,6 +94,7 @@ export const doctorApi = {
   createDoctorSlot: (id, body) => apiClient.post(`/api/v1/doctors/${id}/slots`, body),
 };
 export const patientApi = {
+  selfProfile: () => apiClient.get("/api/v3/patients/self-profile"),
   search: (params, signal) =>
     apiClient.get("/api/v3/patients", { params, signal }),
   get: (id, signal) => apiClient.get(`/api/v3/patients/${id}`, { signal }),

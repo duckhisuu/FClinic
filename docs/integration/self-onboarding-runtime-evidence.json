@@ -1,0 +1,125 @@
+{
+  "verifiedAt": "2026-11-10T04:42:32.437Z",
+  "checks": [
+    {
+      "label": "Real login",
+      "pass": true,
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "label": "Real login",
+      "pass": true,
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "label": "Browser-created profile linked in Auth",
+      "pass": true,
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "label": "Browser identity has Patient UUID",
+      "pass": true
+    },
+    {
+      "label": "Read browser-created canonical profile",
+      "pass": true,
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "label": "Browser form fields persisted",
+      "pass": true
+    },
+    {
+      "label": "Browser profile row in canonical PostgreSQL",
+      "pass": true
+    },
+    {
+      "label": "Browser profile has no MedicalRecord",
+      "pass": true
+    },
+    {
+      "label": "Unique Auth binding migration applied",
+      "pass": true
+    },
+    {
+      "label": "Real login",
+      "pass": true,
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "label": "Read real booking",
+      "pass": true,
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "label": "Booking CONFIRMED",
+      "pass": true
+    },
+    {
+      "label": "Booking PostgreSQL patient association",
+      "pass": true
+    },
+    {
+      "label": "Booking history persisted",
+      "pass": true,
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "label": "History exists",
+      "pass": true
+    },
+    {
+      "label": "Booking Patient still has no MedicalRecord",
+      "pass": true
+    },
+    {
+      "label": "Profile without contact email is not falsely notified",
+      "pass": true
+    },
+    {
+      "label": "Publish browser Patient future slot",
+      "pass": true,
+      "expected": 201,
+      "actual": 201
+    },
+    {
+      "label": "Browser-created Patient books without MedicalRecord",
+      "pass": true,
+      "expected": 201,
+      "actual": 201
+    },
+    {
+      "label": "Browser Patient booking CONFIRMED",
+      "pass": true
+    },
+    {
+      "label": "Read browser Patient real Notification inbox",
+      "pass": true,
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "label": "Read browser Patient real Notification inbox",
+      "pass": true,
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "label": "Read browser Patient real Notification inbox",
+      "pass": true,
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "label": "Real booking Notification reached exact account",
+      "pass": true
+    }
+  ]
+}

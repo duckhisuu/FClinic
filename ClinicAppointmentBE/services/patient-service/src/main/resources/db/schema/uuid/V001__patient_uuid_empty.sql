@@ -69,3 +69,9 @@ CREATE INDEX ix_patients_name_id ON patients(full_name, id);
 CREATE INDEX ix_patients_created_id ON patients(created_at, id);
 CREATE INDEX ix_medical_patient_visit_id
     ON medical_records(patient_id, visit_date DESC, id DESC);
+-- Additive and repeatable: no historical profile is claimed from its creator audit field.
+CREATE TABLE IF NOT EXISTS patient_self_registrations (
+    subject VARCHAR(255) PRIMARY KEY,
+    patient_id UUID NOT NULL UNIQUE REFERENCES patients(id),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);

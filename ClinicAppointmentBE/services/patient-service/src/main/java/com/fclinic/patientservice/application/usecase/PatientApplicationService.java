@@ -25,7 +25,14 @@ public class PatientApplicationService {
     }
     public Patient create(TrustedCaller c, ProfileData data) {
         policy.createProfile(c);
-        return writer.create(data, c.subject());
+        return c.userRole("ROLE_PATIENT") ? writer.createSelf(data, c.subject()) : writer.create(data, c.subject());
+    }
+    public Patient selfProfile(TrustedCaller c) {
+        if (!c.active() || !c.userRole("ROLE_PATIENT")) throw new PatientError(FORBIDDEN);
+        Patient patient = writer.selfProfile(c.subject());
+        if (patient == null) throw new PatientError(PATIENT_NOT_FOUND);
+        if (c.patientId() != null && !c.patientId().equals(patient.id())) throw new PatientError(FORBIDDEN);
+        return patient;
     }
     public Patient get(TrustedCaller c, UUID id) {
         policy.readProfile(c, id);

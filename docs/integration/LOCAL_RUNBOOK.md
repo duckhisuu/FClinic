@@ -103,8 +103,13 @@ Start-FClinic.ps1 now idempotently adds only the reviewed Notification audience 
 
 Notification V4/V5 are applied by Flyway at service startup. Before this integration they were rehearsed on restored database test copies with a synthetic numeric row (archive=1, active=0, templates=8). Actual source DB had 0 notifications and 8 templates. Backups/test copies remain in ignored .runtime/current PostgreSQL test databases; they are not runtime alternatives. Legacy rows are archived, not assigned guessed UUID owners or replayed. DLQ is now 4 (3 preserved old messages + 1 intentional malformed acceptance event). Do not purge/replay it to make tests pass.
 
-Public self-linking is deliberately blocked until a trusted ownership contract is published. Existing identical trusted binding is idempotent. The acceptance script uses only synthetic accounts and verifies the exact creation principal, ACTIVE row and unclaimed mapping before existing ADMIN provisioning. Do not use this test procedure to claim arbitrary real profiles. New UI users stop at the explicit provisioning message. Same-session linking retry reuses the confirmed UUID; full durable onboarding idempotency remains pending.
+Self-service onboarding now uses the canonical Patient database and an additive owner association. `Start-FClinic.ps1` applies the repeatable Patient V002 schema addition after checking the UUID schema. Auth Flyway V3 enforces unique non-null Patient bindings; reconcile historical duplicates explicitly if this migration fails. Backups were taken before the actual local migration. No profiles, volumes or realms are reset.
 
+Patient `POST /api/v3/patients` serializes initial creation by verified subject. `GET /api/v3/patients/self-profile` recovers only that subject's active initial profile. Auth `PUT /api/v1/auth/me/patient-profile` independently checks this provider with the same bearer before persisting the link. The provider defaults to loopback http://localhost:8081 (current Patient transport); remote targets require HTTPS with normal certificate verification. Configure `auth.patient-service-url` when needed. Auth introspection and WorkScope HTTPS are unchanged.
+
+For a new account: login → fill initial profile → Save & Continue → Doctor Directory. No MedicalRecord is required. Historical unlinked profiles lacking the new owner association require owner-reviewed reconciliation; do not claim them by UUID or create medical records as a workaround.
+
+Run `node docs/integration/Test-SelfOnboarding.cjs` against healthy real services for the new automatic flow. This creates only synthetic accounts and profiles and checks canonical PostgreSQL rows, ownership, retry and session persistence. Private credentials stay in ignored `.runtime/self-onboarding-state.json`. The older onboarding-notification script describes the historical operator-provisioning acceptance, not the new automatic-link gate.
 Repeatable test-scope commands (services already healthy; no real medical data):
 
 ```powershell
@@ -125,9 +130,9 @@ Manual checks at http://127.0.0.1:5173:
 1. The retained browser session is synthetic linked Patient A at #history. Inspect the CONFIRMED 11 November booking and its CREATED history.
 2. Open Notifications: only A's genuine confirmation/reschedule/cancel messages appear; no admin retry for PATIENT.
 3. Browse Doctor slots, select a future available hour, book, then read history/cancel/reschedule with the returned version.
-4. Refresh: identity/link persist. Logout: protected UI disappears. A separate unlinked Patient sees onboarding, and must stop at trusted provisioning rather than self-claim another UUID.
+4. Refresh: identity/link persist. Logout: protected UI disappears. A separate unlinked Patient can create and automatically link only its own server-provisioned initial profile.
 5. STAFF/DOCTOR use existing synthetic accounts/credentials from the current private local realm configuration, not passwords in this report. Their Patient/clinical actions still require exact finite scope and VALID_VISIT.
 
 See PATIENT_ACCEPTANCE_TESTS.md for current HTTP/browser evidence and REMAINING_ISSUES.md for owner-review blockers. No statement of full LOCAL READY is made.
 
-Final broker snapshot: current `notification.appointment.q` is drained, `notification.appointment.dlq` has 4 preserved messages, and additional `fclinic.appointment.notifications` has 9 buffered event copies. Do not purge or replay the additional queue; confirm its ownership/retirement first. It is not the current Notification consumer queue.
+Final broker snapshot: current `notification.appointment.q` is drained, `notification.appointment.dlq` has 4 preserved messages, and additional `fclinic.appointment.notifications` has 13 buffered event copies in the 2026-11-10 snapshot. Do not purge or replay the additional queue; confirm its ownership/retirement first. It is not the current Notification consumer queue.

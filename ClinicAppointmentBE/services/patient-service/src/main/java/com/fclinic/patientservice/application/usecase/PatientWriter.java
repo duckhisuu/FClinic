@@ -14,6 +14,7 @@ import static com.fclinic.patientservice.domain.model.PatientError.Code.*;
 
 @Service
 public class PatientWriter {
+    @jakarta.persistence.PersistenceContext private jakarta.persistence.EntityManager em;
     private final PatientRepositoryPort repository;
     private final RevisionPort revisions;
     private final Clock clock;
@@ -25,6 +26,28 @@ public class PatientWriter {
         Patient saved = repository.insert(Patient.create(data, actor, clock.instant().truncatedTo(ChronoUnit.MICROS)));
         revisions.patient(null, saved);
         return saved;
+    }
+    /** Serialize initial provisioning across tabs, lost responses and service restarts. */
+    @Transactional
+    public Patient createSelf(ProfileData data, String subject) {
+        em.createNativeQuery("select pg_advisory_xact_lock(hashtextextended(:subject, 72431))")
+                .setParameter("subject", subject).getSingleResult();
+        var existing = selfProfile(subject);
+        if (existing != null) return existing;
+        if (data.status() != ProfileData.Status.ACTIVE) throw new PatientError(FORBIDDEN);
+        Patient saved = create(data, subject);
+        em.createNativeQuery("insert into patient_self_registrations(subject, patient_id) values (:subject, :id)")
+                .setParameter("subject", subject).setParameter("id", saved.id()).executeUpdate();
+        return saved;
+    }
+    @Transactional(readOnly = true)
+    public Patient selfProfile(String subject) {
+        var ids = em.createNativeQuery("select patient_id from patient_self_registrations where subject=:subject", UUID.class)
+                .setParameter("subject", subject).getResultList();
+        if (ids.isEmpty()) return null;
+        Patient patient = repository.find((UUID) ids.getFirst()).orElseThrow(() -> new PatientError(PATIENT_NOT_FOUND));
+        if (patient.status() != ProfileData.Status.ACTIVE) throw new PatientError(PATIENT_INACTIVE);
+        return patient;
     }
     @Transactional
     public Patient replace(UUID id, long version, ProfileData data, String actor) {
