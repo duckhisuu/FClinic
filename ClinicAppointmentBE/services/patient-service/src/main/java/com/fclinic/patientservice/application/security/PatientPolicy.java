@@ -22,6 +22,8 @@ public class PatientPolicy {
         authenticated(c);
         allow(c.userRole("ROLE_STAFF") && scope(() -> scopes.receptionist(c,action)));
     }
+    public void receptionRead(TrustedCaller c) { administrative(c,AdministrativeAction.READ); }
+    public void receptionSearch(TrustedCaller c) { administrative(c,AdministrativeAction.SEARCH); }
     public void createProfile(TrustedCaller c) {
         authenticated(c);
         allow((c.userRole("ROLE_STAFF") && scope(() -> scopes.receptionist(c, AdministrativeAction.CREATE)))

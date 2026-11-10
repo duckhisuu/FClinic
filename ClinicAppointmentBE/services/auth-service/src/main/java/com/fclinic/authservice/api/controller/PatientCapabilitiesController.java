@@ -27,6 +27,7 @@ public class PatientCapabilitiesController {
                 .forEach(g -> candidates.addAll(g.patientIds()));
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("createPatient", allowed(identity, "ADMINISTRATIVE", "ADMIN_ASSIGNMENT_CREATE", null));
+        result.put("receptionLookup", allowed(identity,"ADMINISTRATIVE","ADMIN_ASSIGNMENT_SEARCH",null));
         result.put("searchPatients", (allowed(identity, "ADMINISTRATIVE", "ADMIN_ASSIGNMENT_SEARCH", null)
                 && allowed(identity, "ADMINISTRATIVE", "ADMIN_SEARCH", null)) || allowed(identity, "CLINICAL", "DOCTOR_SEARCH", null));
         result.put("updatePatientIds", candidates.stream().filter(id -> allowed(identity, "ADMINISTRATIVE", "ADMIN_ASSIGNMENT_UPDATE", null)

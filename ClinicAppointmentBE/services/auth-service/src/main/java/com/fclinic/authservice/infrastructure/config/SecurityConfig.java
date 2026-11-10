@@ -41,7 +41,8 @@ public class SecurityConfig {
     public SecurityFilterChain publicTokenInspectionFilterChain(HttpSecurity http) throws Exception {
         http
                 .securityMatcher("/api/v1/auth/introspect", "/api/v1/auth/validate", "/api/v1/auth/scopes",
-                        com.fclinic.authservice.api.controller.AppointmentRecipientController.PATH)
+                        com.fclinic.authservice.api.controller.AppointmentRecipientController.PATH,
+                        com.fclinic.authservice.api.controller.ReceptionAssignmentsController.PATH)
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

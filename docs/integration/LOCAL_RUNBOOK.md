@@ -3,6 +3,29 @@
 Chỉ chạy trong `D:\Hoc_tap\26_FALL\MSS301\Project_Group\FClinic_Primary`. Java 21, Maven, Node/npm và Docker Desktop Linux Engine phải khả dụng. Không dùng repository gốc hay SafeSync.
 
 
+
+## Staff reception update — 2026-11-10
+
+Start-FClinic.ps1 enables PATIENT_RECEPTION_ENABLED=true and generates a distinct PATIENT_RECEPTION_CLIENT_SECRET in ignored .runtime/settings.json. Auth receives the same AUTH_RECEPTION_CLIENT_SECRET. The Patient provider calls PATIENT_RECEPTION_URI=https://localhost:8085/api/v1/auth/internal/reception-assignments with strict TLS and the existing JVM truststore. No credential is exposed to React. The feature defaults disabled outside this launcher.
+
+Auth Flyway V4 adds reception_patient_assignments. The actual Auth DB was backed up before migration; existing users/data/volumes/realm were preserved. Use the same FClinic - All Services configuration, after manually starting Docker containers, or:
+
+```powershell
+& docs/integration/Start-FClinic.ps1 -SkipInfrastructure -Frontend
+```
+
+An active finite Staff desk assignment with ADMIN_ASSIGNMENT_READ/SEARCH (and UPDATE to edit) remains required. Search name/code with at least two characters, or normalized phone; reception pages have at most 20 rows. Empty search retains the canonical finite assigned list. Patient verifies actual rows; Auth derives exact administrative/appointment permissions, bounded by the source assignment expiry and eight hours. No clinical or wildcard grant is added. Source expiry/revocation invalidates derived access. React refreshes backend capabilities after opening a profile; no UUID configuration edit, restart or re-login is needed per Patient.
+
+Synthetic local regression commands:
+
+```powershell
+node docs/integration/Test-StaffReception.cjs
+node docs/integration/Test-StaffReception.cjs persist
+node docs/integration/Test-StaffReception.cjs browser
+```
+
+The browser phase only checks the real synthetic fixture already created through React; it does not fabricate browser interaction. Clinical VALID_VISIT and trusted account linking remain separate workflows. The historical clinical fixture setup below remains useful for those permissions.
+
 ## Một Run Configuration trong IntelliJ — Docker bật thủ công
 
 Shared configuration: `.run/FClinic.run.xml`, tên **FClinic - All Services** (loại npm). Mở project FClinic_Primary, chọn cấu hình này ở thanh Run hoặc Run → Edit Configurations. Node interpreter dùng Node hiện có tại C:/Program Files/nodejs/node.exe; không cần cài plugin PowerShell.
@@ -99,7 +122,7 @@ node docs/integration/Test-PatientFlows.cjs cross
 node docs/integration/Test-PatientFlows.cjs negative
 ```
 
-Không suy diễn `appointmentId=null` là có quyền: `create` chuẩn bị VALID_VISIT độc lập trước khi `verify` lưu bệnh án. Hồ sơ do Staff tạo vẫn cần trusted assignment cho UUID mới để Staff đọc/sửa sau đó; Patient tự khởi tạo dùng quyền self-read theo identity đã xác minh, xem REMAINING_ISSUES.md.
+Không suy diễn `appointmentId=null` là có quyền: `create` chuẩn bị VALID_VISIT độc lập trước khi `verify` lưu bệnh án. Reception mode tự cấp assignment hành chính chính xác khi Staff mở UUID mới; Patient tự khởi tạo dùng quyền self-read theo identity đã xác minh, xem REMAINING_ISSUES.md.
 
 ## Tests và dừng
 
@@ -189,4 +212,4 @@ Stop-Process -Id $authPid
 
 Startup now waits for actual Gateway routes after Actuator UP: Auth me 401, Doctor list 200, Patient 401, Appointment 401, Notification me 401. These are read-only probes; 401 is the correct unauthenticated response proving the protected backend is reachable, not an auth bypass. A cold restart demonstrated that Appointment discovery needed 29 attempts even after health UP. The script now waits before declaring ready. Launch Vite only after it finishes.
 
-Appointment status does not automatically become COMPLETED after saving a MedicalRecord because no completion operation is currently published. Do not update PostgreSQL directly to simulate it. Initial Staff-created profile scope and trusted administrative account association are explicit test setup; automatic assignment UI remains pending.
+Appointment status does not automatically become COMPLETED after saving a MedicalRecord because no completion operation is currently published. Do not update PostgreSQL directly to simulate it. Historical clinical fixtures use explicit scope setup. Current reception administrative scope is provisioned for exact Patient IDs; account association and clinical VALID_VISIT remain separate.

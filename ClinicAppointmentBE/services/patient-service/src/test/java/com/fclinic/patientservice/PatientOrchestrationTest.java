@@ -17,7 +17,7 @@ class PatientOrchestrationTest {
     private final WorkScopePort scopes=mock(WorkScopePort.class,CALLS_REAL_METHODS);
     private final DoctorClientPort doctors=mock(DoctorClientPort.class);
     private final AppointmentClientPort appointments=mock(AppointmentClientPort.class);
-    private final PatientApplicationService service=new PatientApplicationService(repo,writer,new PatientPolicy(scopes),doctors,appointments);
+    private final PatientApplicationService service=new PatientApplicationService(repo,writer,new PatientPolicy(scopes),doctors,appointments,org.mockito.Mockito.mock(ReceptionAssignmentPort.class));
     private final UUID id=UUID.randomUUID();
     private final TrustedCaller doctor=new TrustedCaller("user:demo-doctor",TrustedCaller.PrincipalType.USER,
             Set.of("ROLE_DOCTOR"),null,fixture(12),null,true);

@@ -37,8 +37,12 @@ public class JpaPatientRepositoryAdapter implements PatientRepositoryPort {
     }
     public PageResult<Patient> search(SearchQuery q, Set<UUID> allowed) {
         if (allowed.isEmpty()) return new PageResult<>(List.of(), q.page(), q.size(), 0, 0);
-        String where = " where p.id in :allowed";
-        Map<String,Object> params = new HashMap<>(); params.put("allowed", allowed);
+        return profiles(q,allowed);
+    }
+    public PageResult<Patient> receptionLookup(SearchQuery q) { return profiles(q,null); }
+    private PageResult<Patient> profiles(SearchQuery q,Set<UUID> allowed) {
+        String where = allowed==null ? " where 1=1" : " where p.id in :allowed";
+        Map<String,Object> params = new HashMap<>(); if(allowed!=null) params.put("allowed", allowed);
         if (q.keyword() != null) {
             where += " and (locate(:keyword, lower(p.fullName)) > 0 or locate(:keyword, lower(p.patientCode)) > 0)";
             params.put("keyword", q.keyword().toLowerCase(Locale.ROOT));

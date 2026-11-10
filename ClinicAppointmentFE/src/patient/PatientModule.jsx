@@ -59,7 +59,10 @@ export function PatientWorkspace({ api, session, scenario, revision: scenarioRev
 // Session is supplied by the verified host integration, never synthesized by this module.
 export function PatientModule({ session = null, onBeforeLeave }) {
  const [guard, registerGuard] = useState(null);
- const api = useMemo(() => createPatientApi({ getAccessToken: () => session?.getAccessToken?.() }), [session]);
+ const sessionRef = useRef(session); sessionRef.current = session;
+ const api = useMemo(() => createPatientApi({ getAccessToken: () => sessionRef.current?.getAccessToken?.(),
+   canReceptionLookup: () => sessionRef.current?.permissions?.receptionLookup === true,
+   onPatientAccess: id => sessionRef.current?.onPatientAccess?.(id) }), []);
  useEffect(() => { onBeforeLeave?.(guard); return () => onBeforeLeave?.(null); }, [guard, onBeforeLeave]);
  return <section className="pt-module" aria-label="Module quản lý bệnh nhân"><PatientWorkspace api={api} session={session} revision={0} registerGuard={registerGuard} setParentBusy={ignoreBusy} /></section>;
 }

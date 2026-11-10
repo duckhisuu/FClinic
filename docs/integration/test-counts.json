@@ -9,13 +9,13 @@
     "failures": 0,
     "skipped": 0,
     "errors": 0,
-    "tests": 18
+    "tests": 24
   },
   "services/patient-service": {
     "failures": 0,
     "skipped": 0,
     "errors": 0,
-    "tests": 296
+    "tests": 298
   },
   "services/doctor-service": {
     "failures": 0,

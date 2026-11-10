@@ -21,6 +21,10 @@ if (-not (Test-Path $settingsFile)) {
     $settings | ConvertTo-Json | Set-Content $settingsFile
 }
 $settings = Get-Content $settingsFile -Raw | ConvertFrom-Json
+if(-not $settings.PSObject.Properties['PATIENT_RECEPTION_CLIENT_SECRET']) {
+    $settings | Add-Member -NotePropertyName 'PATIENT_RECEPTION_CLIENT_SECRET' -NotePropertyValue ([guid]::NewGuid().ToString('N'))
+    $settings | ConvertTo-Json | Set-Content $settingsFile
+}
 $settings.PSObject.Properties | ForEach-Object { [Environment]::SetEnvironmentVariable($_.Name, [string]$_.Value, 'Process') }
 $env:AUTH_INTROSPECTION_CLIENT_SECRET = $env:PATIENT_AUTH_CLIENT_SECRET
 $env:AUTH_INTROSPECTION_CLIENT_ID = 'patient-service'
@@ -31,6 +35,9 @@ $env:PATIENT_DOCTOR_REFERENCE_CLIENT_ID = 'patient-doctor-reference'
 $env:PATIENT_APPOINTMENT_REFERENCE_CLIENT_ID = 'patient-appointment-reference'
 $env:AUTH_OTP_EXPOSE_IN_RESPONSE = 'false'
 $env:AUTH_OTP_MAIL_ENABLED = 'true'
+$env:AUTH_RECEPTION_CLIENT_SECRET=$env:PATIENT_RECEPTION_CLIENT_SECRET
+$env:PATIENT_RECEPTION_ENABLED='true'
+$env:PATIENT_RECEPTION_URI='https://localhost:8085/api/v1/auth/internal/reception-assignments'
 $env:PATIENT_AUTH_ISSUER = 'http://localhost:8180/realms/fclinic'
 $env:KEYCLOAK_ISSUER_URI = $env:PATIENT_AUTH_ISSUER
 $env:PATIENT_AUTH_INTROSPECTION_URI = 'https://localhost:8085/api/v1/auth/introspect'

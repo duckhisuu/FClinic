@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { authApi } from '../services/authApi';
 import { SESSION_EVENT } from '../services/session';
 
@@ -92,11 +92,20 @@ export function AuthProvider({ children }) {
   };
 
   const [capabilities, setCapabilities] = useState({});
+  const capabilityRequest=useRef(0);
+  const refreshCapabilities = useCallback(async () => {
+    const ticket=++capabilityRequest.current;
+    const identity = JSON.parse(localStorage.getItem('fclinic_user') || 'null');
+    if (!user?.id || identity?.id !== user.id || !localStorage.getItem('fclinic_token')) return;
+    const value = await authApi.getPatientCapabilities();
+    const current = JSON.parse(localStorage.getItem('fclinic_user') || 'null');
+    if (ticket===capabilityRequest.current && current?.id === identity.id && localStorage.getItem('fclinic_token')) setCapabilities(value);
+  }, [user?.id]);
   useEffect(() => {
-    let current = true; setCapabilities({});
-    if (token && user?.id) authApi.getPatientCapabilities().then(value => { if (current) setCapabilities(value); }).catch(() => {});
-    return () => { current = false; };
-  }, [token, user?.id, user?.patientId]);
+    setCapabilities({});
+    if (token && user?.id) refreshCapabilities().catch(() => {});
+    return () => { ++capabilityRequest.current; };
+  }, [token, user?.id, user?.patientId, refreshCapabilities]);
   const hasRole = useCallback((roles) => {
     if (!user || !user.role) return false;
     if (Array.isArray(roles)) {
@@ -118,6 +127,7 @@ export function AuthProvider({ children }) {
       value={{
         user,
         capabilities,
+        refreshCapabilities,
         token,
         isAuthenticated: !!user && !!token,
         isLoading,

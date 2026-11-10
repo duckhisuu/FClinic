@@ -18,10 +18,12 @@ public class PatientApplicationService {
     private final PatientPolicy policy;
     private final DoctorClientPort doctors;
     private final AppointmentClientPort appointments;
+    private final ReceptionAssignmentPort reception;
     public PatientApplicationService(PatientRepositoryPort repository, PatientWriter writer, PatientPolicy policy,
-                                      DoctorClientPort doctors, AppointmentClientPort appointments) {
+                                      DoctorClientPort doctors, AppointmentClientPort appointments, ReceptionAssignmentPort reception) {
         this.repository = repository; this.writer = writer; this.policy = policy;
         this.doctors = doctors; this.appointments = appointments;
+        this.reception=reception;
     }
     public Patient create(TrustedCaller c, ProfileData data) {
         policy.createProfile(c);
@@ -35,8 +37,24 @@ public class PatientApplicationService {
         return patient;
     }
     public Patient get(TrustedCaller c, UUID id) {
+        if(reception.enabled() && c.userRole("ROLE_STAFF")) {
+            policy.receptionRead(c);
+            Patient patient=parent(id);
+            reception.assign(c,java.util.Set.of(id),"READ");
+            policy.readProfile(c,id);
+            return patient;
+        }
         policy.readProfile(c, id);
         return parent(id);
+    }
+    public PageResult<Patient> receptionLookup(TrustedCaller c,SearchQuery query) {
+        policy.receptionSearch(c);
+        if(!reception.enabled())throw new PatientError(DEPENDENCY_UNAVAILABLE);
+        if(query.size()>20 || (query.phoneNumber()==null && (query.keyword()==null || query.keyword().length()<2)))
+            throw PatientError.invalid("keyword");
+        var result=repository.receptionLookup(query);
+        reception.assign(c,result.content().stream().map(Patient::id).collect(java.util.stream.Collectors.toSet()),"SEARCH");
+        return result;
     }
     public PageResult<Patient> search(TrustedCaller c, SearchQuery query) {
         return repository.search(query, policy.search(c));

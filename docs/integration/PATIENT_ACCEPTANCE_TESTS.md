@@ -1,5 +1,7 @@
 # Patient acceptance — Staff reception to clinical record, 2026-11-10
 
+**Latest Staff fix: PASS — reception lookup, create/read/update, durable exact grants, browser and PostgreSQL checked after final rebuild. See Staff profile access regression and Final rerun evidence below.**
+
 **Canonical Patient APIs: 8/8 PASS with real services, real PostgreSQL and explicit finite WorkScope.** All identity, demographic and clinical input for this run is synthetic. No runtime mocks, fake success, authorization bypass or database reset was used.
 
 The same case was exercised through React: Staff logs in → creates Patient → receives an exact administrative assignment → searches/selects that Patient at reception → selects actual Doctor/Slot UUIDs → books and reads the persisted appointment → treating Doctor opens the Patient from the appointment list → creates MedicalRecord with exact VALID_VISIT and Appointment reference → amends it with version/changeReason. A different assigned read-only Doctor and the linked Patient subsequently read the same amended record. Staff separately updates the administrative profile through React.
@@ -104,3 +106,29 @@ Public linking is not described as safe autonomous onboarding. Registration UI, 
 ## Medical-record read-only UI correction — 2026-11-10
 
 Patient self-read was permitted by backend, but the records list incorrectly displayed a blocker whenever CREATE permission was absent. Removed that warning from read views and hid create/edit controls for read-only users. Real browser self-read now shows the successful empty state (0 records), rather than a permissions warning. Detail read has the same separation from write permission. Backend access policies remain unchanged. Two regression tests cover empty-list and detail read-only rendering; frontend 49 tests / 11 files and production build PASS. Browser proof is retained only in ignored .runtime because it contains the user's displayed profile details.
+
+## Staff profile access regression — 2026-11-10 (current)
+
+The earlier manual per-Patient UUID assignment limitation is resolved for Staff with an active finite reception desk assignment. Clinical permissions remain separate.
+
+Real React browser checks: Staff login -> reception searches Synthetic Self and finds two previously existing profiles -> Patient Management -> create QA Staff UI Access 20261110 -> automatic detail opens with enabled Edit, no 403 -> change address -> save -> version 1 -> browser reload preserves profile/session and Edit. No per-Patient configuration edit, Auth restart or re-login occurred between creating and editing. Canonical Patient UUID: f8ab36f8-eb81-4565-b7be-27cf88a8b2b2. Screenshots: staff-reception-created-profile.jpg, staff-reception-updated-profile.jpg (synthetic data only).
+
+HTTP/PostgreSQL regression script Test-StaffReception.cjs verifies immediate create/read/update, existing-profile lookup, finite search union, account-free confirmed booking, exact durable grants after Auth restart, and negative cases: unrestricted/short/oversized lookup, non-Staff lookup, clinical access, cross-Patient access, browser grant provisioning and wrong service credentials. Public results are appended to staff-reception-evidence.json; private tokens/secrets/state remain ignored .runtime. No database, realm or queue was reset.
+
+### Final rerun evidence — 2026-11-10 15:40 +07
+
+| Check | Result |
+|---|---|
+| Full Maven reactor verify | PASS: 391 tests, zero failures/errors/skips (Gateway 1, Auth 24, Patient 298, Doctor 9, Appointment 29, Notification 30). Completed 15:32:28. |
+| Patient-only verify -am | PASS: 215 unit + 83 integration tests, completed 15:34:46. |
+| Run-Contracts.ps1 | PASS: 13 contract checks. |
+| npm test / npm run build | PASS: 53 tests across 11 files; Vite build PASS. |
+| Managed cold restart | PASS: Start-FClinic.ps1 -SkipInfrastructure -Frontend, existing Docker/volumes retained. All Gateway readiness probes passed; 8/8 component HTTP health checks passed, Auth CA verified. See staff-reception-health.json. |
+| Staff HTTP / PostgreSQL | Latest verify phase 34/34 PASS; post-restart persistence 11/11 PASS. Both browser-fixture SQL/HTTP checks 10/10 PASS each. |
+| React after final rebuild | PASS: login Staff, find two existing Synthetic Self profiles, create a fresh profile, immediate detail + Edit enabled, save changed address, refresh -> version 1 and same data. No per-Patient assignment edits, service restart or re-login between create/edit. |
+
+Fresh final browser Patient UUID: 24a0c7aa-0a17-4e25-95a0-49dce5263c86, phone +84900000963, synthetic email staff.ui.restart.20261110@example.test. Canonical PostgreSQL row and Auth exact assignment were independently checked. Screenshot: staff-reception-after-rebuild.jpg. Existing earlier UI fixture f8ab36f8-eb81-4565-b7be-27cf88a8b2b2 also survived the full restart.
+
+Audit note: staff-reception-evidence.json deliberately retains one failed repeat-test assertion (Version advances). That attempt submitted an unchanged address: backend correctly returned 200 without incrementing version. The script now supplies a distinct address each run and still asserts exactly oldVersion+1; the subsequent complete verify phase passed all 34 checks. The accumulated file has 118 checks, 117 passing, one historical fixture failure; it must not be interpreted as 118 successful checks. An initial ad hoc health HTML assertion also treated PowerShell lines as an array; the corrected joined-string check passed for the live frontend. No production assertions or authorization policies were weakened to obtain passing results.
+
+Logs retained locally (ignored .runtime): staff-reception-final-reactor.log, staff-reception-patient-final.log, staff-reception-contracts.log, staff-reception-frontend-final.log, staff-reception-frontend-build.log, staff-reception-final-start.log. Auth backup before V4: auth-before-reception-grants-20261110-140802.dump. Secrets/tokens are excluded from reports. Original workspace, Docker data, realm and DLQ were preserved. No GitHub fetch/merge/push was performed in this focused Staff fix.

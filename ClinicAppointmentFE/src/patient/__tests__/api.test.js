@@ -4,6 +4,19 @@ import { makeFixtures } from '../preview/fixtures';
 import { createPreviewAdapter } from '../preview/previewAdapter';
 const reply = (status, data) => ({ status, headers: new Headers({ 'Content-Type': 'application/json' }), json: async () => ({ status, message: 'backend', data, code: `HTTP_${status}`, fieldErrors: [] }) });
 describe('live transport isolation', () => {
+  it('uses bounded reception lookup only for an authorized explicit search and refreshes access after profile read', async () => {
+    const { patients: [p] }=makeFixtures();
+    const onPatientAccess=vi.fn().mockResolvedValue(undefined);
+    const fetchImpl=vi.fn(async url=>reply(200,url.includes('?')?{content:[p],page:0,size:10,totalElements:1,totalPages:1}:p));
+    const api=createPatientApi({getAccessToken:()=> 'real-session',canReceptionLookup:()=>true,onPatientAccess,fetchImpl});
+    await api.listPatients({keyword:'Synthetic',page:0,size:10});
+    await api.listPatients({page:0,size:10});
+    await api.getPatient(p.id);
+    expect(fetchImpl.mock.calls[0][0]).toContain('/api/v3/patients/reception-lookup?');
+    expect(fetchImpl.mock.calls[1][0]).toContain('/api/v3/patients?page=');
+    expect(onPatientAccess).toHaveBeenCalledExactlyOnceWith(p.id);
+    expect(fetchImpl).toHaveBeenCalledTimes(3);
+  });
   it('requires an injected session and never manufactures authorization', async () => {
     const fetchImpl = vi.fn(); const api = createPatientApi({ fetchImpl });
     await expect(api.listPatients({ page: 0, size: 10 })).rejects.toMatchObject({ code: 'NO_SESSION' }); expect(fetchImpl).not.toHaveBeenCalled();

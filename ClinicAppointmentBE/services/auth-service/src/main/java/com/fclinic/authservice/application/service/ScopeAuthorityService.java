@@ -31,6 +31,7 @@ public class ScopeAuthorityService {
         || (q.appointmentId() != null && !UuidV4.isUuidV4(q.appointmentId())) || q.requestedAt() == null || q.requestedAt().isBefore(now.minusSeconds(5))
         || q.requestedAt().isAfter(now.plusSeconds(1)) || !permittedIdentity(q)) return result;
     boolean search = Set.of("APPOINTMENT_SEARCH", "ADMIN_SEARCH", "DOCTOR_SEARCH").contains(q.operation());
+    Set<UUID> searchPatients=new HashSet<>(); Map<String,Object> searchEvidence=null;
     for (var entry : settings.grants().entrySet()) {
       var grant = entry.getValue();
       if (!UuidV4.isUuidV4(entry.getKey()) || !grant.active() || grant.validFrom() == null || grant.validUntil() == null
@@ -49,8 +50,21 @@ public class ScopeAuthorityService {
       evidence.put("assignmentId", entry.getKey()); evidence.put("active", true);
       evidence.put("validFrom", grant.validFrom()); evidence.put("validUntil", grant.validUntil());
       evidence.put("visitId", q.operation().equals("VALID_VISIT") ? grant.visitId() : null);
+      if(search) {
+        searchPatients.addAll(grant.patientIds());
+        if(searchPatients.size()>1000) return result;
+        if(searchEvidence==null) searchEvidence=evidence;
+        else {
+          if(grant.validFrom().isAfter((Instant)searchEvidence.get("validFrom"))) searchEvidence.put("validFrom",grant.validFrom());
+          if(grant.validUntil().isBefore((Instant)searchEvidence.get("validUntil"))) searchEvidence.put("validUntil",grant.validUntil());
+        }
+        continue;
+      }
       result.put("allowed", true); result.put("patientIds", search ? grant.patientIds() : null); result.put("evidence", evidence);
       return result;
+    }
+    if(searchEvidence!=null) {
+      result.put("allowed",true);result.put("patientIds",Set.copyOf(searchPatients));result.put("evidence",searchEvidence);
     }
     return result;
   }

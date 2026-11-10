@@ -1,0 +1,891 @@
+{
+  "updatedAt": "2026-11-10T08:39:59.692Z",
+  "patientId": "d3d36385-9205-4bc8-8400-bab5b70fb663",
+  "bookingId": "dbfa29f4-82a7-4dd2-bbb7-b2a05a6ba17d",
+  "checks": [
+    {
+      "phase": "verify",
+      "label": "Real ROLE_STAFF login",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "verify",
+      "label": "Real ROLE_DOCTOR login",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "verify",
+      "label": "Real ROLE_PATIENT login",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "verify",
+      "label": "Reception capabilities loaded",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v1/auth/me/patient-capabilities",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "verify",
+      "label": "Desk lookup is explicitly allowed",
+      "pass": true
+    },
+    {
+      "phase": "verify",
+      "label": "Staff creates actual Patient",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v3/patients",
+      "expected": 201,
+      "actual": 201
+    },
+    {
+      "phase": "verify",
+      "label": "Immediately read newly created profile without config edits/restart",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/d3d36385-9205-4bc8-8400-bab5b70fb663",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "verify",
+      "label": "Created UUID read back exactly",
+      "pass": true
+    },
+    {
+      "phase": "verify",
+      "label": "Refresh real capabilities",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v1/auth/me/patient-capabilities",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "verify",
+      "label": "New profile is editable immediately",
+      "pass": true
+    },
+    {
+      "phase": "verify",
+      "label": "Staff updates newly created profile",
+      "pass": true,
+      "method": "PUT",
+      "route": "/api/v3/patients/d3d36385-9205-4bc8-8400-bab5b70fb663",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "verify",
+      "label": "Version advances",
+      "pass": true
+    },
+    {
+      "phase": "verify",
+      "label": "Lookup existing Patient outside configured finite IDs",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/reception-lookup?keyword=PAT-c9bbb1f2-e028-4843-956e-e5d6428956ce&page=0&size=10",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "verify",
+      "label": "Existing profile found in real database",
+      "pass": true
+    },
+    {
+      "phase": "verify",
+      "label": "Open existing looked-up profile",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/c9bbb1f2-e028-4843-956e-e5d6428956ce",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "verify",
+      "label": "Canonical assigned search includes new grants",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients?keyword=QA%20Staff%20Access%20mwad91by&page=0&size=10",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "verify",
+      "label": "Dynamic grants are unioned with configured IDs",
+      "pass": true
+    },
+    {
+      "phase": "verify",
+      "label": "No unrestricted reception directory dump",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/reception-lookup",
+      "expected": 400,
+      "actual": 400,
+      "code": "VALIDATION_ERROR"
+    },
+    {
+      "phase": "verify",
+      "label": "Short lookup rejected",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/reception-lookup?keyword=a",
+      "expected": 400,
+      "actual": 400,
+      "code": "VALIDATION_ERROR"
+    },
+    {
+      "phase": "verify",
+      "label": "Lookup page bounded",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/reception-lookup?keyword=QA&size=100",
+      "expected": 400,
+      "actual": 400,
+      "code": "VALIDATION_ERROR"
+    },
+    {
+      "phase": "verify",
+      "label": "Doctor cannot use Staff reception lookup",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/reception-lookup?keyword=QA",
+      "expected": 403,
+      "actual": 403,
+      "code": "FORBIDDEN"
+    },
+    {
+      "phase": "verify",
+      "label": "Patient cannot use Staff reception lookup",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/reception-lookup?keyword=QA",
+      "expected": 403,
+      "actual": 403,
+      "code": "FORBIDDEN"
+    },
+    {
+      "phase": "verify",
+      "label": "Administrative grant does not permit clinical read",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/d3d36385-9205-4bc8-8400-bab5b70fb663/medical-records",
+      "expected": 403,
+      "actual": 403,
+      "code": "FORBIDDEN"
+    },
+    {
+      "phase": "verify",
+      "label": "Other Patient still cannot read administrative profile",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/d3d36385-9205-4bc8-8400-bab5b70fb663",
+      "expected": 403,
+      "actual": 403,
+      "code": "FORBIDDEN"
+    },
+    {
+      "phase": "verify",
+      "label": "Browser bearer cannot provision grants",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/internal/reception-assignments",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "phase": "verify",
+      "label": "Introspection secret cannot impersonate reception provider",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/internal/reception-assignments",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "phase": "verify",
+      "label": "Persistent rows contain no clinical operations",
+      "pass": true
+    },
+    {
+      "phase": "verify",
+      "label": "No static UUID configuration change was needed",
+      "pass": true
+    },
+    {
+      "phase": "verify",
+      "label": "Exact grant persisted",
+      "pass": true
+    },
+    {
+      "phase": "verify",
+      "label": "New profile has no account binding",
+      "pass": true
+    },
+    {
+      "phase": "verify",
+      "label": "Publish real Doctor offer",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/doctors/c6f4f54e-1d05-4c6e-8392-9da5092ea4d7/slots",
+      "expected": 201,
+      "actual": 201
+    },
+    {
+      "phase": "verify",
+      "label": "Staff books for Patient without an account using derived exact scope",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v2/appointments",
+      "expected": 201,
+      "actual": 201
+    },
+    {
+      "phase": "verify",
+      "label": "Booking without Patient account is confirmed",
+      "pass": true
+    },
+    {
+      "phase": "verify",
+      "label": "Canonical Patient PostgreSQL row exists",
+      "pass": true
+    },
+    {
+      "phase": "persist",
+      "label": "Real ROLE_STAFF login",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "persist",
+      "label": "Real ROLE_DOCTOR login",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "persist",
+      "label": "Real ROLE_PATIENT login",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "persist",
+      "label": "Reception capabilities loaded",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v1/auth/me/patient-capabilities",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "persist",
+      "label": "Desk lookup is explicitly allowed",
+      "pass": true
+    },
+    {
+      "phase": "persist",
+      "label": "Database grant survived Auth restart before any Patient read",
+      "pass": true
+    },
+    {
+      "phase": "persist",
+      "label": "Exact stored assignment ID survives restart",
+      "pass": true
+    },
+    {
+      "phase": "persist",
+      "label": "Staff reads after restart",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/d3d36385-9205-4bc8-8400-bab5b70fb663",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "persist",
+      "label": "Persisted capabilities after restart",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v1/auth/me/patient-capabilities",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "persist",
+      "label": "Persisted update permission",
+      "pass": true
+    },
+    {
+      "phase": "persist",
+      "label": "No Patient UUID was added to static configuration",
+      "pass": true
+    },
+    {
+      "phase": "persist",
+      "label": "Real ROLE_STAFF login",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "persist",
+      "label": "Real ROLE_DOCTOR login",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "persist",
+      "label": "Real ROLE_PATIENT login",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "persist",
+      "label": "Reception capabilities loaded",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v1/auth/me/patient-capabilities",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "persist",
+      "label": "Desk lookup is explicitly allowed",
+      "pass": true
+    },
+    {
+      "phase": "persist",
+      "label": "Database grant survived Auth restart before any Patient read",
+      "pass": true
+    },
+    {
+      "phase": "persist",
+      "label": "Exact stored assignment ID survives restart",
+      "pass": true
+    },
+    {
+      "phase": "persist",
+      "label": "Staff reads after restart",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/d3d36385-9205-4bc8-8400-bab5b70fb663",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "persist",
+      "label": "Persisted capabilities after restart",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v1/auth/me/patient-capabilities",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "persist",
+      "label": "Persisted update permission",
+      "pass": true
+    },
+    {
+      "phase": "persist",
+      "label": "No Patient UUID was added to static configuration",
+      "pass": true
+    },
+    {
+      "phase": "verify",
+      "label": "Real ROLE_STAFF login",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "verify",
+      "label": "Real ROLE_DOCTOR login",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "verify",
+      "label": "Real ROLE_PATIENT login",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "verify",
+      "label": "Reception capabilities loaded",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v1/auth/me/patient-capabilities",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "verify",
+      "label": "Desk lookup is explicitly allowed",
+      "pass": true
+    },
+    {
+      "phase": "verify",
+      "label": "Immediately read newly created profile without config edits/restart",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/d3d36385-9205-4bc8-8400-bab5b70fb663",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "verify",
+      "label": "Created UUID read back exactly",
+      "pass": true
+    },
+    {
+      "phase": "verify",
+      "label": "Refresh real capabilities",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v1/auth/me/patient-capabilities",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "verify",
+      "label": "New profile is editable immediately",
+      "pass": true
+    },
+    {
+      "phase": "verify",
+      "label": "Staff updates newly created profile",
+      "pass": true,
+      "method": "PUT",
+      "route": "/api/v3/patients/d3d36385-9205-4bc8-8400-bab5b70fb663",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "verify",
+      "label": "Version advances",
+      "pass": false
+    },
+    {
+      "phase": "verify",
+      "label": "Real ROLE_STAFF login",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "verify",
+      "label": "Real ROLE_DOCTOR login",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "verify",
+      "label": "Real ROLE_PATIENT login",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "verify",
+      "label": "Reception capabilities loaded",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v1/auth/me/patient-capabilities",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "verify",
+      "label": "Desk lookup is explicitly allowed",
+      "pass": true
+    },
+    {
+      "phase": "verify",
+      "label": "Immediately read newly created profile without config edits/restart",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/d3d36385-9205-4bc8-8400-bab5b70fb663",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "verify",
+      "label": "Created UUID read back exactly",
+      "pass": true
+    },
+    {
+      "phase": "verify",
+      "label": "Refresh real capabilities",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v1/auth/me/patient-capabilities",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "verify",
+      "label": "New profile is editable immediately",
+      "pass": true
+    },
+    {
+      "phase": "verify",
+      "label": "Staff updates newly created profile",
+      "pass": true,
+      "method": "PUT",
+      "route": "/api/v3/patients/d3d36385-9205-4bc8-8400-bab5b70fb663",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "verify",
+      "label": "Version advances",
+      "pass": true
+    },
+    {
+      "phase": "verify",
+      "label": "Lookup existing Patient outside configured finite IDs",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/reception-lookup?keyword=PAT-c9bbb1f2-e028-4843-956e-e5d6428956ce&page=0&size=10",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "verify",
+      "label": "Existing profile found in real database",
+      "pass": true
+    },
+    {
+      "phase": "verify",
+      "label": "Open existing looked-up profile",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/c9bbb1f2-e028-4843-956e-e5d6428956ce",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "verify",
+      "label": "Canonical assigned search includes new grants",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients?keyword=QA%20Staff%20Access%20mwad91by&page=0&size=10",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "verify",
+      "label": "Dynamic grants are unioned with configured IDs",
+      "pass": true
+    },
+    {
+      "phase": "verify",
+      "label": "No unrestricted reception directory dump",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/reception-lookup",
+      "expected": 400,
+      "actual": 400,
+      "code": "VALIDATION_ERROR"
+    },
+    {
+      "phase": "verify",
+      "label": "Short lookup rejected",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/reception-lookup?keyword=a",
+      "expected": 400,
+      "actual": 400,
+      "code": "VALIDATION_ERROR"
+    },
+    {
+      "phase": "verify",
+      "label": "Lookup page bounded",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/reception-lookup?keyword=QA&size=100",
+      "expected": 400,
+      "actual": 400,
+      "code": "VALIDATION_ERROR"
+    },
+    {
+      "phase": "verify",
+      "label": "Doctor cannot use Staff reception lookup",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/reception-lookup?keyword=QA",
+      "expected": 403,
+      "actual": 403,
+      "code": "FORBIDDEN"
+    },
+    {
+      "phase": "verify",
+      "label": "Patient cannot use Staff reception lookup",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/reception-lookup?keyword=QA",
+      "expected": 403,
+      "actual": 403,
+      "code": "FORBIDDEN"
+    },
+    {
+      "phase": "verify",
+      "label": "Administrative grant does not permit clinical read",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/d3d36385-9205-4bc8-8400-bab5b70fb663/medical-records",
+      "expected": 403,
+      "actual": 403,
+      "code": "FORBIDDEN"
+    },
+    {
+      "phase": "verify",
+      "label": "Other Patient still cannot read administrative profile",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/d3d36385-9205-4bc8-8400-bab5b70fb663",
+      "expected": 403,
+      "actual": 403,
+      "code": "FORBIDDEN"
+    },
+    {
+      "phase": "verify",
+      "label": "Browser bearer cannot provision grants",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/internal/reception-assignments",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "phase": "verify",
+      "label": "Introspection secret cannot impersonate reception provider",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/internal/reception-assignments",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "phase": "verify",
+      "label": "Persistent rows contain no clinical operations",
+      "pass": true
+    },
+    {
+      "phase": "verify",
+      "label": "No static UUID configuration change was needed",
+      "pass": true
+    },
+    {
+      "phase": "verify",
+      "label": "Exact grant persisted",
+      "pass": true
+    },
+    {
+      "phase": "verify",
+      "label": "New profile has no account binding",
+      "pass": true
+    },
+    {
+      "phase": "verify",
+      "label": "Booking without Patient account is confirmed",
+      "pass": true
+    },
+    {
+      "phase": "verify",
+      "label": "Canonical Patient PostgreSQL row exists",
+      "pass": true
+    },
+    {
+      "phase": "browser",
+      "label": "Real ROLE_STAFF login",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "browser",
+      "label": "Real ROLE_DOCTOR login",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "browser",
+      "label": "Real ROLE_PATIENT login",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "browser",
+      "label": "Reception capabilities loaded",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v1/auth/me/patient-capabilities",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "browser",
+      "label": "Desk lookup is explicitly allowed",
+      "pass": true
+    },
+    {
+      "phase": "browser",
+      "label": "Read React-created profile after full service restart",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/f8ab36f8-eb81-4565-b7be-27cf88a8b2b2",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "browser",
+      "label": "Browser edit persisted with optimistic version",
+      "pass": true
+    },
+    {
+      "phase": "browser",
+      "label": "Canonical PostgreSQL contains browser edit",
+      "pass": true
+    },
+    {
+      "phase": "browser",
+      "label": "Browser profile has persisted exact Staff assignment",
+      "pass": true
+    },
+    {
+      "phase": "browser",
+      "label": "Browser access did not edit static assignments",
+      "pass": true
+    },
+    {
+      "phase": "browser",
+      "label": "Real ROLE_STAFF login",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "browser",
+      "label": "Real ROLE_DOCTOR login",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "browser",
+      "label": "Real ROLE_PATIENT login",
+      "pass": true,
+      "method": "POST",
+      "route": "/api/v1/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "browser",
+      "label": "Reception capabilities loaded",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v1/auth/me/patient-capabilities",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "browser",
+      "label": "Desk lookup is explicitly allowed",
+      "pass": true
+    },
+    {
+      "phase": "browser",
+      "label": "Read React-created profile after full service restart",
+      "pass": true,
+      "method": "GET",
+      "route": "/api/v3/patients/24a0c7aa-0a17-4e25-95a0-49dce5263c86",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "phase": "browser",
+      "label": "Browser edit persisted with optimistic version",
+      "pass": true
+    },
+    {
+      "phase": "browser",
+      "label": "Canonical PostgreSQL contains browser edit",
+      "pass": true
+    },
+    {
+      "phase": "browser",
+      "label": "Browser profile has persisted exact Staff assignment",
+      "pass": true
+    },
+    {
+      "phase": "browser",
+      "label": "Browser access did not edit static assignments",
+      "pass": true
+    }
+  ]
+}

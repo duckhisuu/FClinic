@@ -14,6 +14,14 @@ import java.util.UUID;
 @Configuration
 public class PatientConfiguration {
     @Bean @ConditionalOnMissingBean
+    @ConditionalOnProperty(name="patient.reception.enabled",havingValue="false",matchIfMissing=true)
+    ReceptionAssignmentPort receptionAssignments() {
+        return new ReceptionAssignmentPort() {
+            public boolean enabled(){return false;}
+            public void assign(TrustedCaller c,java.util.Set<UUID> ids,String action){throw new PatientError(PatientError.Code.DEPENDENCY_UNAVAILABLE);}
+        };
+    }
+    @Bean @ConditionalOnMissingBean
     Clock patientClock() { return Clock.systemUTC(); }
     @Bean @ConditionalOnMissingBean
     @ConditionalOnProperty(name = "patient.identity.enabled", havingValue = "false", matchIfMissing = true)

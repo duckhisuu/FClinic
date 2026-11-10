@@ -3,7 +3,7 @@ import { UserRound, Search, ChevronRight, Check } from "lucide-react";
 import { patientApi } from "./api";
 import { ErrorNotice, Busy } from "./ui";
 
-// Reads existing Patient profiles only. Does not create accounts, profiles, or permissions.
+// Reception lookup returns existing profiles and grants exact administrative assignments server-side.
 export function PatientSelection({ patientId, selectedPatient, onSelect, canSearch = false }) {
   const [patient, setPatient] = useState(selectedPatient || null),
     [query, setQuery] = useState(""),
@@ -35,7 +35,7 @@ export function PatientSelection({ patientId, selectedPatient, onSelect, canSear
     try {
       const phone = /^[+0-9 ()-]+$/.test(query.trim());
       setCandidates(
-        await patientApi.search({
+        await patientApi.lookup({
           [phone ? "phoneNumber" : "keyword"]: query.trim(),
           page: 0,
           size: 20,

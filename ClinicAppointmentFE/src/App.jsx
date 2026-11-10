@@ -146,20 +146,23 @@ function getDefaultTab(user) {
 }
 
 function MainApp() {
-  const { user, capabilities = {}, isAuthenticated, isLoading, logout } = useAuth();
+  const { user, capabilities = {}, refreshCapabilities, isAuthenticated, isLoading, logout } = useAuth();
   const [tab, setTab] = useState(() => getDefaultTab(user));
   const [selection, setSelection] = useState(null);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [walkinPatient, setWalkinPatient] = useState(null);
   const patientSession = useMemo(() => ({ getAccessToken: () => localStorage.getItem("fclinic_token"),
     patientId: user?.patientId, doctorId: user?.doctorId,
+    onPatientAccess: async id => {
+      if (user?.role === 'ROLE_STAFF' && !capabilities.updatePatientIds?.includes(id)) await refreshCapabilities?.();
+    },
     permissions: { ...capabilities,
       canUpdatePatient: id => capabilities.updatePatientIds?.includes(id) === true,
       canCreateRecord: id => capabilities.createRecordPatientIds?.includes(id) === true,
       canReadRecord: id => (user?.role === 'ROLE_PATIENT' && user?.patientId === id)
         || capabilities.readRecordPatientIds?.includes(id) === true,
       canUpdateRecord: id => capabilities.updateRecordPatientIds?.includes(id) === true,
-    } }), [user?.id, user?.role, user?.patientId, user?.doctorId, capabilities]);
+    } }), [user?.id, user?.role, user?.patientId, user?.doctorId, capabilities, refreshCapabilities]);
 
   const patientLeave = useRef(null);
   const registerPatientGuard = useCallback((guard) => {

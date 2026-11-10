@@ -61,6 +61,7 @@ class PatientServiceIT {
     @MockitoBean(answers=org.mockito.Answers.CALLS_REAL_METHODS) WorkScopePort scopes;
     @MockitoBean DoctorClientPort doctors;
     @MockitoBean AppointmentClientPort appointments;
+    @MockitoBean ReceptionAssignmentPort reception;
     @MockitoSpyBean JpaRevisionAdapter revisions;
     JpaRevisionAdapter revisionSpy;
     final Set<UUID> allowed=ConcurrentHashMap.newKeySet();
@@ -71,7 +72,7 @@ class PatientServiceIT {
 
     @BeforeEach void setup() {
         revisionSpy=AopTestUtils.getUltimateTargetObject(revisions);
-        reset(identities,scopes,doctors,appointments,revisionSpy);
+        reset(identities,scopes,doctors,appointments,revisionSpy,reception);
         jdbc.execute("TRUNCATE medical_record_revisions,patient_revisions,medical_records,patients RESTART IDENTITY CASCADE");
         allowed.clear();
         when(identities.verify(anyString())).thenAnswer(inv -> switch((String)inv.getArgument(0)) {
@@ -90,6 +91,30 @@ class PatientServiceIT {
         });
     }
     @AfterAll static void stop() throws Exception { PG.close(); }
+    @Test void receptionLookupAndFreshProfileReadAssignOnlyVerifiedExistingRows() {
+        UUID id=writer.create(profile("Unassigned reception synthetic"),staff.subject()).id();
+        when(reception.enabled()).thenReturn(true);
+        when(scopes.profile(any(),any())).thenAnswer(inv->allowed.contains(inv.getArgument(1)));
+        doAnswer(inv->{allowed.addAll(inv.getArgument(1));return null;}).when(reception).assign(eq(staff),anySet(),anyString());
+        assertThat(service.get(staff,id).id()).isEqualTo(id);
+        verify(reception).assign(staff,Set.of(id),"READ");
+        allowed.clear();
+        var result=service.receptionLookup(staff,new SearchQuery("Unassigned",null,null,0,10,"fullName",true));
+        assertThat(result.content()).extracting(Patient::id).containsExactly(id);
+        verify(reception).assign(staff,Set.of(id),"SEARCH");
+        assertThat(count("patients")).isEqualTo(1);assertThat(count("patient_revisions")).isEqualTo(1);
+    }
+    @Test void receptionLookupRequiresCriteriaAndAdministrativeAuthorityAndFailsClosedOnProviderOutage(){
+        when(reception.enabled()).thenReturn(true);
+        var query=new SearchQuery("Synthetic",null,null,0,10,"fullName",true);
+        assertCode(PatientError.Code.FORBIDDEN,()->service.receptionLookup(doctor,query));
+        assertCode(PatientError.Code.VALIDATION_ERROR,()->service.receptionLookup(staff,new SearchQuery(null,null,null,0,10,"fullName",true)));
+        UUID id=writer.create(profile("Synthetic"),staff.subject()).id();
+        doThrow(new PatientError(PatientError.Code.DEPENDENCY_UNAVAILABLE)).when(reception).assign(any(),anySet(),anyString());
+        assertCode(PatientError.Code.DEPENDENCY_UNAVAILABLE,()->service.get(staff,id));
+        assertCode(PatientError.Code.DEPENDENCY_UNAVAILABLE,()->service.receptionLookup(staff,query));
+        assertThat(count("patients")).isEqualTo(1);assertThat(count("patient_revisions")).isEqualTo(1);
+    }
     @Test void selfRegistrationIsDurableAndConcurrentRetriesDoNotDuplicate() throws Exception {
         var self = caller("self-registration-subject", "ROLE_PATIENT", null, null);
         var results = race(() -> service.create(self, profile("Self synthetic")),

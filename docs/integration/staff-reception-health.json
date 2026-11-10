@@ -1,0 +1,45 @@
+{
+  "checkedAt": "2026-11-10T15:38:09.3150920+07:00",
+  "checks": [
+    {
+      "port": 8761,
+      "service": "discovery",
+      "status": "UP"
+    },
+    {
+      "port": 8085,
+      "service": "auth",
+      "status": "UP"
+    },
+    {
+      "port": 8081,
+      "service": "patient",
+      "status": "UP"
+    },
+    {
+      "port": 8082,
+      "service": "doctor",
+      "status": "UP"
+    },
+    {
+      "port": 8083,
+      "service": "appointment",
+      "status": "UP"
+    },
+    {
+      "port": 8084,
+      "service": "notification",
+      "status": "UP"
+    },
+    {
+      "port": 8080,
+      "service": "gateway",
+      "status": "UP"
+    },
+    {
+      "port": 5173,
+      "service": "frontend",
+      "status": "UP"
+    }
+  ]
+}

@@ -36,7 +36,7 @@ function page(value, medical) {
 }
 const id = value => { if (!UUID.test(value)) throw new PatientApiError(400, 'INVALID_UUID'); return value; };
 // The host owns authentication. No token input/storage, role simulation, cookies-as-Bearer or mock fallback.
-export function createPatientApi({ getAccessToken, fetchImpl = (...args) => fetch(...args), baseUrl = import.meta.env.VITE_API_GATEWAY_URL || '' } = {}) {
+export function createPatientApi({ getAccessToken, canReceptionLookup, onPatientAccess, fetchImpl = (...args) => fetch(...args), baseUrl = import.meta.env.VITE_API_GATEWAY_URL || '' } = {}) {
   async function request(method, path, body, signal, retried = false) {
     let token;
     try { token = await getAccessToken?.(); } catch { throw new PatientApiError(503, 'SESSION_UNAVAILABLE'); }
@@ -65,8 +65,12 @@ export function createPatientApi({ getAccessToken, fetchImpl = (...args) => fetc
   const write = (method, path, body, check) => request(method, path, body).then(check).catch(error => { if (error.code === 'INVALID_ENVELOPE') error.uncertain = true; throw error; });
   return {
     mode: 'live',
-    listPatients: (params, signal) => request('GET', `${ROOT}?${query(params)}`, null, signal).then(v => page(v, false)),
-    getPatient: (patient, signal) => request('GET', `${ROOT}/${id(patient)}`, null, signal).then(v => matching(v, patient)),
+    listPatients: (params, signal) => request('GET', `${ROOT}${canReceptionLookup?.() && (params.keyword || params.phoneNumber) ? '/reception-lookup' : ''}?${query(params)}`, null, signal).then(v => page(v, false)),
+    getPatient: (patient, signal) => request('GET', `${ROOT}/${id(patient)}`, null, signal).then(async v => {
+      const result=matching(v,patient);
+      await onPatientAccess?.(patient); signal?.throwIfAborted();
+      return result;
+    }),
     createPatient: body => write('POST', ROOT, fields(body, PROFILE), v => resource(v)),
     updatePatient: (patient, body) => write('PUT', `${ROOT}/${id(patient)}`, fields(body, [...PROFILE, 'status', 'version']), v => matching(v, patient)),
     listRecords: (patient, params, signal) => request('GET', `${ROOT}/${id(patient)}/medical-records?${query(params)}`, null, signal).then(v => { page(v, true); v.content.forEach(r => matching(r, null, true, patient)); return v; }),
