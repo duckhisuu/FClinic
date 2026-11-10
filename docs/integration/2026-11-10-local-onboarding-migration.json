@@ -1,0 +1,129 @@
+{
+  "date": "2026-11-10",
+  "timezone": "Asia/Saigon",
+  "result": "SUCCESS",
+  "environment": "Current local Docker PostgreSQL containers",
+  "source_commit": "7a1f522d24ac8ce62fc61903ec5963b719c44254",
+  "migrations": [
+    {
+      "service": "auth",
+      "version": "3",
+      "engine": "Flyway",
+      "validation": "PASS"
+    },
+    {
+      "service": "patient",
+      "version": "V002",
+      "engine": "PostgreSQL transaction",
+      "validation": "onboarding table, unique and foreign-key constraints present"
+    },
+    {
+      "service": "doctor",
+      "version": "V002",
+      "engine": "PostgreSQL transaction",
+      "validation": "unique slot index and validated fee/experience constraints present"
+    }
+  ],
+  "existing_tables_verified": 9,
+  "existing_data_unchanged": true,
+  "verification": "Row counts and content digests match before/after for all nine existing business tables",
+  "backups": [
+    {
+      "service": "auth",
+      "file": "C:\\Fall 2026\\MSS301\\clinic-appointment-system\\.runtime\\backups\\onboarding_20261110_100916\\auth.dump",
+      "bytes": 12496,
+      "sha256": "9266A4B42757809B7795C31A2A969D85BFFEBA5C8587938E711B813501B29405",
+      "archive_inventory_validated": true
+    },
+    {
+      "service": "patient",
+      "file": "C:\\Fall 2026\\MSS301\\clinic-appointment-system\\.runtime\\backups\\onboarding_20261110_100916\\patient.dump",
+      "bytes": 15144,
+      "sha256": "3FA51607F182841506D88DA7356B4747AC0D779C87F5905DE49B3300261BC0A6",
+      "archive_inventory_validated": true
+    },
+    {
+      "service": "doctor",
+      "file": "C:\\Fall 2026\\MSS301\\clinic-appointment-system\\.runtime\\backups\\onboarding_20261110_100916\\doctor.dump",
+      "bytes": 6145,
+      "sha256": "86AB747254BF58AE161D6219091B37F54BE269D8EF1351C5896DA1C9DD20CF99",
+      "archive_inventory_validated": true
+    }
+  ],
+  "after": [
+    {
+      "service": "auth",
+      "database": "auth_db",
+      "tables": [
+        {
+          "table": "roles",
+          "rows": 4,
+          "digest": "bd58891e487e06ea4d176f8390f3e618",
+          "unchanged": true
+        },
+        {
+          "table": "users",
+          "rows": 7,
+          "digest": "ef8c7ab1deaf2c624e79c6041498c8f0",
+          "unchanged": true
+        },
+        {
+          "table": "password_reset_otps",
+          "rows": 0,
+          "digest": "d41d8cd98f00b204e9800998ecf8427e",
+          "unchanged": true
+        }
+      ]
+    },
+    {
+      "service": "patient",
+      "database": "patient_db",
+      "tables": [
+        {
+          "table": "patients",
+          "rows": 4,
+          "digest": "a0692633a27477ae526fd39a6cfcbe09",
+          "unchanged": true
+        },
+        {
+          "table": "medical_records",
+          "rows": 0,
+          "digest": "d41d8cd98f00b204e9800998ecf8427e",
+          "unchanged": true
+        },
+        {
+          "table": "patient_revisions",
+          "rows": 3,
+          "digest": "8ca0267f5b7a3171603d111dd551f90e",
+          "unchanged": true
+        },
+        {
+          "table": "medical_record_revisions",
+          "rows": 0,
+          "digest": "d41d8cd98f00b204e9800998ecf8427e",
+          "unchanged": true
+        }
+      ]
+    },
+    {
+      "service": "doctor",
+      "database": "doctor_db",
+      "tables": [
+        {
+          "table": "doctors",
+          "rows": 1,
+          "digest": "f77eeba4d95aa70647e98d2be126399e",
+          "unchanged": true
+        },
+        {
+          "table": "doctor_time_slots",
+          "rows": 96,
+          "digest": "34f9a5c24e772343c153303f3eee3b78",
+          "unchanged": true
+        }
+      ]
+    }
+  ],
+  "application_services_started": false,
+  "new_tables_initially_empty": true
+}

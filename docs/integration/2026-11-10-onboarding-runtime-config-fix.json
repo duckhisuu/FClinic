@@ -1,0 +1,27 @@
+{
+  "date": "2026-11-10",
+  "timezone": "Asia/Saigon",
+  "result": "FIXED",
+  "root_cause": "AUTH_PATIENT_ONBOARDING_CLIENT_SECRET was absent in the local backend .env, so Auth rejected its provisioning configuration before issuing the Patient request",
+  "configuration": "Provisioned one dedicated shared secret in ignored ClinicAppointmentBE/.env; no secret value is included in this report",
+  "services": [
+    {
+      "service": "auth",
+      "status": "UP"
+    },
+    {
+      "service": "patient",
+      "status": "UP"
+    }
+  ],
+  "runtime_checks": [
+    "registered isolated runtime test account",
+    "live Auth and Patient completed trusted onboarding",
+    "runtime retry reused the same Patient UUID",
+    "newly linked profile is readable with the original session",
+    "removed only the synthetic account and profile created by this check"
+  ],
+  "credential_boundary": "Configured credential accepted; wrong credential rejected with 401",
+  "original_pending_requests": "Preserved; no user-provided profile was recreated or manually rebound",
+  "synthetic_test_data": "Test-owned account/profile removed after validation"
+}

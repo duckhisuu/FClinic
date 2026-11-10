@@ -2,6 +2,8 @@
 
 # Clinic Appointment System - FClinic
 
+**Chuẩn bị demo:** xem [kịch bản tài khoản mới → đặt lịch](docs/demo/DEMO.md). Báo cáo cũ được gom vào [thư mục lưu trữ](docs/archive/root-reports/README.md); [đặc tả Notification](docs/specifications/notification-service-implementation-spec.md) nằm trong thư mục tài liệu.
+
 Hệ thống đặt lịch khám bệnh thông minh theo kiến trúc **Microservices Monorepo** với **Spring Cloud (Backend)** kết hợp **React Vite TypeScript (Frontend SPA)**.
 
 ---
