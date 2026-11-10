@@ -1,9 +1,10 @@
-param([switch]$Build)
+param([switch]$Build, [switch]$SkipInfrastructure, [switch]$Frontend, [switch]$Wait)
 $ErrorActionPreference = 'Stop'
 $root = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 Set-Location $root
 $runtime = Join-Path $root '.runtime'
 New-Item -ItemType Directory -Force $runtime | Out-Null
+try {
 # Use the existing environment mechanism. Never overwrite an existing configuration.
 $envFile = Join-Path $root 'ClinicAppointmentBE/.env'
 if (-not (Test-Path $envFile)) { Copy-Item 'ClinicAppointmentBE/.env.example' $envFile }
@@ -69,8 +70,21 @@ $env:APPOINTMENT_TRUST_STORE_PASSWORD = $env:TLS_PASSWORD
 $env:EUREKA_ENABLED = 'true'
 $env:EUREKA_INSTANCE_HOSTNAME = 'localhost'
 $env:EUREKA_INSTANCE_PREFER_IP_ADDRESS = 'false'
-& docker compose -f ClinicAppointmentBE/docker-compose.yml up -d --wait
-if ($LASTEXITCODE) { throw 'Infrastructure health checks failed' }
+if ($SkipInfrastructure) {
+    $required = @(& docker compose -f ClinicAppointmentBE/docker-compose.yml config --services)
+    if ($LASTEXITCODE) { throw 'Cannot read the existing Docker Compose configuration.' }
+    $containers = @(& docker compose -f ClinicAppointmentBE/docker-compose.yml ps --all --format json | ForEach-Object { $_ | ConvertFrom-Json })
+    if ($LASTEXITCODE) { throw 'Start Docker Desktop and the FClinic Compose containers manually, then run this configuration again.' }
+    foreach ($service in $required) {
+        $container = @($containers | Where-Object Service -eq $service)
+        if ($container.Count -ne 1 -or $container[0].State -ne 'running' -or ($container[0].Health -and $container[0].Health -ne 'healthy')) {
+            throw "Docker dependency '$service' is not running/healthy. Start the existing FClinic Compose stack manually; this run configuration does not start Docker."
+        }
+    }
+} else {
+    & docker compose -f ClinicAppointmentBE/docker-compose.yml up -d --wait
+    if ($LASTEXITCODE) { throw 'Infrastructure health checks failed' }
+}
 # Schema initialization is allowed only for a verified empty current Patient database.
 $tables = & docker exec fclinic-postgres-patient psql -U $env:DB_USERNAME -d $env:PATIENT_DB_NAME -Atc "SELECT count(*) FROM information_schema.tables WHERE table_schema='public'"
 if ($LASTEXITCODE) { throw 'Cannot inspect Patient schema' }
@@ -94,6 +108,7 @@ function Start-ServiceJar($name, $module, $extra = @()) {
     if (Test-Path $pidFile) {
         $existing = Get-CimInstance Win32_Process -Filter "ProcessId=$([int](Get-Content $pidFile))" -ErrorAction SilentlyContinue
         if ($existing -and $existing.Name -eq 'java.exe' -and $existing.CommandLine -like "*$root*" -and $existing.CommandLine -like "*$name-1.0.0-SNAPSHOT.jar*") {
+            $script:processes += Get-Process -Id $existing.ProcessId
             Write-Host "$name already running (PID $($existing.ProcessId))"; return
         }
     }
@@ -102,6 +117,7 @@ function Start-ServiceJar($name, $module, $extra = @()) {
     $args = @('-Xmx384m', "-Djavax.net.ssl.trustStore=$trustStore", "-Djavax.net.ssl.trustStorePassword=$env:TLS_PASSWORD", '-jar', $jar) + $extra
     $process = Start-Process java -ArgumentList $args -WorkingDirectory $root -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $runtime "$name.log") -RedirectStandardError (Join-Path $runtime "$name.err.log")
     $process.Id | Set-Content $pidFile
+    $script:processes += $process
     Write-Host "Started $name (PID $($process.Id))"
 }
 function Wait-Health($url, [switch]$Tls) {
@@ -170,5 +186,46 @@ Wait-GatewayRoute '/api/v2/appointments' 401
 Wait-GatewayRoute '/api/v1/notifications/me' 401
 $env:NODE_EXTRA_CA_CERTS = $certificate
 $env:VITE_AUTH_PROXY_TARGET = 'https://localhost:8085'
-Write-Host 'Backend started. Frontend: cd ClinicAppointmentFE; npm run dev -- --host 127.0.0.1'
+if ($Frontend) {
+    $vitePath = Join-Path $root 'ClinicAppointmentFE/node_modules/vite/bin/vite.js'
+    if (-not (Test-Path $vitePath)) { throw 'Frontend dependencies are missing. Run npm ci in ClinicAppointmentFE first.' }
+    $frontendPidFile = Join-Path $runtime 'frontend.pid'
+    $frontendProcess = $null
+    if (Test-Path $frontendPidFile) {
+        $existing = Get-CimInstance Win32_Process -Filter "ProcessId=$([int](Get-Content $frontendPidFile))" -ErrorAction SilentlyContinue
+        if ($existing -and $existing.Name -eq 'node.exe' -and $existing.CommandLine -like "*$vitePath*") {
+            $frontendProcess = Get-Process -Id $existing.ProcessId
+        }
+    }
+    if (-not $frontendProcess) {
+        $frontendProcess = Start-Process node -ArgumentList @("`"$vitePath`"", '--host', '127.0.0.1') -WorkingDirectory (Join-Path $root 'ClinicAppointmentFE') -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $runtime 'frontend.log') -RedirectStandardError (Join-Path $runtime 'frontend.err.log')
+        $frontendProcess.Id | Set-Content $frontendPidFile
+    }
+    $script:processes += $frontendProcess
+    $frontendReady = $false
+    for ($attempt = 0; $attempt -lt 30; $attempt++) {
+        $frontendProcess.Refresh()
+        if ($frontendProcess.HasExited) { throw 'Frontend exited. Inspect .runtime/frontend.err.log and ensure port 5173 is free.' }
+        $html = & curl.exe --silent --fail --max-time 2 'http://127.0.0.1:5173/'
+        if ($LASTEXITCODE -eq 0 -and $html -match 'src/main.jsx') { $frontendReady = $true; break }
+        Start-Sleep -Milliseconds 1000
+    }
+    if (-not $frontendReady) { throw 'Frontend health timeout. Inspect .runtime/frontend.log.' }
+    Write-Host "Frontend ready (PID $($frontendProcess.Id))"
+} else {
+    Write-Host 'Backend started. Frontend: cd ClinicAppointmentFE; npm run dev -- --host 127.0.0.1'
+}
 Write-Host 'Open http://127.0.0.1:5173 (this shell retains TLS trust for Vite).'
+if ($Wait) {
+    Write-Host 'FClinic is running. Stop this Run configuration (or press Ctrl+C) to stop the managed application processes. Docker is left unchanged.'
+    while ($true) {
+        foreach ($child in $processes) {
+            $child.Refresh()
+            if ($child.HasExited) { throw "FClinic process PID $($child.Id) exited. Inspect .runtime logs." }
+        }
+        Start-Sleep -Seconds 2
+    }
+}
+} finally {
+    if ($Wait) { & (Join-Path $PSScriptRoot 'Stop-FClinic.ps1') }
+}

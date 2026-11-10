@@ -1,0 +1,12 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="FClinic - All Services" type="js.build_tools.npm" nameIsGenerated="false">
+    <package-json value="$PROJECT_DIR$/ClinicAppointmentFE/package.json" />
+    <command value="run" />
+    <scripts>
+      <script value="start:all" />
+    </scripts>
+    <node-interpreter value="C:/Program Files/nodejs/node.exe" />
+    <envs />
+    <method v="2" />
+  </configuration>
+</component>

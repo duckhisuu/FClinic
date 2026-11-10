@@ -2,6 +2,30 @@
 
 Chỉ chạy trong `D:\Hoc_tap\26_FALL\MSS301\Project_Group\FClinic_Primary`. Java 21, Maven, Node/npm và Docker Desktop Linux Engine phải khả dụng. Không dùng repository gốc hay SafeSync.
 
+
+## Một Run Configuration trong IntelliJ — Docker bật thủ công
+
+Shared configuration: `.run/FClinic.run.xml`, tên **FClinic - All Services** (loại npm). Mở project FClinic_Primary, chọn cấu hình này ở thanh Run hoặc Run → Edit Configurations. Node interpreter dùng Node hiện có tại C:/Program Files/nodejs/node.exe; không cần cài plugin PowerShell.
+
+Bạn tự bật Docker Desktop và toàn bộ container của Compose hiện có (nút Start của nhóm FClinic trong Docker Desktop hoặc lệnh dưới). Mở Docker Desktop đơn thuần chưa đủ nếu container đang ở trạng thái Stopped.
+
+```powershell
+Set-Location 'D:\Hoc_tap\26_FALL\MSS301\Project_Group\FClinic_Primary'
+docker compose -f ClinicAppointmentBE/docker-compose.yml up -d --wait
+```
+
+Sau đó bấm Run **FClinic - All Services**. Cấu hình gọi `npm run start:all` trong ClinicAppointmentFE, dùng Start-FClinic.ps1 hiện hành với `-SkipInfrastructure -Build -Frontend -Wait`. Script chỉ kiểm tra Compose; không chạy Docker up/start/stop trong chế độ này. Maven verify/repackage chạy trước khi khởi động để dùng backend mới nhất, nên lần Run có thể mất vài phút. Các JAR cũ của đúng Primary được dừng trước khi repackage. Sau đó lần lượt Discovery, Auth HTTPS, Doctor, Patient, Appointment, Notification, Gateway và Vite được bật; health/route readiness và chứng chỉ TLS được giữ nguyên.
+
+URL: http://127.0.0.1:5173. Log từng service và frontend nằm trong .runtime. Secrets chỉ đọc từ .env/settings hiện hành, không nằm trong XML Run Configuration. Supervisor giữ phiên Run hoạt động và theo dõi các tiến trình đã quản lý; khối finally dừng các tiến trình ứng dụng khi phiên kết thúc bình thường/Ctrl+C. Docker không bị dừng bởi supervisor. Lệnh dừng ứng dụng trực tiếp vẫn là:
+
+```powershell
+& .\docs\integration\Stop-FClinic.ps1
+```
+
+Có thể dùng cùng cấu hình từ terminal bằng `npm run start:all` trong ClinicAppointmentFE. Nếu thiếu frontend dependencies, chạy `npm ci` một lần trước đó.
+
+Verification của thay đổi cấu hình: XML và PowerShell parser hợp lệ; chính npm entry đã được chạy bằng Windows PowerShell (RemoteSigned, không ExecutionPolicy bypass). Với cả 10 container đang dừng, entry trả exit 1 với thông báo dependency chưa chạy, không bật Docker và không mở service/frontend. Các cổng ứng dụng và hạ tầng FClinic được xác nhận không còn listener; volumes/database được giữ nguyên. Chưa chạy lại nhánh khởi động đầy đủ của cấu hình mới vì Docker được để tắt theo yêu cầu. IntelliJ đang thu nhỏ và không khôi phục được qua công cụ nên chưa xác minh trực tiếp danh sách cấu hình trên UI; file shared configuration và schema npm đã đối chiếu với plugin IntelliJ cài trên máy.
+
 ## Khởi động
 
 Mở Docker Desktop, sau đó PowerShell 7:
