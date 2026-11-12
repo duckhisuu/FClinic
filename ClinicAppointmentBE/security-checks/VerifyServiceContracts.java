@@ -1,3 +1,5 @@
+import com.fclinic.appointmentservice.infrastructure.client.config.FeignJacksonSupport;
+import com.fclinic.appointmentservice.infrastructure.client.config.FeignHeaderGuards;
 import static org.mockito.Mockito.*;
 import static org.mockito.ArgumentMatchers.*;
 import com.fclinic.authservice.api.mapper.AuthApiMapper;
@@ -43,11 +45,12 @@ public class VerifyServiceContracts {
         Map.of("appointment", new IdentitySettings.ServiceBinding("appointment-service", Set.of("SVC_PATIENT_READ"), machineSubject)));
     identitySettings.validateEnabled();
     var decoder = new IntrospectionDecoder(identitySettings, clock);
-    var machine = decoder.decode(AuthHttpTransport.JSON.writeValueAsBytes(mapper.toIntrospectionWireResponse(tokens.introspect("machine"))));
+    var machine = decoder.decode(FeignJacksonSupport.JSON.writeValueAsBytes(mapper.toIntrospectionWireResponse(tokens.introspect("machine"))));
     check(machine.principalType() == TrustedCaller.PrincipalType.SERVICE && "appointment-service".equals(machine.serviceName()), "Auth introspection -> Patient registered SERVICE identity");
-    var humanWire = AuthHttpTransport.JSON.valueToTree(mapper.toIntrospectionWireResponse(tokens.introspect("human")));
-    var transport = mock(AuthHttpTransport.class);
-    when(transport.post(any(), any(), any(), any(), any(), anyLong())).thenReturn(humanWire);
+    var humanWire = FeignJacksonSupport.JSON.valueToTree(mapper.toIntrospectionWireResponse(tokens.introspect("human")));
+    var transport = mock(com.fclinic.appointmentservice.infrastructure.client.auth.AuthIntrospectClient.class);
+    var scopeClient = mock(com.fclinic.appointmentservice.infrastructure.client.auth.AuthScopeClient.class);
+    when(transport.introspect(any(), any(), any())).thenReturn(FeignJacksonSupport.read(FeignJacksonSupport.JSON.writeValueAsBytes(humanWire), com.fclinic.appointmentservice.infrastructure.client.auth.dto.IntrospectionResponseDto.class));
     var security = new AppointmentSecuritySettings(URI.create("https://auth.example.test/introspect"), "https://issuer.example.test", "appointment-service",
         "appointment-identity", "appointment-identity-secret", URI.create("https://auth.example.test/scope"), "appointment-scope", "scope-secret",
         "patient-reference", "reference-secret", null, null, null, null, null);
@@ -61,17 +64,17 @@ public class VerifyServiceContracts {
     when(assignments.grants()).thenReturn(Map.of(
         UUID.randomUUID(), new ScopeAssignmentPort.Grant(machineSubject, Set.of("APPOINTMENT_PROFILE_READ"), Set.of(), true, true, now.minusSeconds(60), now.plusSeconds(600), null, null, null),
         UUID.randomUUID(), new ScopeAssignmentPort.Grant(staffSubject.toString(), Set.of("APPOINTMENT_SEARCH", "APPOINTMENT_CANCEL"), Set.of(patient), false, true, now.minusSeconds(60), now.plusSeconds(600), null, null, null)));
-    var scope = new ScopeAuthorityService(users, assignments, clock);
+    var scope = new ScopeAuthorityService(users, assignments, clock, mock(DoctorPatientAssignmentPort.class));
     var patientQuery = ScopeQuery.create(ScopeQuery.Authority.ADMINISTRATIVE, ScopeQuery.Operation.APPOINTMENT_PROFILE_READ, machine, patient, null, null, now);
-    var authQuery = AuthHttpTransport.JSON.readValue(AuthHttpTransport.JSON.writeValueAsBytes(patientQuery.wire()), ScopeAuthorityService.Query.class);
-    var scopeWire = AuthHttpTransport.JSON.writeValueAsBytes(scope.evaluate(authQuery));
+    var authQuery = FeignJacksonSupport.JSON.readValue(FeignJacksonSupport.JSON.writeValueAsBytes(patientQuery.wire()), ScopeAuthorityService.Query.class);
+    var scopeWire = FeignJacksonSupport.JSON.writeValueAsBytes(scope.evaluate(authQuery));
     check(new ScopeDecisionDecoder(clock).decode(scopeWire, patientQuery, 1000).allowed(), "Auth scope provider -> Patient exact echo/evidence contract");
-    when(transport.post(any(), any(), any(), any(), any(), anyLong())).thenAnswer(invocation -> {
-      var query = AuthHttpTransport.JSON.readValue((String) invocation.getArgument(4), ScopeAuthorityService.Query.class);
-      return AuthHttpTransport.JSON.valueToTree(scope.evaluate(query));
+    when(scopeClient.evaluate(any(), any(), any())).thenAnswer(invocation -> {
+      var query = FeignJacksonSupport.JSON.readValue(FeignJacksonSupport.JSON.writeValueAsBytes(invocation.getArgument(1)), ScopeAuthorityService.Query.class);
+      return FeignJacksonSupport.read(FeignJacksonSupport.JSON.writeValueAsBytes(scope.evaluate(query)), com.fclinic.appointmentservice.infrastructure.client.auth.dto.ScopeDecisionDto.class);
     });
     var staff = new AppointmentActor(staffSubject.toString(), "USER", Set.of("ROLE_STAFF"), null, null, null, Long.MAX_VALUE);
-    var appointmentScopes = new AuthAppointmentScopeAdapter(transport, security, clock);
+    var appointmentScopes = new AuthAppointmentScopeAdapter(scopeClient, security, clock);
     check(appointmentScopes.patients(staff).equals(Set.of(patient)) && appointmentScopes.allowed(staff, "APPOINTMENT_CANCEL", patient), "Auth assignments -> Appointment scoped list and cancellation");
     check(!appointmentScopes.allowed(staff, "APPOINTMENT_CANCEL", UUID.randomUUID()), "Cross-patient STAFF action denied by actual Auth provider");
 
@@ -85,7 +88,7 @@ public class VerifyServiceContracts {
     var reference = new com.fclinic.appointmentservice.application.usecase.GetAppointmentReferenceService(repository, new AppointmentPolicy(appointmentScopes));
     var caller = new AppointmentActor("service:patient-service", "SERVICE", Set.of("SVC_APPOINTMENT_READ"), null, null, "patient-service", Long.MAX_VALUE);
     var controller = new com.fclinic.appointmentservice.api.controller.AppointmentController(null, null, null, null, null, null, null, reference);
-    byte[] referenceWire = AuthHttpTransport.JSON.writeValueAsBytes(controller.medicalReference(caller, appointmentId));
+    byte[] referenceWire = FeignJacksonSupport.JSON.writeValueAsBytes(controller.medicalReference(caller, appointmentId));
     var decodedReference = new com.fclinic.patientservice.infrastructure.adapter.reference.AppointmentReferenceDecoder().decode(200, referenceWire, appointmentId).orElseThrow();
     check(decodedReference.patientId().equals(patient) && decodedReference.doctorId().equals(doctor), "Appointment projection -> Patient UUID reference decoder");
     check(!new String(referenceWire, java.nio.charset.StandardCharsets.UTF_8).contains("Private reason"), "Clinical reference excludes visit reason");

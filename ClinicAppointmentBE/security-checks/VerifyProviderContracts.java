@@ -1,7 +1,9 @@
+import com.fclinic.appointmentservice.infrastructure.client.config.FeignJacksonSupport;
+import com.fclinic.appointmentservice.infrastructure.client.config.FeignHeaderGuards;
 import static org.mockito.Mockito.*;
 import com.fclinic.appointmentservice.config.*;
 import com.fclinic.appointmentservice.infrastructure.*;
-import com.fclinic.appointmentservice.infrastructure.adapter.HttpAppointmentReferenceAdapter;
+import com.fclinic.appointmentservice.infrastructure.adapter.FeignAppointmentReferenceAdapter;
 import com.fclinic.appointmentservice.infrastructure.security.*;
 import com.fclinic.authservice.api.controller.AppointmentRecipientController;
 import com.fclinic.authservice.application.service.AppointmentRecipientService;
@@ -57,7 +59,7 @@ public class VerifyProviderContracts {
           if(!"Bearer patient-only".equals(ex.getRequestHeaders().getFirst("Authorization"))){ex.sendResponseHeaders(401,-1);ex.close();return;}
           var profile=new com.fclinic.patientservice.api.dto.PatientResponse(patient,"PAT-"+patient,"Current Patient","+84900000001","patient@example.test",null,
               com.fclinic.patientservice.domain.model.ProfileData.Gender.UNKNOWN,null,com.fclinic.patientservice.domain.model.ProfileData.Status.ACTIVE,0,Instant.now(),Instant.now(),null,null);
-          byte[] bytes=AuthHttpTransport.JSON.writeValueAsBytes(com.fclinic.common.web.ApiResponse.success(profile));
+          byte[] bytes=FeignJacksonSupport.JSON.writeValueAsBytes(com.fclinic.common.web.ApiResponse.success(profile));
           ex.getResponseHeaders().set("Content-Type","application/json");ex.sendResponseHeaders(200,bytes.length);try(var out=ex.getResponseBody()){out.write(bytes);}return;
         }
         boolean recipients=path.equals(AppointmentRecipientController.PATH);
@@ -68,12 +70,13 @@ public class VerifyProviderContracts {
         byte[] bytes=response.getContentAsByteArray();ex.sendResponseHeaders(response.getStatus(),bytes.length);try(var out=ex.getResponseBody()){out.write(bytes);}
       } catch(Exception e){throw new java.io.IOException(e);}
     });server.start();
-    try(var http=new ProviderHttp();var client=HttpClient.newHttpClient()) {
+    try(var http=new com.fclinic.appointmentservice.security.FeignHarness();var client=HttpClient.newHttpClient()) {
       String url="http://127.0.0.1:"+server.getAddress().getPort();
       var settings=new AppointmentSettings(new MockEnvironment().withProperty("appointment.doctor-url",url).withProperty("appointment.patient-url",url)
           .withProperty("appointment.recipient-url",url+AppointmentRecipientController.PATH));
       var tokens=mock(PatientServiceTokenProvider.class);when(tokens.token(anyLong())).thenReturn("patient-only");
-      var adapter=new HttpAppointmentReferenceAdapter(http,settings,tokens,new ProviderCredentials("appointment","doctor-secret","recipient","recipient-secret"));
+      var credentials=new ProviderCredentials("appointment","doctor-secret","recipient","recipient-secret");
+      var adapter=new FeignAppointmentReferenceAdapter(http.patient(url),http.doctor(url,credentials),http.recipients(credentials),settings,tokens);
       check(adapter.doctor(doctor.getId(),Long.MAX_VALUE)!=null,"Protected Doctor profile -> Appointment decoder over TCP");
       var offers=adapter.offered(doctor.getId(),date,Long.MAX_VALUE);
       check(offers.size()==1&&offers.getFirst().id().equals(visible.getId())&&offers.getFirst().valid(),"Doctor published 60-minute offer -> Appointment over TCP");
@@ -82,7 +85,7 @@ public class VerifyProviderContracts {
       check(recipients.getFirst().userId()==null&&recipients.getFirst().email().equals("patient@example.test")&&recipients.get(1).userId().equals(account.getId()),
           "Auth account provider + Patient contact -> Appointment recipients over TCP");
       var response=client.send(HttpRequest.newBuilder(URI.create(url+"/internal/v1/doctors/"+doctor.getId()))
-          .header("Authorization",AuthHttpTransport.basic("patient","patient-secret")).GET().build(),HttpResponse.BodyHandlers.ofByteArray());
+          .header("Authorization",FeignHeaderGuards.basic("patient","patient-secret")).GET().build(),HttpResponse.BodyHandlers.ofByteArray());
       check(response.headers().firstValue("X-FClinic-Reference-Contract").orElse("").equals("patient-doctor-reference/2")
           &&new com.fclinic.patientservice.infrastructure.adapter.reference.DoctorReferenceDecoder().decode(response.statusCode(),response.body(),doctor.getId()).isPresent(),
           "Protected Doctor full projection -> Patient /2 decoder over TCP");

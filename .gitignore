@@ -64,6 +64,12 @@ redisdata/
 AGENTS.md
 CLAUDE.md
 
+# Keep Appointment Feign/security regression tests in source control.
+!ClinicAppointmentBE/services/appointment-service/src/test/
+ClinicAppointmentBE/services/appointment-service/src/test/*
+!ClinicAppointmentBE/services/appointment-service/src/test/java/
+!ClinicAppointmentBE/services/appointment-service/src/test/java/**
+
 # Keep reviewed Notification security/recipient regression tests in source control.
 !ClinicAppointmentBE/services/notification-service/src/test/
 !ClinicAppointmentBE/services/notification-service/src/test/**

@@ -1,69 +1,58 @@
 package com.fclinic.appointmentservice.infrastructure.security;
 
+import static com.fclinic.appointmentservice.infrastructure.client.config.FeignHeaderGuards.require;
+import static com.fclinic.appointmentservice.infrastructure.client.config.WireValues.id;
 import com.fclinic.appointmentservice.application.AppointmentActor;
 import com.fclinic.appointmentservice.application.port.out.AppointmentScopePort;
 import com.fclinic.appointmentservice.config.AppointmentSecuritySettings;
 import com.fclinic.appointmentservice.domain.AppointmentError;
-import com.fclinic.appointmentservice.domain.vo.BusinessId;
+import com.fclinic.appointmentservice.infrastructure.client.auth.AuthScopeClient;
+import com.fclinic.appointmentservice.infrastructure.client.auth.dto.ScopeQueryDto;
+import com.fclinic.appointmentservice.infrastructure.client.config.FeignCalls;
 import java.time.*;
 import java.util.*;
 import org.springframework.stereotype.Component;
-import tools.jackson.databind.JsonNode;
 
 @Component
 public class AuthAppointmentScopeAdapter implements AppointmentScopePort {
-  private final AuthHttpTransport http;
+  private final AuthScopeClient client;
   private final AppointmentSecuritySettings settings;
   private final Clock clock;
-  public AuthAppointmentScopeAdapter(AuthHttpTransport http, AppointmentSecuritySettings settings, Clock clock) {
-    this.http = http; this.settings = settings; this.clock = clock;
+  public AuthAppointmentScopeAdapter(AuthScopeClient client, AppointmentSecuritySettings settings, Clock clock) {
+    this.client = client; this.settings = settings; this.clock = clock;
   }
-  public boolean allowed(AppointmentActor actor, String operation, UUID patientId) {
-    return evaluate(actor, operation, patientId).allowed();
-  }
+  public boolean allowed(AppointmentActor actor, String operation, UUID patientId) { return evaluate(actor, operation, patientId).allowed(); }
   public Set<UUID> patients(AppointmentActor actor) {
     var decision = evaluate(actor, "APPOINTMENT_SEARCH", null);
     if (!decision.allowed()) throw new AppointmentError(403, "FORBIDDEN", "Chưa được cấp phạm vi tra cứu lịch hẹn.");
     return decision.patients();
   }
-  private record Decision(boolean allowed, Set<UUID> patients) { }
+  private record Decision(boolean allowed, Set<UUID> patients) {}
+  private static String nullable(UUID value) { return value == null ? null : value.toString(); }
   private Decision evaluate(AppointmentActor actor, String operation, UUID patientId) {
-    Map<String, Object> who = new LinkedHashMap<>();
-    who.put("subject", actor.subject()); who.put("principalType", actor.principalType());
-    who.put("patientId", actor.patientId()); who.put("doctorId", actor.doctorId()); who.put("serviceName", null);
-    Map<String, Object> query = new LinkedHashMap<>();
     Instant requested = clock.instant();
-    query.put("contractVersion", "appointment-work-scope/1"); query.put("nonce", UUID.randomUUID());
-    query.put("requestedAt", requested); query.put("authority", "ADMINISTRATIVE"); query.put("operation", operation);
-    query.put("caller", who); query.put("patientId", patientId); query.put("appointmentId", null); query.put("visitDate", null);
-    try {
-      String body = AuthHttpTransport.JSON.writeValueAsString(query);
-      JsonNode n = http.post(settings.scopeUri(), settings.scopeClientId(), settings.scopeClientSecret(),
-          "application/json", body, actor.deadlineNanos());
-      require(n.propertyNames().equals(Set.of("contractVersion", "request", "evaluatedAt", "allowed", "patientIds", "evidence"))
-          && "appointment-work-scope/1".equals(n.path("contractVersion").asText())
-          && n.path("request").equals(AuthHttpTransport.JSON.readTree(body)) && n.path("allowed").isBoolean());
-      Instant now = clock.instant(), evaluated = Instant.parse(n.path("evaluatedAt").asText());
+    var who = new ScopeQueryDto.Caller(actor.subject(), actor.principalType(), nullable(actor.patientId()), nullable(actor.doctorId()), null);
+    var query = new ScopeQueryDto("appointment-work-scope/1", UUID.randomUUID().toString(), requested.toString(),
+        "ADMINISTRATIVE", operation, who, nullable(patientId), null, null);
+    return FeignCalls.call(() -> {
+      var n = client.evaluate(settings.scopeUri(), query, FeignCalls.options(actor.deadlineNanos()));
+      require(n != null && "appointment-work-scope/1".equals(n.contractVersion()) && query.equals(n.request()) && n.allowed() != null);
+      Instant now = clock.instant(), evaluated = Instant.parse(n.evaluatedAt());
       require(!evaluated.isBefore(requested.minusSeconds(1)) && !evaluated.isAfter(now.plusSeconds(1)));
-      if (!n.path("allowed").asBoolean()) {
-        require(n.path("patientIds").isNull() && n.path("evidence").isNull());
+      if (!n.allowed()) {
+        require(n.patientIds() == null && n.evidence() == null);
         return new Decision(false, Set.of());
       }
-      var proof = n.path("evidence");
-      require(proof.isObject() && proof.propertyNames().equals(Set.of("assignmentId", "active", "validFrom", "validUntil", "visitId"))
-          && proof.path("active").isBoolean() && proof.path("visitId").isNull());
-      BusinessId.parse(proof.path("assignmentId").asText());
-      Instant from = Instant.parse(proof.path("validFrom").asText()), until = Instant.parse(proof.path("validUntil").asText());
-      require(from.isBefore(until));
+      var proof = n.evidence(); require(proof != null && proof.active() != null && proof.visitId() == null);
+      id(proof.assignmentId());
+      Instant from = Instant.parse(proof.validFrom()), until = Instant.parse(proof.validUntil()); require(from.isBefore(until));
       Set<UUID> ids = new HashSet<>();
       if (operation.equals("APPOINTMENT_SEARCH")) {
-        require(n.path("patientIds").isArray() && n.path("patientIds").size() <= 1000);
-        for (var id : n.path("patientIds")) require(ids.add(BusinessId.parse(id.asText())));
-      } else require(n.path("patientIds").isNull());
-      boolean current = proof.path("active").asBoolean() && !now.isBefore(from) && now.isBefore(until);
+        require(n.patientIds() != null && n.patientIds().size() <= 1000);
+        for (var value : n.patientIds()) require(ids.add(id(value)));
+      } else require(n.patientIds() == null);
+      boolean current = proof.active() && !now.isBefore(from) && now.isBefore(until);
       return new Decision(current, current ? Set.copyOf(ids) : Set.of());
-    } catch (AppointmentError e) { if (e.status() == 400) throw AppointmentError.unavailable(); throw e; }
-    catch (RuntimeException e) { throw AppointmentError.unavailable(); }
+    });
   }
-  private static void require(boolean ok) { if (!ok) throw AppointmentError.unavailable(); }
 }

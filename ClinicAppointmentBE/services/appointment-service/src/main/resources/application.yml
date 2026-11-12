@@ -1,6 +1,14 @@
 server:
   port: ${APPOINTMENT_SERVICE_PORT:8083}
 spring:
+  cloud:
+    openfeign:
+      client:
+        config:
+          default:
+            connectTimeout: 1000
+            readTimeout: 2000
+            loggerLevel: none
   config:
     import: "optional:file:.env[.properties],optional:file:../../.env[.properties],optional:file:ClinicAppointmentBE/.env[.properties]"
   application:

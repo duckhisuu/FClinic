@@ -2,7 +2,8 @@ package com.fclinic.appointmentservice.security;
 
 import static com.fclinic.appointmentservice.security.SecurityFixtures.*;
 import static org.assertj.core.api.Assertions.*;
-import com.fclinic.appointmentservice.infrastructure.security.AuthHttpTransport;
+import com.fclinic.appointmentservice.infrastructure.client.config.FeignJacksonSupport;
+import com.fclinic.appointmentservice.infrastructure.client.config.FeignHeaderGuards;
 import com.sun.net.httpserver.*;
 import io.zonky.test.db.postgres.embedded.EmbeddedPostgres;
 import java.net.*;
@@ -65,10 +66,10 @@ class AppointmentSecurityTcpTest {
     if (token != null) builder.header("Authorization", token.startsWith("Basic ") ? token : "Bearer " + token);
     if (key != null) builder.header("Idempotency-Key", key.toString());
     builder.header("Content-Type", "application/json").method(method, body == null ? HttpRequest.BodyPublishers.noBody()
-        : HttpRequest.BodyPublishers.ofString(AuthHttpTransport.JSON.writeValueAsString(body)));
+        : HttpRequest.BodyPublishers.ofString(FeignJacksonSupport.JSON.writeValueAsString(body)));
     return HTTP.send(builder.build(), HttpResponse.BodyHandlers.ofString());
   }
-  JsonNode data(HttpResponse<String> response) { return AuthHttpTransport.JSON.readTree(response.body()).path("data"); }
+  JsonNode data(HttpResponse<String> response) { return FeignJacksonSupport.JSON.readTree(response.body()).path("data"); }
   HttpResponse<String> book(String token, UUID patient) throws Exception {
     return book(token, patient, SLOT);
   }
@@ -153,7 +154,7 @@ class AppointmentSecurityTcpTest {
   @Test void authenticatedMachineProjectionIsMinimalAndCannotCancel() throws Exception {
     var booked = book("alice", PATIENT); assertThat(booked.statusCode()).isEqualTo(201);
     String id = data(booked).path("id").asText();
-    String basic = AuthHttpTransport.basic("patient-reference", "patient-secret");
+    String basic = FeignHeaderGuards.basic("patient-reference", "patient-secret");
     var reference = request("GET", "/" + id + "/medical-reference", basic, null, null);
     assertThat(reference.statusCode()).isEqualTo(200); assertThat(data(reference).size()).isEqualTo(4);
     assertThat(reference.headers().firstValue("X-FClinic-Reference-Contract")).contains("patient-appointment-medical-reference/2");
@@ -181,7 +182,7 @@ class AppointmentSecurityTcpTest {
     String path = ex.getRequestURI().getPath();
     if (path.equals("/introspect")) {
       if (AUTH_DOWN.get()) { respond(ex, 503, Map.of()); return; }
-      if (!AuthHttpTransport.basic("identity-client", "identity-secret").equals(ex.getRequestHeaders().getFirst("Authorization"))) { respond(ex, 401, Map.of()); return; }
+      if (!FeignHeaderGuards.basic("identity-client", "identity-secret").equals(ex.getRequestHeaders().getFirst("Authorization"))) { respond(ex, 401, Map.of()); return; }
       String form = new String(ex.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
       String token = URLDecoder.decode(form.split("&")[0].substring(6), StandardCharsets.UTF_8);
       if (!Set.of("alice", "bob", "staff").contains(token)) { respond(ex, 200, Map.of("active", false)); return; }
@@ -193,8 +194,8 @@ class AppointmentSecurityTcpTest {
       wire.put("authorities", List.of(token.equals("staff") ? "ROLE_STAFF" : "ROLE_PATIENT")); respond(ex, 200, wire); return;
     }
     if (path.equals("/scope")) {
-      if (!AuthHttpTransport.basic("scope-client", "scope-secret").equals(ex.getRequestHeaders().getFirst("Authorization"))) { respond(ex, 401, Map.of()); return; }
-      var q = AuthHttpTransport.JSON.readTree(ex.getRequestBody().readAllBytes());
+      if (!FeignHeaderGuards.basic("scope-client", "scope-secret").equals(ex.getRequestHeaders().getFirst("Authorization"))) { respond(ex, 401, Map.of()); return; }
+      var q = FeignJacksonSupport.JSON.readTree(ex.getRequestBody().readAllBytes());
       Map<String,Object> result = new LinkedHashMap<>(); result.put("contractVersion", "appointment-work-scope/1"); result.put("request", q);
       result.put("evaluatedAt", CLOCK.instant()); result.put("allowed", STAFF_ALLOWED.get());
       result.put("patientIds", STAFF_ALLOWED.get() && q.path("operation").asText().equals("APPOINTMENT_SEARCH") ? List.of(PATIENT) : null);
@@ -204,7 +205,7 @@ class AppointmentSecurityTcpTest {
     }
     if (path.startsWith("/internal/v1/doctors/")) {
       ex.getResponseHeaders().set("X-FClinic-Reference-Contract", "appointment-doctor-reference/1");
-      if (!AuthHttpTransport.basic("doctor-reference", "doctor-secret").equals(ex.getRequestHeaders().getFirst("Authorization"))) { respond(ex, 401, Map.of()); return; }
+      if (!FeignHeaderGuards.basic("doctor-reference", "doctor-secret").equals(ex.getRequestHeaders().getFirst("Authorization"))) { respond(ex, 401, Map.of()); return; }
     } else if (!"Bearer machine-token".equals(ex.getRequestHeaders().getFirst("Authorization"))) { respond(ex, 401, Map.of()); return; }
     Map<String,Object> d = new LinkedHashMap<>();
     if (path.startsWith("/api/v3/patients/")) {
@@ -222,7 +223,7 @@ class AppointmentSecurityTcpTest {
     respond(ex, 200, Map.of("status", 200, "message", "Synthetic provider", "data", d));
   }
   static void respond(HttpExchange ex, int status, Object body) throws java.io.IOException {
-    byte[] bytes = AuthHttpTransport.JSON.writeValueAsBytes(body); ex.getResponseHeaders().set("Content-Type", "application/json");
+    byte[] bytes = FeignJacksonSupport.JSON.writeValueAsBytes(body); ex.getResponseHeaders().set("Content-Type", "application/json");
     ex.sendResponseHeaders(status, bytes.length); try (var stream = ex.getResponseBody()) { stream.write(bytes); }
   }
 }

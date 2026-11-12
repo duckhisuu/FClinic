@@ -6,7 +6,7 @@ import com.fclinic.appointmentservice.application.result.*;
 import com.fclinic.appointmentservice.domain.AppointmentError;
 import com.fclinic.appointmentservice.domain.aggregate.Appointment;
 import com.fclinic.appointmentservice.domain.model.AppointmentStatus;
-import com.fclinic.appointmentservice.domain.vo.BookingCode;
+import com.fclinic.appointmentservice.infrastructure.persistence.mapper.AppointmentPersistenceMapper;
 import com.fclinic.appointmentservice.infrastructure.entity.JpaAppointmentEntity;
 import com.fclinic.appointmentservice.infrastructure.persistence.SpringDataJpaAppointmentRepository;
 import jakarta.persistence.criteria.Predicate;
@@ -19,7 +19,10 @@ import org.springframework.stereotype.Component;
 public class JpaAppointmentRepositoryAdapter implements AppointmentRepositoryPort {
   private final SpringDataJpaAppointmentRepository repository;
 
-  public JpaAppointmentRepositoryAdapter(SpringDataJpaAppointmentRepository repository) {
+  private final AppointmentPersistenceMapper mapper;
+
+  public JpaAppointmentRepositoryAdapter(SpringDataJpaAppointmentRepository repository, AppointmentPersistenceMapper mapper) {
+    this.mapper = mapper;
     this.repository = repository;
   }
 
@@ -36,32 +39,18 @@ public class JpaAppointmentRepositoryAdapter implements AppointmentRepositoryPor
         throw AppointmentError.conflict(
             "VERSION_CONFLICT", "Lịch hẹn đã thay đổi. Vui lòng tải lại.");
     }
-    entity.setBookingCode(domain.getBookingCode().value());
-    entity.setPatientId(domain.getPatientId());
-    entity.setPatientName(domain.getPatientName());
-    entity.setPatientPhone(domain.getPatientPhone());
-    entity.setDoctorId(domain.getDoctorId());
-    entity.setDoctorName(domain.getDoctorName());
-    entity.setDoctorSpecialty(domain.getDoctorSpecialty());
-    entity.setSlotId(domain.getSlotId());
-    entity.setAppointmentDate(domain.getAppointmentDate());
-    entity.setStartTime(domain.getStartTime());
-    entity.setEndTime(domain.getEndTime());
-    entity.setReasonForVisit(domain.getReasonForVisit());
-    entity.setConsultationFee(domain.getConsultationFee());
-    entity.setStatus(domain.getStatus());
-    entity.setUpdatedAt(domain.getUpdatedAt());
-    return toDomain(repository.saveAndFlush(entity));
+    mapper.updateEntity(domain, entity);
+    return mapper.toDomain(repository.saveAndFlush(entity));
   }
 
   @Override
   public Optional<Appointment> findById(UUID id) {
-    return repository.findById(id).map(this::toDomain);
+    return repository.findById(id).map(mapper::toDomain);
   }
 
   @Override
   public Optional<Appointment> findByIdForUpdate(UUID id) {
-    return repository.findLockedById(id).map(this::toDomain);
+    return repository.findLockedById(id).map(mapper::toDomain);
   }
 
   @Override
@@ -94,32 +83,11 @@ public class JpaAppointmentRepositoryAdapter implements AppointmentRepositoryPor
                 q.size(),
                 Sort.by(Sort.Direction.DESC, "appointmentDate", "startTime", "id")));
     return new AppointmentPageView(
-        page.getContent().stream().map(this::toDomain).map(AppointmentView::from).toList(),
+        page.getContent().stream().map(mapper::toDomain).map(AppointmentView::from).toList(),
         q.page(),
         q.size(),
         page.getTotalElements(),
         page.getTotalPages());
   }
 
-  private Appointment toDomain(JpaAppointmentEntity e) {
-    return new Appointment(
-        e.getId(),
-        BookingCode.of(e.getBookingCode()),
-        e.getPatientId(),
-        e.getPatientName(),
-        e.getPatientPhone(),
-        e.getDoctorId(),
-        e.getDoctorName(),
-        e.getDoctorSpecialty(),
-        e.getSlotId(),
-        e.getAppointmentDate(),
-        e.getStartTime(),
-        e.getEndTime(),
-        e.getReasonForVisit(),
-        e.getConsultationFee(),
-        e.getStatus(),
-        e.getVersion(),
-        e.getCreatedAt(),
-        e.getUpdatedAt());
-  }
 }

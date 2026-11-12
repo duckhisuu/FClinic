@@ -6,6 +6,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
 @SpringBootApplication(scanBasePackages = {"com.fclinic.appointmentservice", "com.fclinic.common"})
 @EnableDiscoveryClient
+@org.springframework.cloud.openfeign.EnableFeignClients(basePackages = "com.fclinic.appointmentservice.infrastructure.client")
 public class AppointmentServiceApplication {
 
   public static void main(String[] args) {

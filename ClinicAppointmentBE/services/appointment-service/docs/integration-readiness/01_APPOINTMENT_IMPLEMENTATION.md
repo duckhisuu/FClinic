@@ -24,7 +24,7 @@ Flyway V1 tạo appointments, appointment_history, operation_results, outbox_eve
 
 ## Source để đọc
 
-Bắt đầu ở [mapping use case](08_USE_CASE_ARCHITECTURE.md). Business booking giữ file application/usecase/AppointmentApplicationService.java, các use case khác tách riêng trong cùng package. Aggregate ở domain/aggregate/Appointment.java. JPA persistence ở infrastructure/adapter/JpaAppointmentRepositoryAdapter.java; history, operation result và lease SQL ở các adapter JDBC chuyên biệt. HTTP providers ở HttpAppointmentReferenceAdapter; publish/reminder đi qua input/output ports và OutboxRelayJob. API giữ api/controller, api/dto, api/exception. React giữ ClinicAppointmentFE/src/appointment.
+Bắt đầu ở [mapping use case](08_USE_CASE_ARCHITECTURE.md). Business booking giữ file application/usecase/AppointmentApplicationService.java, các use case khác tách riêng trong cùng package. Aggregate ở domain/aggregate/Appointment.java. JPA persistence ở infrastructure/adapter/JpaAppointmentRepositoryAdapter.java; history, operation result và lease SQL ở các adapter JDBC chuyên biệt. HTTP providers ở FeignAppointmentReferenceAdapter qua các client trong infrastructure/client/; publish/reminder đi qua input/output ports và OutboxRelayJob. API giữ api/controller, api/dto, api/exception. React giữ ClinicAppointmentFE/src/appointment.
 
 
 Các query patientId/doctorId là bộ lọc nghiệp vụ, không phải authorization. History hiện ghi SYSTEM kèm subject nếu container có Principal; không dựng ROLE_PATIENT/STAFF từ header hoặc số điện thoại. Security không được triển khai thêm trong thay đổi này.

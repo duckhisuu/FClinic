@@ -1,5 +1,7 @@
 # 08 — Cấu trúc use case giữ theo bản pull
 
+**Cập nhật 12/11/2026:** HTTP reference adapter hiện là `FeignAppointmentReferenceAdapter`, gọi các `@FeignClient` tại `infrastructure/client/`. Auth identity/scope và token machine cũng dùng client riêng. `JpaAppointmentRepositoryAdapter` inject `infrastructure/persistence/mapper/AppointmentPersistenceMapper`. Các output port, use case và domain tiếp tục giữ ranh giới bên dưới; [kế hoạch migration](../FEIGN_CLEAN_ARCHITECTURE_MIGRATION_PLAN.md) ghi chi tiết thay đổi transport.
+
 Giữ đủ **37 file Java gốc** và package/controller/command/port/domain/JPA adapter của bản pull. [Danh sách file gốc và base commit](contracts/preserved-appointment-source-paths.json). Nội dung/type được cập nhật theo Report; không phục hồi logic cũ nhận client snapshots, Patient Long, seed30phút hoặc cancellation không version.
 
 ## Luồng dependency

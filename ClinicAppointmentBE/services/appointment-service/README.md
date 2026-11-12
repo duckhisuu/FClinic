@@ -1,5 +1,7 @@
 # Appointment v2
 
+**12/11/2026 — OpenFeign:** các outbound call dùng sáu client riêng trong `infrastructure/client/`; `FeignAppointmentReferenceAdapter` giữ các output port và `AppointmentPersistenceMapper` tách mapping JPA. Xem [kế hoạch và kết quả migration](docs/FEIGN_CLEAN_ARCHITECTURE_MIGRATION_PLAN.md). Xác thực Auth, credential, endpoint và biến cấu hình hiện hành tiếp tục được sử dụng.
+
 **Cập nhật sau merge main 02/11/2026:** Appointment gọi Patient v3, dùng UUIDv4 cho business ID và giữ reference header `/2`. Xem [contract/migration](docs/uuid/README.md) và [Docker riêng Appointment](docs/uuid/DOCKER.md). Security liên service được cập nhật ngày 09/11/2026; xem hướng dẫn tích hợp bên dưới. Các kiểu ID số trong tài liệu/report lịch sử bên dưới được thay bằng contract UUIDv4 hiện hành.
 
 Phạm vi: nghiệp vụ Appointment BE và giao diện React trong `ClinicAppointmentFE/src/appointment`. Report được giữ nguyên và dùng làm chuẩn cho nghiệp vụ. Security, Patient reference và Gateway được cập nhật trong đợt tích hợp 09/11/2026. Hướng dẫn bàn giao đầy đủ: [docs/README.md](docs/README.md).

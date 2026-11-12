@@ -1,5 +1,7 @@
 # Appointment — tài liệu bàn giao
 
+**12/11/2026:** outbound HTTP chuyển sang OpenFeign và persistence mapping được tách riêng. Xem [migration Clean Architecture/OpenFeign](FEIGN_CLEAN_ARCHITECTURE_MIGRATION_PLAN.md) cho cấu trúc, invariant và kiểm chứng hiện hành.
+
 **09/11/2026:** xem [security integration hiện hành](integration-readiness/09_SECURITY_INTEGRATION.md) cho Auth introspection, ownership/scope, credential Patient và Gateway v2. Các mô tả chưa triển khai security dưới đây là lịch sử bàn giao.
 
 **Contract hiện hành: [UUIDv4 và Patient v3 trong Appointment](uuid/README.md); [chạy Docker](uuid/DOCKER.md).** Các service khác/shared config không được sửa; tài liệu/report có ID số dưới đây là nguồn lịch sử để đối chiếu nghiệp vụ.
