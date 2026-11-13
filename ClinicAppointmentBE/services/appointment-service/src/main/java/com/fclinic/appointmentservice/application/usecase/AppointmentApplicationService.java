@@ -85,6 +85,7 @@ public class AppointmentApplicationService implements BookAppointmentUseCase {
                 Instant now = clock.instant();
                 history.record(
                     saved, null, "CREATED", null, command.actor().subject(), command.actor().auditRole(), now);
+                // outbox must commit atomically with the appointment
                 events.publish(
                     new AppointmentBookedDomainEvent(
                         UUID.randomUUID(), now, AppointmentEventSnapshot.from(saved)));
